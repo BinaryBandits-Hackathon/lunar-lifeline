@@ -165,8 +165,8 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 
 /* title */
 /* title: a turning Mars in deep space, with a small clean mission panel */
+.title-screen, .crew-screen { --t-blue: #8fd0ff; --t-gold: #f5c04a; --t-line: rgba(120, 180, 255, 0.28); }
 .title-screen {
-  --t-blue: #8fd0ff; --t-gold: #f5c04a; --t-line: rgba(120, 180, 255, 0.28);
   max-width: none; min-height: 100vh; padding: 0; overflow: hidden;
   display: flex; flex-direction: row; align-items: center; justify-content: flex-end;
   background: #050811;
@@ -288,6 +288,77 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 .title-start { font-size: 30px; color: var(--t-gold); text-shadow: 0 0 18px rgba(245, 192, 74, 0.35); }
 .title-start:hover { color: #ffe08a; }
 .title-pip strong { color: var(--ink); }
+.title-link:disabled { color: #4c5872; text-shadow: none; cursor: not-allowed; }
+
+/* crew badge: Mars in full with a crew marker, same panel language as the title */
+.crew-screen {
+  --S: min(74vh, 46vw); /* planet size */
+  --PX: 5vw;            /* planet left edge */
+  max-width: none; padding: 0; min-height: calc(100vh - 58px); overflow: hidden;
+  display: flex; flex-direction: row; align-items: center; justify-content: flex-end;
+  background: #050811;
+}
+.mars-full { left: var(--PX); transform: translateY(-50%); width: var(--S); box-shadow: 0 0 80px rgba(255, 120, 60, 0.18); }
+.mars-full .mars-shade {
+  background:
+    radial-gradient(circle at 74% 26%, rgba(255, 236, 210, 0.3), transparent 32%),
+    linear-gradient(225deg, transparent 30%, rgba(2, 3, 8, 0.5) 52%, rgba(2, 3, 8, 0.88) 72%, rgba(2, 3, 8, 0.97) 90%);
+  box-shadow: inset -6px 6px 24px rgba(255, 200, 150, 0.35), inset 30px -30px 90px rgba(0, 0, 0, 0.8);
+}
+.mars-full .mars-surface::after { opacity: 0.45; }
+.mars-flare {
+  position: absolute;
+  left: calc(var(--PX) + var(--S) * 0.86); top: calc(50% - var(--S) * 0.36);
+  width: calc(var(--S) * 0.5); aspect-ratio: 1; transform: translate(-50%, -50%);
+  background:
+    radial-gradient(circle, rgba(255, 255, 245, 0.95) 0 4%, rgba(255, 230, 170, 0.55) 10%, rgba(255, 170, 80, 0.18) 32%, transparent 62%);
+  mix-blend-mode: screen;
+}
+.crew-marker {
+  position: absolute; z-index: 1;
+  left: calc(var(--PX) + var(--S) * 0.44); top: calc(50% - var(--S) * 0.1);
+  transform: translate(-50%, -50%);
+  display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; pointer-events: none;
+}
+.crew-marker-hex {
+  width: 52px; height: 46px; display: grid; place-items: center; margin-bottom: 6px;
+  color: #ffe3b0; background: rgba(40, 18, 8, 0.55);
+  clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%);
+  filter: drop-shadow(0 0 8px rgba(255, 180, 90, 0.5));
+}
+.crew-marker strong { font-family: var(--display); font-size: 30px; font-weight: 500; line-height: 1; color: #ffb347; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6); max-width: 260px; overflow-wrap: anywhere; }
+.crew-marker span:last-child { font-family: var(--display); font-size: 19px; color: #fff4e8; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7); }
+
+.crew-panel {
+  position: relative; z-index: 1;
+  width: min(400px, calc(100% - 32px)); margin: 32px clamp(16px, 5vw, 80px) 32px 16px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.crew-title { font-size: 40px; font-weight: 500; letter-spacing: 0.02em; text-transform: none; text-align: right; color: #ffb347; }
+.crew-sub { margin-top: -8px; text-align: right; font-family: var(--display); font-size: 17px; color: #f3f6ff; }
+.crew-head { font-size: 21px; font-weight: 500; text-align: right; color: var(--t-blue); letter-spacing: 0.04em; }
+.crew-names { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px 14px; }
+.crew-names button { background: none; border: 0; padding: 2px 0; cursor: pointer; font-family: var(--display); font-size: 18px; color: #8b9ab8; }
+.crew-names button:hover { color: #f3f6ff; }
+.crew-names button[aria-pressed="true"] { color: #f3f6ff; box-shadow: inset 0 -2px 0 var(--t-gold); }
+.crew-input {
+  width: 100%; padding: 8px 2px; background: transparent; border: 0; border-bottom: 1px solid var(--t-line);
+  font-family: var(--display); font-size: 18px; color: #f3f6ff; text-align: right;
+}
+.crew-input::placeholder { color: #5d6b88; }
+.crew-input:focus { outline: none; border-bottom-color: var(--t-gold); }
+.crew-roles { display: flex; flex-direction: column; gap: 4px; }
+.crew-role {
+  display: flex; align-items: center; gap: 12px; width: 100%; padding: 8px 10px;
+  background: none; border: 1px solid transparent; border-radius: 4px; cursor: pointer; text-align: left; color: #8b9ab8;
+}
+.crew-role:hover { border-color: var(--t-line); color: #f3f6ff; }
+.crew-role[aria-pressed="true"] { border-color: rgba(245, 192, 74, 0.6); background: rgba(245, 192, 74, 0.07); color: var(--t-gold); }
+.crew-role-text { display: flex; flex-direction: column; min-width: 0; }
+.crew-role-text strong { font-family: var(--display); font-size: 20px; font-weight: 500; line-height: 1.1; color: #f3f6ff; }
+.crew-role-text span { font-size: 14px; color: #a9bde0; }
+.crew-fact { font-size: 14px; color: #a9bde0; border-left: 2px solid var(--t-gold); padding-left: 10px; }
+.crew-hint { margin-right: auto; font-size: 14px; color: #6b7a96; }
 .field { display: flex; flex-direction: column; gap: 8px; }
 .settings { margin: 0; border: 0; border-top: 1px solid var(--line); padding: 14px 24px 18px; display: flex; flex-wrap: wrap; gap: 10px 22px; }
 .settings legend { float: left; width: 100%; margin-bottom: 4px; }
@@ -1145,6 +1216,11 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
   .title-mars { width: 120vw; left: 50%; top: 0; transform: translate(-50%, -55%); }
   .title-panel { margin: 0 16px 24px; padding: 16px; background: rgba(5, 8, 17, 0.72); border: 1px solid var(--t-line); border-radius: 6px; }
   .title-name { font-size: 38px; }
+  .crew-screen { --S: 110vw; --PX: -5vw; flex-direction: column; justify-content: flex-start; padding-top: 52vw; }
+  .mars-full { top: -10vw; transform: none; }
+  .mars-flare { top: calc(-10vw + var(--S) * 0.14); }
+  .crew-marker { top: 30vw; }
+  .crew-panel { margin: 0 16px 24px; padding: 16px; background: rgba(5, 8, 17, 0.78); border: 1px solid var(--t-line); border-radius: 6px; }
   .dialogue { grid-template-columns: auto minmax(0, 1fr); }
   .dialogue-actions { grid-column: 1 / -1; }
   .dialogue-actions .btn-primary { flex: 1; }
