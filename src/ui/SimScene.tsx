@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { CAPS, CROPS } from "../sim/rules";
 import type { CropId, Phase, Resources, SimState, TaskId } from "../sim/types";
 import { isUnlocked } from "../sim/unlocks";
@@ -14,18 +15,90 @@ const IN_WINDOWS: TaskId[] = ["research", "exercise", "rest", "shelter"];
 
 const frac = (v: number, max: number) => Math.max(0, Math.min(1, v / max));
 
-/** A suited astronaut, about 46 units tall, standing at (x, y). */
-function Suit({ x, y, player, flip }: { x: number; y: number; player: boolean; flip?: boolean }) {
+// ---------- 2.5D: depth and sun-cast shadows ----------
+// The scene stays flat 2D, but objects lower on screen are "closer": they
+// draw larger, and every object throws a shadow away from the sun whose
+// length depends on how high the sun is.
+
+const GROUND_TOP = 300;
+const GROUND_BOTTOM = 670;
+/** Size multiplier for something standing at screen height y. */
+const depthScale = (y: number) => 0.75 + 0.55 * Math.max(0, Math.min(1, (y - GROUND_TOP) / (GROUND_BOTTOM - GROUND_TOP)));
+
+interface Light { dir: number; len: number }
+function sunLight(phase: Phase): Light {
+  switch (phase) {
+    case "morning": return { dir: 1, len: 1.25 };
+    case "day": return { dir: -0.2, len: 0.35 };
+    case "evening": return { dir: -1, len: 1.25 };
+    default: return { dir: 0, len: 0.2 };
+  }
+}
+
+/** Long shadow a box of footprint width w and height h throws on the ground. */
+function CastShadow({ x, y, w, h, light }: { x: number; y: number; w: number; h: number; light: Light }) {
+  const reach = h * light.len;
+  const dx = reach * light.dir;
+  const dy = reach * 0.16;
+  const x0 = x - w / 2;
+  const x1 = x + w / 2;
+  return <path d={`M${x0} ${y} L${x1} ${y} L${x1 + dx} ${y - dy} L${x0 + dx} ${y - dy} Z`} className="cast-shadow" />;
+}
+
+/** The landed rocket, base at (x, y), with a scorch mark and a ramp. */
+function Lander({ x, y }: { x: number; y: number }) {
   return (
-    <g transform={`translate(${x} ${y}) scale(${flip ? -1 : 1} 1)`} className="suit">
+    <g className="base-rocket">
+      <ellipse cx={x} cy={y - 2} rx="96" ry="24" fill="url(#scorch)" />
+      <line x1={x - 22} y1={y - 48} x2={x - 40} y2={y - 2} className="lander-leg" />
+      <line x1={x + 22} y1={y - 48} x2={x + 40} y2={y - 2} className="lander-leg" />
+      <ellipse cx={x - 40} cy={y} rx="7" ry="2.5" className="lander-foot" />
+      <ellipse cx={x + 40} cy={y} rx="7" ry="2.5" className="lander-foot" />
+      <path d={`M${x - 28} ${y - 40} L${x - 42} ${y - 18} L${x - 28} ${y - 22} Z M${x + 28} ${y - 40} L${x + 42} ${y - 18} L${x + 28} ${y - 22} Z`} className="lander-fin" />
+      <path
+        d={`M${x - 28} ${y - 22} L${x - 28} ${y - 100} Q${x - 28} ${y - 150} ${x} ${y - 168} Q${x + 28} ${y - 150} ${x + 28} ${y - 100} L${x + 28} ${y - 22} Q${x} ${y - 14} ${x - 28} ${y - 22} Z`}
+        fill="url(#metal)"
+        className="lander-body"
+      />
+      <path d={`M${x - 14} ${y - 140} Q${x} ${y - 150} ${x + 14} ${y - 140}`} className="lander-windows" />
+      <circle cx={x} cy={y - 104} r="10" className="lander-badge" />
+      <path d={`M${x - 5} ${y - 100} L${x} ${y - 110} L${x + 5} ${y - 100}`} className="lander-badge-mark" />
+      <rect x={x - 13} y={y - 78} width="26" height="24" rx="2" className="lander-door" />
+      <path d={`M${x - 11} ${y - 54} L${x + 11} ${y - 54} L${x + 32} ${y + 8} L${x + 12} ${y + 8} Z`} className="lander-ramp" />
+    </g>
+  );
+}
+
+const hexPoints = (cx: number, cy: number, s: number) =>
+  [[s, 0], [s / 2, s * 0.866], [-s / 2, s * 0.866], [-s, 0], [-s / 2, -s * 0.866], [s / 2, -s * 0.866]]
+    .map(([dx, dy]) => `${cx + dx},${cy + dy}`)
+    .join(" ");
+
+/** Spots for small ground lamps that glow in the evening and at night. */
+const LAMPS: [number, number][] = [[250, 528], [372, 512], [540, 512], [700, 506], [790, 570], [990, 572], [640, 630], [400, 650]];
+
+/** A suited astronaut, about 46 units tall, standing at (x, y). */
+function Suit({ x, y, player, flip, scale = 1, walking, light }: { x: number; y: number; player: boolean; flip?: boolean; scale?: number; walking?: boolean; light?: Light }) {
+  return (
+    <g transform={`translate(${x} ${y}) scale(${(flip ? -1 : 1) * scale} ${scale})`} className={`suit${walking ? " walking" : ""}`}>
+      {light && light.len > 0.25 && (
+        <ellipse cx={(flip ? -1 : 1) * light.dir * 46 * light.len * 0.5} cy={-2} rx={6 + 46 * light.len * 0.5} ry="3.5" className="cast-shadow" />
+      )}
       <ellipse cx="0" cy="1" rx="14" ry="3.5" className="shadow-soft" />
+      {player && <ellipse cx="0" cy="1" rx="22" ry="6.5" className="player-ring" />}
+      <g className="suit-figure">
       <rect x="-9" y="-30" width="9" height="20" rx="3" className="suit-pack" />
       <path d="M-6 -2 L-5 -14 L5 -14 L6 -2 Z" className="suit-legs" />
       <rect x="-8" y="-31" width="16" height="19" rx="6" className="suit-body" />
       <path d="M8 -27 Q15 -22 12 -15" className="suit-arm" />
       <circle cx="1" cy="-38" r="8.5" className="suit-helmet" />
       <path d="M-3 -42 A6 6 0 0 1 8.5 -37 L8.5 -34 A6 5 0 0 1 -3 -35 Z" className={`suit-visor${player ? " player" : ""}`} />
-      {player && <path d="M-3 -54 L1 -49 L5 -54 Z" className="player-mark" />}
+      </g>
+      {player && (
+        <g className="player-arrow">
+          <path d="M-7 -70 L1 -58 L9 -70 L1 -66 Z" className="player-mark" />
+        </g>
+      )}
     </g>
   );
 }
@@ -99,6 +172,110 @@ function Tank({ x, y, w, h, level, kind, label, value }: { x: number; y: number;
   );
 }
 
+// ---------- player control (W A S D) ----------
+const SPEED = 170; // scene units per second
+const MOVE_KEYS: Record<string, [number, number]> = { w: [0, -1], s: [0, 1], a: [-1, 0], d: [1, 0] };
+
+/** Moves a position around the ground while W/A/S/D are held. */
+/**
+ * Lets the player walk their astronaut around the base: hold W/A/S/D on a
+ * keyboard, or tap the ground on a touch screen. Until they first move, the
+ * astronaut stays at their job like the rest of the crew.
+ */
+function usePlayerControl(start: { x: number; y: number }) {
+  const [pos, setPos] = useState({ ...start, facingLeft: false, walking: false, moved: false });
+  const held = useRef(new Set<string>());
+  const tapped = useRef(new Set<string>());
+  const target = useRef<{ x: number; y: number } | null>(null);
+  const frame = useRef(0);
+  const last = useRef(0);
+
+  const step = useRef<(now: number) => void>(() => {});
+  step.current = (now: number) => {
+    const dt = last.current ? Math.min(0.05, (now - last.current) / 1000) : 1 / 60;
+    last.current = now;
+    let vx = 0;
+    let vy = 0;
+    // A quick tap is released before the first frame; still count it once.
+    const active = new Set([...held.current, ...tapped.current]);
+    tapped.current.clear();
+    active.forEach((k) => {
+      vx += MOVE_KEYS[k][0];
+      vy += MOVE_KEYS[k][1];
+    });
+    if (vx || vy) target.current = null;
+    setPos((p) => {
+      let dx = vx;
+      let dy = vy;
+      if (!dx && !dy && target.current) {
+        dx = target.current.x - p.x;
+        dy = (target.current.y - p.y) / 0.7;
+        if (Math.hypot(dx, dy) < 6) {
+          target.current = null;
+          dx = 0;
+          dy = 0;
+        }
+      }
+      const len = Math.hypot(dx, dy);
+      if (len === 0) {
+        frame.current = 0;
+        last.current = 0;
+        return p.walking ? { ...p, walking: false } : p;
+      }
+      // Moving "into" the scene (up) is slower: things far away cover less ground.
+      const s = (SPEED * depthScale(p.y) * dt) / len;
+      return {
+        x: Math.max(20, Math.min(1180, p.x + dx * s)),
+        y: Math.max(GROUND_TOP + 30, Math.min(GROUND_BOTTOM, p.y + dy * s * 0.7)),
+        facingLeft: dx < 0 ? true : dx > 0 ? false : p.facingLeft,
+        walking: true,
+        moved: true,
+      };
+    });
+  };
+
+  const kick = () => {
+    if (!frame.current) frame.current = requestAnimationFrame(function loop(now) {
+      step.current(now);
+      frame.current = frame.current ? requestAnimationFrame(loop) : 0;
+    });
+  };
+
+  useEffect(() => {
+    const typing = (t: EventTarget | null) =>
+      t instanceof HTMLElement && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable);
+    const down = (e: KeyboardEvent) => {
+      const k = e.key.toLowerCase();
+      if (!(k in MOVE_KEYS) || typing(e.target) || e.ctrlKey || e.metaKey || e.altKey) return;
+      e.preventDefault();
+      held.current.add(k);
+      tapped.current.add(k);
+      kick();
+    };
+    const up = (e: KeyboardEvent) => held.current.delete(e.key.toLowerCase());
+    const clear = () => held.current.clear();
+    window.addEventListener("keydown", down);
+    window.addEventListener("keyup", up);
+    window.addEventListener("blur", clear);
+    return () => {
+      cancelAnimationFrame(frame.current);
+      frame.current = 0;
+      window.removeEventListener("keydown", down);
+      window.removeEventListener("keyup", up);
+      window.removeEventListener("blur", clear);
+    };
+  }, []);
+
+  /** Walk toward a point on the ground (tap or click). */
+  const walkTo = (x: number, y: number) => {
+    if (y < GROUND_TOP + 30) return;
+    target.current = { x, y: Math.min(GROUND_BOTTOM, y) };
+    kick();
+  };
+
+  return { ...pos, walkTo };
+}
+
 export function SimScene({ sim, phase, weather = "clear", res = sim.res }: { sim: SimState; phase: Phase; weather?: Weather; res?: Resources }) {
   const m = sim.machines;
   const broken = (id: keyof SimState["machines"]) => sim.broken.includes(id);
@@ -109,15 +286,38 @@ export function SimScene({ sim, phase, weather = "clear", res = sim.res }: { sim
   const sunX = phase === "morning" ? 180 : phase === "day" ? 620 : phase === "evening" ? 1040 : -100;
   const sunY = phase === "day" ? 70 : 170;
 
-  const outside = sim.crew.filter((c) => OUTSIDE.includes(c.task));
-  const farmers = sim.crew.filter((c) => c.task === "farm");
-  const inside = sim.crew.filter((c) => IN_WINDOWS.includes(c.task));
+  const light = sunLight(phase);
+  const player = usePlayerControl({ x: 600, y: 480 });
+  const svgRef = useRef<SVGSVGElement>(null);
+  const onGroundTap = (e: React.PointerEvent<SVGSVGElement>) => {
+    const svg = svgRef.current;
+    const ctm = svg?.getScreenCTM();
+    if (!svg || !ctm) return;
+    const pt = new DOMPoint(e.clientX, e.clientY).matrixTransform(ctm.inverse());
+    player.walkTo(pt.x, pt.y);
+  };
+  const playerSuit = (
+    <Suit x={player.x} y={player.y} player flip={player.facingLeft} scale={depthScale(player.y)} walking={player.walking} light={light} />
+  );
+  const playerBehind = player.y < 432; // behind the habitat's front edge
+
+  // Once the player walks, they are drawn as the walker, not at their job.
+  const npcs = player.moved ? sim.crew.filter((c) => !c.isPlayer) : sim.crew;
+  const showWalker = player.moved;
+  const outside = npcs.filter((c) => OUTSIDE.includes(c.task));
+  const farmers = npcs.filter((c) => c.task === "farm");
+  const inside = npcs.filter((c) => IN_WINDOWS.includes(c.task));
   const mining = sim.crew.some((c) => c.task === "mine");
   const researching = sim.crew.some((c) => c.task === "research");
   const lock = (f: Parameters<typeof isUnlocked>[1]) => (isUnlocked(sim, f) ? "" : " locked");
 
   return (
-    <svg className={`sim-scene time-${phase} weather-${weather}`} viewBox="0 0 1200 680" preserveAspectRatio="xMidYMid meet" role="img" aria-label={`Mars base during the ${phase}`}>
+    <svg
+      ref={svgRef}
+      onPointerDown={onGroundTap}
+      className={`sim-scene time-${phase} weather-${weather}`}
+      style={{ ["--sx" as string]: light.dir * light.len * 14, ["--ss" as string]: 1 + light.len * 0.5 }}
+      viewBox="0 0 1200 680" preserveAspectRatio="xMidYMid meet" role="img" aria-label={`Mars base during the ${phase}`}>
       <defs>
         <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" className="sky-top" />
@@ -174,6 +374,28 @@ export function SimScene({ sim, phase, weather = "clear", res = sim.res }: { sim
           <stop offset="0.25" stopColor="#ffe7b0" stopOpacity="0.5" />
           <stop offset="1" stopColor="#ffe7b0" stopOpacity="0" />
         </radialGradient>
+        <radialGradient id="scorch">
+          <stop offset="0" stopColor="#140904" stopOpacity="0.95" />
+          <stop offset="0.6" stopColor="#24100a" stopOpacity="0.6" />
+          <stop offset="1" stopColor="#2a140a" stopOpacity="0" />
+        </radialGradient>
+        <pattern id="hexes" width="36" height="20.78" patternUnits="userSpaceOnUse" patternTransform="scale(1 0.45)">
+          <polygon points={hexPoints(12, 10.39, 11)} />
+          <polygon points={hexPoints(30, 0, 11)} />
+          <polygon points={hexPoints(30, 20.78, 11)} />
+        </pattern>
+        <radialGradient id="hexFade">
+          <stop offset="0" stopColor="#fff" stopOpacity="1" />
+          <stop offset="0.7" stopColor="#fff" stopOpacity="0.6" />
+          <stop offset="1" stopColor="#fff" stopOpacity="0" />
+        </radialGradient>
+        <mask id="hexMask">
+          <ellipse cx="600" cy="478" rx="250" ry="52" fill="url(#hexFade)" />
+        </mask>
+        <linearGradient id="lawn" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#2f6a35" />
+          <stop offset="1" stopColor="#5fae4f" />
+        </linearGradient>
         <clipPath id="frame">
           <rect width="1200" height="680" />
         </clipPath>
@@ -200,13 +422,60 @@ export function SimScene({ sim, phase, weather = "clear", res = sim.res }: { sim
       <rect y="292" width="1200" height="388" fill="url(#ground)" />
       <rect y="292" width="1200" height="388" filter="url(#grain)" className="grain" />
       <g className="rocks">
-        {[[60, 560, 18], [130, 640, 26], [330, 600, 12], [700, 640, 20], [1010, 610, 16], [1150, 560, 22], [470, 330, 8], [905, 320, 10], [40, 380, 10], [1180, 400, 9]].map(([x, y, r], i) => (
+        {[[60, 560, 18], [130, 640, 26], [84, 652, 12], [110, 600, 9], [700, 640, 20], [720, 655, 11], [1060, 640, 13], [1010, 610, 16], [1150, 560, 22], [470, 330, 8], [905, 320, 10], [40, 380, 10], [1180, 400, 9]].map(([x, y, r], i) => (
           <g key={i}>
             <ellipse cx={x} cy={y + r * 0.35} rx={r * 1.3} ry={r * 0.3} className="shadow-soft" />
             <path d={`M${x - r} ${y} Q${x - r * 0.6} ${y - r * 0.9} ${x} ${y - r * 0.8} Q${x + r * 0.8} ${y - r * 0.7} ${x + r} ${y} Z`} className="rock" />
           </g>
         ))}
       </g>
+      {/* long shadows cast by the sun (2.5D depth cue) */}
+      <g className="cast-shadows" filter="url(#blur4)">
+        {(
+          [
+            [840, 334, 44, 72], // drill
+            [700, 304, 100, 92], // lab + dish
+            [972, 366, 64, 70], // fuel plant
+            [1049, 370, 54, 132], // fuel tank
+            [291, 470, 118, 66], // life support
+            [135, 496, 110, 60], // battery bank
+            [560, 430, 340, 110], // habitat
+            [906, 524, 280, 116], // greenhouse
+            [1089, 526, 54, 126], // oxygen tank
+            [1160, 526, 64, 170], // water tank
+            [470, 576, 116, 52], // rover
+            [300, 640, 60, 168], // lander
+          ] as const
+        ).map(([x, y, w, h], i) => (
+          <CastShadow key={i} x={x} y={y} w={w} h={h} light={light} />
+        ))}
+      </g>
+
+      {/* sand ripples */}
+      <g className="ripples">
+        {[[180, 590], [560, 640], [900, 620], [1080, 600], [420, 360], [1000, 420]].map(([x, y], i) => (
+          <path key={i} d={`M${x - 50} ${y} Q${x - 25} ${y - 6} ${x} ${y} Q${x + 25} ${y + 6} ${x + 50} ${y}`} />
+        ))}
+      </g>
+
+      {/* glowing hex grid: the base's working zone */}
+      <rect x="340" y="420" width="520" height="120" fill="url(#hexes)" mask="url(#hexMask)" className="hex-grid" />
+
+      {/* power and data cables lying on the ground */}
+      <g className="cables">
+        <path d="M190 488 C280 520 350 500 402 426" />
+        <path d="M300 600 Q230 560 172 498" />
+        <path d="M720 430 C760 470 800 470 820 524" />
+        <path d="M478 302 Q500 330 520 322" />
+      </g>
+
+      {/* lamp posts (their light is drawn with the glowing things) */}
+      <g className="lamp-posts">
+        {LAMPS.map(([x, y]) => (
+          <line key={`${x}-${y}`} x1={x} y1={y} x2={x} y2={y - 9} />
+        ))}
+      </g>
+
       <path d="M560 680 Q600 560 640 470" className="track" />
       <path d="M590 680 Q630 560 668 470" className="track" />
 
@@ -287,6 +556,9 @@ export function SimScene({ sim, phase, weather = "clear", res = sim.res }: { sim
         <line x1="728" y1="226" x2="728" y2="212" className="post thin" />
       </g>
 
+
+      {showWalker && playerBehind && playerSuit}
+
       {/* ---------- habitat ---------- */}
       <g className={`habitat${powerOut ? " out" : ""}`}>
         <ellipse cx="560" cy="434" rx="190" ry="14" className="shadow-soft" filter="url(#blur4)" />
@@ -328,7 +600,8 @@ export function SimScene({ sim, phase, weather = "clear", res = sim.res }: { sim
       {/* rover */}
       <g className={`rover${lock("rover")}`} transform="translate(470 560)">
         <ellipse cx="0" cy="22" rx="70" ry="8" className="shadow-soft" />
-        <rect x="-58" y="-18" width="116" height="26" rx="6" fill="url(#metalV)" className="box-edge" />
+        <rect x="-58" y="-18" width="116" height="26" rx="10" fill="url(#metalV)" className="box-edge rover-body" />
+        <rect x="-58" y="-6" width="116" height="5" className="rover-stripe" />
         <rect x="-50" y="-30" width="58" height="14" rx="3" className="rover-deck" />
         <line x1="34" y1="-18" x2="34" y2="-48" className="post" />
         <rect x="26" y="-56" width="18" height="10" rx="2" className="metal-box" />
@@ -345,8 +618,18 @@ export function SimScene({ sim, phase, weather = "clear", res = sim.res }: { sim
       {/* crew outside, in spacesuits */}
       {outside.map((c, i) => {
         const spot = c.task === "mine" ? { x: 800 + i * 26, y: 344 } : c.task === "eva" ? { x: 360 + i * 30, y: 584 } : { x: 210 + i * 30, y: 430 };
-        return <Suit key={c.id} x={spot.x} y={spot.y} player={c.isPlayer} flip={c.task === "repair"} />;
+        return <Suit key={c.id} x={spot.x} y={spot.y} player={c.isPlayer} flip={c.task === "repair"} scale={depthScale(spot.y)} light={light} />;
       })}
+
+      {/* the lander stands in the front-left; walk behind or in front of it */}
+      {showWalker && !playerBehind && player.y < 640 && playerSuit}
+      <Lander x={300} y={640} />
+      {showWalker && player.y >= 640 && playerSuit}
+
+      <g className="controls-hint" transform="translate(16 20)">
+        <rect width="290" height="26" rx="4" />
+        <text x="10" y="17">Walk: tap the ground or W A S D</text>
+      </g>
 
       {/* ---------- time-of-day light and weather ---------- */}
       <rect width="1200" height="680" className="light" />
@@ -411,6 +694,11 @@ export function SimScene({ sim, phase, weather = "clear", res = sim.res }: { sim
           <line key={x} x1={x} y1="409" x2={x} y2="524" className="gh-rib" />
         ))}
         <path d="M776 470 Q778 425 816 418" className="gh-glint" />
+
+        {LAMPS.map(([x, y]) => (
+          <circle key={`${x}-${y}`} cx={x} cy={y - 10} r="2.6" className="ground-lamp" />
+        ))}
+        <circle cx="300" cy="481" r="2.5" className="lander-beacon" />
 
         {(
           [
