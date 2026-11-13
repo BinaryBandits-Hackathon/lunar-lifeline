@@ -1,3 +1,5 @@
+> **Replaced:** this card-based base game was replaced by the base simulation. See [03-base-simulation.md](03-base-simulation.md). Kept for history.
+
 # Base game: running the Mars outpost
 
 Status: playable draft. Numbers are checked by the balance bots, not yet by a playtest with children.

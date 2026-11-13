@@ -55,7 +55,7 @@ In Play Console, open **Settings → Developer account → Account details**.
 
 **Category:** Education (or Games → Educational). **Tags:** Space, Science, Kids.
 
-**Privacy policy URL:** `https://nasa-hack-26.pages.dev/privacy.html`
+**Privacy policy URL:** `https://nasa-hack-26.pages.dev/privacy`
 
 ## 3. App content forms (you)
 

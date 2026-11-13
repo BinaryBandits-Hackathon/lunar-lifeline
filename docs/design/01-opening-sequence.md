@@ -1,3 +1,5 @@
+> **Status:** built and live. Since this draft, the landing report became a full systems check, followed by a mission brief before the base simulation starts.
+
 # Opening sequence: role selection to hard landing
 
 Status: draft 1, for team review. All numbers are first-pass values to be checked by the balance bots.
