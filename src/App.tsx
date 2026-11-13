@@ -14,13 +14,16 @@ import { Board } from "./screens/Board";
 import { CardScreen } from "./screens/CardScreen";
 import { Ending } from "./screens/Ending";
 import { Result } from "./screens/Result";
+import { SimReady } from "./screens/SimReady";
+import { SimScreen } from "./screens/SimScreen";
 import { Title } from "./screens/Title";
 
 const PHASES: { label: string; stages: Stage[] }[] = [
   { label: "Badge", stages: ["badge"] },
   { label: "Approach", stages: ["approach", "alarm", "briefing"] },
   { label: "Landing", stages: ["landingChoice", "descent", "touchdown"] },
-  { label: "Base", stages: ["damageReport", "board", "card", "result"] },
+  { label: "Systems", stages: ["damageReport"] },
+  { label: "Simulation", stages: ["simReady", "sim", "board", "card", "result"] },
   { label: "Report", stages: ["ending"] },
 ];
 
@@ -77,6 +80,12 @@ export function App() {
     case "damageReport":
       screen = <DamageReport {...props} />;
       break;
+    case "sim":
+      screen = <SimScreen {...props} />;
+      break;
+    case "simReady":
+      screen = <SimReady {...props} />;
+      break;
     case "board":
       screen = <Board {...props} />;
       break;
@@ -94,7 +103,7 @@ export function App() {
   const phase = PHASES.findIndex((p) => p.stages.includes(state.stage));
 
   return (
-    <div className={`app${state.settings.reduceMotion ? " reduce-motion" : ""}`}>
+    <div className={`app${state.settings.reduceMotion ? " reduce-motion" : ""}${state.stage === "sim" ? " app-sim" : ""}`}>
       {state.stage !== "title" && (
         <nav className="topbar" aria-label="Game controls">
           <span className="topbar-name">
@@ -124,6 +133,10 @@ export function App() {
         </nav>
       )}
       {screen}
+      <div className="rotate-hint" role="alert">
+        <Icon name="next" size={28} />
+        <p>Turn your device sideways to play.</p>
+      </div>
     </div>
   );
 }

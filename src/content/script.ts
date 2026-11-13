@@ -48,17 +48,17 @@ export const SCRIPT: Partial<Record<Stage, DialogueLine[]>> = {
 export const DAMAGE_LINES: Record<SiteId, DialogueLine[]> = {
   plains: [
     { speaker: "pip", mood: "happy", text: "What a smooth landing! But the ice is far away, so we must be careful with water." },
-    { speaker: "pip", mood: "calm", text: "Tap each meter to learn what it means." },
+    { speaker: "pip", mood: "calm", text: "Before the training starts, let's check every system on the base. Tap any reading." },
   ],
   iceValley: [
     { speaker: "pip", mood: "alert", text: "We made it! But the bumps cracked two solar panels, so we have less power." },
     { speaker: "pip", mood: "happy", text: "The good news: there's ice right next to us. Ice means water!" },
-    { speaker: "pip", mood: "calm", text: "Tap each meter to learn what it means." },
+    { speaker: "pip", mood: "calm", text: "Before the training starts, let's check every system on the base. Tap any reading." },
   ],
   holdOrbit: [
     { speaker: "pip", mood: "calm", text: "We waited, and the storm cleared. A soft landing next to the ice!" },
     { speaker: "pip", mood: "alert", text: "But waiting used supplies, and the crew soaked up extra space radiation." },
-    { speaker: "pip", mood: "calm", text: "Tap each meter to learn what it means." },
+    { speaker: "pip", mood: "calm", text: "Before the training starts, let's check every system on the base. Tap any reading." },
   ],
 };
 
