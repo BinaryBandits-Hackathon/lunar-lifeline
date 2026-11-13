@@ -56,8 +56,8 @@ function featureSvg() {
   <circle cx="930" cy="250" r="220" fill="url(#mars)"/>
   <circle cx="930" cy="250" r="240" fill="none" stroke="${INK}" stroke-opacity="0.15" stroke-width="2"/>
   <text x="64" y="150" font-family="Arial Narrow, Arial, sans-serif" font-weight="700" font-size="30" letter-spacing="6" fill="${ORANGE}">NASA SPACE APPS 2026</text>
-  <text x="64" y="235" font-family="Arial Narrow, Arial, sans-serif" font-weight="700" font-size="70" fill="${INK}">JUNIOR ASTRONAUT</text>
-  <text x="64" y="310" font-family="Arial Narrow, Arial, sans-serif" font-weight="700" font-size="70" fill="${ORANGE}">MISSION TRAINER</text>
+  <text x="64" y="235" font-family="Arial Narrow, Arial, sans-serif" font-weight="700" font-size="96" fill="${INK}">LUNAR LIFE</text>
+  <text x="64" y="310" font-family="Arial Narrow, Arial, sans-serif" font-weight="700" font-size="44" fill="${ORANGE}">JUNIOR ASTRONAUT TRAINER</text>
   <text x="66" y="370" font-family="Arial, sans-serif" font-size="26" fill="${INK}" fill-opacity="0.8">Run a base on Mars. Learn what real astronauts do.</text>
 </svg>`;
 }

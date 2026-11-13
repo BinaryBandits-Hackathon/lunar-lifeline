@@ -13,15 +13,13 @@ In Play Console, open **Settings → Developer account → Account details**.
 
 | Field | Value |
 |---|---|
-| App name | 30 characters max. "Junior Astronaut Mission Trainer" is 32, too long. Suggested: **Junior Astronaut Trainer** (24) |
+| App name | **Lunar Life** |
 | Default language | English (United States) |
 | App or game | Game |
 | Free or paid | Free (a free app can never become paid) |
 | Declarations | Read and tick all three yourself: Developer Program Policies, Play App Signing terms, US export laws |
 
-**Name check:** the draft used "Lunar Life", but the game is set on **Mars**, not the Moon. A Moon name on a Mars game will confuse kids and reviewers. Pick a name that matches, for example "Junior Astronaut Trainer" or "Mars Base Trainer".
-
-**Package name** (set when the first build is uploaded, and **it can never be changed**): `com.binarybandits.astrotrainer`
+**Package name** (set when the first build is uploaded, and **it can never be changed**): `com.binarybandits.lunarlife`
 
 ## 2. Store listing
 
@@ -33,7 +31,7 @@ In Play Console, open **Settings → Developer account → Account details**.
 
 > Land on Mars and keep your crew alive!
 >
-> Junior Astronaut Mission Trainer is a learning game for kids aged 7 to 12, made for the NASA Space Apps Challenge 2026. Every choice has a cost, just like on a real mission.
+> Lunar Life is a learning game for kids aged 7 to 12, made for the NASA Space Apps Challenge 2026. Every choice has a cost, just like on a real mission.
 >
 > • Split solar power between heaters, air machines, the greenhouse and the fuel plant
 > • Grow lettuce and potatoes in a glass greenhouse
@@ -82,7 +80,7 @@ The game is a website, so it is wrapped as a **Trusted Web Activity (TWA)**: a s
    npm install -g @bubblewrap/cli
    bubblewrap init --manifest https://nasa-hack-26.pages.dev/manifest.webmanifest
    ```
-   Use package name `com.binarybandits.astrotrainer`, landscape, and keep the generated signing key.
+   Use package name `com.binarybandits.lunarlife`, landscape, and keep the generated signing key.
 2. **Store the signing key and its passwords somewhere safe and private** (not in the repo). If it is lost, the app can never be updated.
 3. Build: `bubblewrap build` → produces `app-release-bundle.aab`.
 4. Upload the `.aab` to **Testing → Internal testing** first, then the closed test.

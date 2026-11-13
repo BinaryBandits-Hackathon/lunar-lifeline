@@ -1,6 +1,6 @@
 {
-  "name": "Junior Astronaut Mission Trainer",
-  "short_name": "Astro Trainer",
+  "name": "Lunar Life",
+  "short_name": "Lunar Life",
   "description": "Run a base on Mars and learn the real trade-offs astronauts face. A NASA Space Apps 2026 project.",
   "id": "/",
   "start_url": "/",
