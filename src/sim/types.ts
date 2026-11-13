@@ -83,6 +83,8 @@ export interface SimState {
   mustRest: string[];
   /** The rover: its own battery (0-100) and whether it needs a repair. */
   rover: { battery: number; broken: boolean };
+  /** Systems that opened at the start of this sol, shown once. */
+  newUnlocks: import("./unlocks").Feature[];
   /** Where today's spacewalk goes, or null. */
   evaSite: string | null;
   /** Sites already explored (a second visit gives little new science). */

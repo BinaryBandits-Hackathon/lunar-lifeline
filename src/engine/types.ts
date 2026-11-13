@@ -236,6 +236,7 @@ export type Action =
   | { type: "SIM_PLOT"; plot: number; crop: import("../sim/types").CropId | null }
   | { type: "SIM_EVENT"; index: number }
   | { type: "SIM_EVA_SITE"; site: string | null }
+  | { type: "SIM_DISMISS_UNLOCKS" }
   | { type: "SIM_RUN" }
   | { type: "SIM_NEXT" }
   | { type: "ADD_BLOCK"; system: System }

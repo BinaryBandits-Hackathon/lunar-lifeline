@@ -3,6 +3,7 @@ import { getRole } from "../content/roles";
 import { powerForecast, stormStatus, summarize } from "../sim/engine";
 import { getEvent } from "../sim/events";
 import { evaChecklist, getSite as getEvaSite, sitesFor } from "../sim/eva";
+import { FEATURE_INFO, isUnlocked, machineFeature, machineLocked, taskFeature, taskLocked, unlockSol } from "../sim/unlocks";
 import { CAPS, CROPS, DOSE_LIMIT, MACHINES, PHASES, TASKS, TASK_ORDER } from "../sim/rules";
 import type { CropId, MachineId, Phase, ResourceId, Resources, SimState } from "../sim/types";
 import type { IconName } from "../engine/types";
@@ -77,7 +78,7 @@ function hint(sim: SimState): string {
   if (tired) return `${tired.name} is very tired. Let them Rest today.`;
   if (ripe && !sim.crew.some((c) => c.task === "farm")) return "Crops are ripe! Send someone to Farm to harvest them.";
   if (sim.res.battery + f.make - f.use < 20) return "Careful: the machines and jobs use more power than you have. The heaters need power at night.";
-  if (!sim.machines.fuelPlant && sim.res.fuel < sim.goals.fuel) return "To fly home you need fuel. The fuel plant uses lots of power, so plan around it.";
+  if (!sim.machines.fuelPlant && sim.res.fuel < sim.goals.fuel && isUnlocked(sim, "fuel")) return "To fly home you need fuel. The fuel plant uses lots of power, so plan around it.";
   return "Plan the sol: give everyone a job and choose which machines run. Then press Run sol.";
 }
 
@@ -106,7 +107,7 @@ export function SimScreen({ state, dispatch }: ScreenProps) {
   const planning = sim.mode === "plan";
   const forecast = powerForecast(sim);
   const tip = planning ? hint(sim) : "";
-  useSpeak(planning ? tip : null, state.settings.readAloud);
+  useSpeak(planning && sim.newUnlocks.length === 0 ? tip : null, state.settings.readAloud);
 
   const run = () => {
     dispatch({ type: "SIM_RUN" });
@@ -155,14 +156,16 @@ export function SimScreen({ state, dispatch }: ScreenProps) {
               const info = MACHINES[id];
               const use = PHASES.reduce((n, p) => n + info.use[p], 0);
               const broken = sim.broken.includes(id);
+              const feature = machineFeature(id);
+              const locked = machineLocked(sim, id);
               const on = sim.machines[id] && !broken;
               return (
                 <button
                   key={id}
                   type="button"
-                  className={`machine${on ? " on" : ""}`}
+                  className={`machine${on ? " on" : ""}${locked ? " locked" : ""}`}
                   onClick={() => dispatch({ type: "SIM_TOGGLE", machine: id })}
-                  disabled={!planning || !info.canSwitchOff || broken}
+                  disabled={!planning || !info.canSwitchOff || broken || locked}
                   aria-pressed={on}
                   title={info.what}
                 >
@@ -171,7 +174,7 @@ export function SimScreen({ state, dispatch }: ScreenProps) {
                     <strong>{info.name}</strong>
                     <span>{info.what}</span>
                   </span>
-                  {broken ? <span className="tag tag-low">Broken</span> : <span className="machine-use mono">−{use}</span>}
+                  {locked && feature ? <span className="tag lock-tag">Sol {unlockSol(sim, feature)}</span> : broken ? <span className="tag tag-low">Broken</span> : <span className="machine-use mono">−{use}</span>}
                   <span className="switch" aria-hidden="true">
                     <i />
                   </span>
@@ -199,7 +202,7 @@ export function SimScreen({ state, dispatch }: ScreenProps) {
             <SimScene sim={sim} phase={phase} res={shown} weather={stormStatus(sim) === "today" ? sim.storm.kind : "clear"} />
           </div>
           <EvaBar sim={sim} onOpen={() => setPlanningEva(true)} disabled={!planning} />
-          <div className="greenhouse-row" aria-label="Greenhouse">
+          <div className={`greenhouse-row${isUnlocked(sim, "greenhouse") ? "" : " locked"}`} aria-label="Greenhouse" data-lock={isUnlocked(sim, "greenhouse") ? undefined : `Greenhouse opens on sol ${unlockSol(sim, "greenhouse")}`}>
             {sim.plots.map((p, i) => {
               const ripe = p.crop !== null && p.growth >= CROPS[p.crop].sols;
               return (
@@ -271,9 +274,10 @@ export function SimScreen({ state, dispatch }: ScreenProps) {
                       key={t}
                       type="button"
                       aria-pressed={c.task === t}
-                      disabled={!planning}
+                      disabled={!planning || taskLocked(sim, t)}
+                      className={taskLocked(sim, t) ? "locked" : ""}
                       onClick={() => dispatch({ type: "SIM_ASSIGN", crewId: c.id, task: t })}
-                      title={TASKS[t].what}
+                      title={taskLocked(sim, t) ? `Opens on sol ${unlockSol(sim, taskFeature(t)!)}` : TASKS[t].what}
                     >
                       <Icon name={TASKS[t].icon} size={15} />
                       <span>{TASKS[t].name}</span>
@@ -295,6 +299,7 @@ export function SimScreen({ state, dispatch }: ScreenProps) {
         nextLabel={`Run sol ${sim.sol}`}
       />
 
+      {planning && sim.newUnlocks.length > 0 && <UnlockModal sim={sim} onClose={() => dispatch({ type: "SIM_DISMISS_UNLOCKS" })} />}
       {planning && planning_eva && !sim.eventId && (
         <EvaModal
           sim={sim}
@@ -303,9 +308,44 @@ export function SimScreen({ state, dispatch }: ScreenProps) {
           onClose={() => setPlanningEva(false)}
         />
       )}
-      {planning && sim.eventId && <EventModal sim={sim} onPick={(index) => dispatch({ type: "SIM_EVENT", index })} />}
+      {planning && sim.eventId && sim.newUnlocks.length === 0 && <EventModal sim={sim} onPick={(index) => dispatch({ type: "SIM_EVENT", index })} />}
       {sim.mode !== "plan" && !playing && sim.report && <SolReportModal sim={sim} onNext={() => dispatch({ type: "SIM_NEXT" })} onHome={() => dispatch({ type: "RESTART" })} />}
     </main>
+  );
+}
+
+function UnlockModal({ sim, onClose }: { sim: SimState; onClose: () => void }) {
+  return (
+    <div className="modal-backdrop">
+      <section className="modal panel unlock-modal" role="dialog" aria-modal="true" aria-labelledby="unlock-h">
+        <div className="panel-head">
+          <span>Sol {sim.sol}</span>
+          <span className="tag tag-ok">Unlocked</span>
+        </div>
+        <div className="panel-body">
+          <h3 id="unlock-h" className="event-title">New on the base!</h3>
+          <div className="unlock-list">
+            {sim.newUnlocks.map((f) => (
+              <div key={f} className="unlock-item">
+                <span className="unlock-icon">
+                  <Icon name={FEATURE_INFO[f].icon} size={26} />
+                </span>
+                <span>
+                  <strong>{FEATURE_INFO[f].name}</strong>
+                  <span className="unlock-what">{FEATURE_INFO[f].what}</span>
+                  <span className="unlock-real">{FEATURE_INFO[f].real}</span>
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="modal-actions">
+          <button type="button" className="btn btn-primary" onClick={onClose} autoFocus>
+            Got it
+          </button>
+        </div>
+      </section>
+    </div>
   );
 }
 
@@ -314,6 +354,17 @@ function EvaBar({ sim, onOpen, disabled }: { sim: SimState; onOpen: () => void; 
   const site = sim.evaSite ? getEvaSite(sim.evaSite) : null;
   const list = evaChecklist(sim, stormStatus(sim) === "today");
   const ok = list.filter((i) => i.ok).length;
+  if (!isUnlocked(sim, "eva")) {
+    return (
+      <div className="eva-bar locked">
+        <span className="eva-bar-title">
+          <Icon name="astronaut" size={16} />
+          Spacewalk
+        </span>
+        <span className="eva-bar-info">Spacewalks open on sol {unlockSol(sim, "eva")}. Learn the base first.</span>
+      </div>
+    );
+  }
   return (
     <div className={`eva-bar${walkers.length ? " active" : ""}`}>
       <span className="eva-bar-title">
@@ -376,7 +427,8 @@ function EvaModal({
             <div className="eva-sites">
               {sitesFor(sim).map((site) => {
                 const needsRover = site.rover > 0;
-                const roverShort = needsRover && (sim.rover.broken || sim.rover.battery < site.rover);
+                const roverLocked = needsRover && !isUnlocked(sim, "rover");
+                const roverShort = needsRover && (roverLocked || sim.rover.broken || sim.rover.battery < site.rover);
                 const visited = sim.visited.includes(site.id);
                 return (
                   <button
@@ -385,11 +437,12 @@ function EvaModal({
                     className={`eva-site${roverShort ? " short" : ""}`}
                     aria-pressed={sim.evaSite === site.id}
                     onClick={() => onPick(sim.evaSite === site.id ? null : site.id)}
+                    disabled={roverLocked}
                   >
                     <span className="eva-site-head">
                       <strong>{site.name}</strong>
                       <span className="mono">
-                        {site.km} km · {needsRover ? `rover ${site.rover}%` : "on foot"}
+                        {site.km} km · {roverLocked ? `rover opens sol ${unlockSol(sim, "rover")}` : needsRover ? `rover ${site.rover}%` : "on foot"}
                       </span>
                     </span>
                     <span className="eva-site-what">{site.what}</span>

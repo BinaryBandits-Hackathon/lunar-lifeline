@@ -1,5 +1,6 @@
 import { CAPS, CROPS } from "../sim/rules";
 import type { CropId, Phase, Resources, SimState, TaskId } from "../sim/types";
+import { isUnlocked } from "../sim/unlocks";
 
 // The Mars base as a lit technical illustration (viewBox 1200 x 680).
 // Layers, back to front: sky, terrain, structures, time-of-day light,
@@ -113,6 +114,7 @@ export function SimScene({ sim, phase, weather = "clear", res = sim.res }: { sim
   const inside = sim.crew.filter((c) => IN_WINDOWS.includes(c.task));
   const mining = sim.crew.some((c) => c.task === "mine");
   const researching = sim.crew.some((c) => c.task === "research");
+  const lock = (f: Parameters<typeof isUnlocked>[1]) => (isUnlocked(sim, f) ? "" : " locked");
 
   return (
     <svg className={`sim-scene time-${phase} weather-${weather}`} viewBox="0 0 1200 680" preserveAspectRatio="xMidYMid meet" role="img" aria-label={`Mars base during the ${phase}`}>
@@ -221,7 +223,7 @@ export function SimScene({ sim, phase, weather = "clear", res = sim.res }: { sim
       )}
 
       {/* ice drill */}
-      <g className={`drill${mining ? " on" : ""}`}>
+      <g className={`drill${mining ? " on" : ""}${lock("mine")}`}>
         <ellipse cx="840" cy="336" rx="26" ry="5" className="shadow-soft" />
         <path d="M818 334 L840 262 L862 334" className="rig" />
         <line x1="828" y1="300" x2="852" y2="300" className="rig" />
@@ -301,7 +303,7 @@ export function SimScene({ sim, phase, weather = "clear", res = sim.res }: { sim
       </g>
 
       {/* ---------- greenhouse (glass) ---------- */}
-      <g className="greenhouse">
+      <g className={`greenhouse${lock("greenhouse")}`}>
         <ellipse cx="906" cy="528" rx="150" ry="10" className="shadow-soft" filter="url(#blur4)" />
       </g>
 
@@ -314,7 +316,7 @@ export function SimScene({ sim, phase, weather = "clear", res = sim.res }: { sim
       <Tank x={1128} y={356} w={64} h={170} level={frac(res.water, CAPS.water)} kind="water" label="WATER" value={`${Math.round(res.water)} L`} />
 
       {/* fuel plant and rocket fuel tank */}
-      <g className={`fuel-plant${running("fuelPlant") ? " on" : ""}`}>
+      <g className={`fuel-plant${running("fuelPlant") ? " on" : ""}${lock("fuel")}`}>
         <ellipse cx="985" cy="370" rx="60" ry="6" className="shadow-soft" />
         <rect x="940" y="320" width="64" height="46" rx="4" fill="url(#metalV)" className="box-edge" />
         <line x1="1004" y1="344" x2="1028" y2="344" className="pipe" />
@@ -324,7 +326,7 @@ export function SimScene({ sim, phase, weather = "clear", res = sim.res }: { sim
       <Tank x={1022} y={238} w={54} h={132} level={frac(res.fuel, CAPS.fuel)} kind="fuel" label="FUEL" value={`${Math.round(res.fuel)}%`} />
 
       {/* rover */}
-      <g className="rover" transform="translate(470 560)">
+      <g className={`rover${lock("rover")}`} transform="translate(470 560)">
         <ellipse cx="0" cy="22" rx="70" ry="8" className="shadow-soft" />
         <rect x="-58" y="-18" width="116" height="26" rx="6" fill="url(#metalV)" className="box-edge" />
         <rect x="-50" y="-30" width="58" height="14" rx="3" className="rover-deck" />
@@ -381,6 +383,7 @@ export function SimScene({ sim, phase, weather = "clear", res = sim.res }: { sim
           );
         })}
         {/* greenhouse interior, lit from inside so it stays visible in any light */}
+        <g className={lock("greenhouse").trim()}>
         <g className={`gh-interior${!running("greenhouseLights") && (dark || phase === "evening") ? " dim" : ""}`}>
         <path d="M766 524 V452 Q766 408 812 408 H1000 Q1046 408 1046 452 V524 Z" className="gh-floor-back" />
         {sim.plots.map((p, i) => {
@@ -400,6 +403,7 @@ export function SimScene({ sim, phase, weather = "clear", res = sim.res }: { sim
             <path d="M-5 -6 L-4 0 M5 -6 L4 0" className="farmer-legs" />
           </g>
         ))}
+        </g>
         </g>
         <path d="M769 521 V452 Q769 411 812 411 H1000 Q1043 411 1043 452 V521 Z" className={`grow-light${running("greenhouseLights") ? " on" : ""}`} />
         <path d="M766 524 V452 Q766 408 812 408 H1000 Q1046 408 1046 452 V524 Z" fill="url(#glass)" className="gh-glass" />

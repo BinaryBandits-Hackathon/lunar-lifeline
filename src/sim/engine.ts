@@ -4,6 +4,7 @@ import { STORMS, nextRandom } from "../engine/base";
 import type { GameState, RoleId, StormRecord } from "../engine/types";
 import { EVENTS, getEvent } from "./events";
 import { getSite as getEvaSite } from "./eva";
+import { isUnlocked, machineLocked, newOnSol, taskLocked } from "./unlocks";
 import {
   CAPS,
   CO2_DANGER,
@@ -109,6 +110,8 @@ export function createSim(state: GameState, seed = 1): SimState {
     dose: DOSE_START + (waited ? 30 : 0),
     task: defaultTask(role, cracked),
   }));
+  const startsAt = { level: state.level, sol: 1 };
+  for (const c of crew) if (taskLocked(startsAt, c.task)) c.task = c.role === "doctor" ? "exercise" : "research";
 
   return {
     rng,
@@ -122,6 +125,7 @@ export function createSim(state: GameState, seed = 1): SimState {
     mustRest: [],
     eventResult: null,
     rover: { battery: ROVER_START, broken: false },
+    newUnlocks: [],
     evaSite: null,
     visited: [],
     sol: 1,
@@ -137,7 +141,7 @@ export function createSim(state: GameState, seed = 1): SimState {
       fuel: 8,
       science: 0,
     },
-    machines: { heaters: true, scrubber: true, oxygenMaker: true, recycler: true, greenhouseLights: true, fuelPlant: false, roverCharger: false },
+    machines: { heaters: true, scrubber: true, oxygenMaker: true, recycler: true, greenhouseLights: isUnlocked(startsAt, "greenhouse"), fuelPlant: false, roverCharger: false },
     panelsCracked: cracked,
     nearIce: !farIce,
     crew,
@@ -171,12 +175,12 @@ function solarFactor(sim: SimState, cracked: boolean): number {
 // ---------- planning actions ----------
 
 export function assignTask(sim: SimState, crewId: string, task: TaskId): SimState {
-  if (sim.mode !== "plan" || sim.mustRest.includes(crewId)) return sim;
+  if (sim.mode !== "plan" || sim.mustRest.includes(crewId) || taskLocked(sim, task)) return sim;
   return { ...sim, crew: sim.crew.map((c) => (c.id === crewId ? { ...c, task } : c)) };
 }
 
 export function toggleMachine(sim: SimState, id: MachineId): SimState {
-  if (sim.mode !== "plan" || !MACHINES[id].canSwitchOff || sim.broken.includes(id)) return sim;
+  if (sim.mode !== "plan" || !MACHINES[id].canSwitchOff || sim.broken.includes(id) || machineLocked(sim, id)) return sim;
   return { ...sim, machines: { ...sim.machines, [id]: !sim.machines[id] } };
 }
 
@@ -185,12 +189,18 @@ export function planPlot(sim: SimState, index: number, crop: CropId | null): Sim
   return { ...sim, plots: sim.plots.map((p, i) => (i === index ? { ...p, plan: crop } : p)) };
 }
 
+/** Closes the "new on the base" card. */
+export function dismissUnlocks(sim: SimState): SimState {
+  return sim.newUnlocks.length ? { ...sim, newUnlocks: [] } : sim;
+}
+
 /** Sets where today's spacewalk goes (or clears it). */
 export function planEva(sim: SimState, siteId: string | null): SimState {
   if (sim.mode !== "plan") return sim;
   if (siteId) {
     const site = getEvaSite(siteId);
     if (site.only && !site.only(sim)) return sim;
+    if (site.rover > 0 && !isUnlocked(sim, "rover")) return sim;
   }
   return { ...sim, evaSite: siteId };
 }
@@ -548,7 +558,9 @@ export function nextSol(sim: SimState): SimState {
       }
     }
   }
-  const crew = sim.crew.map((c) => (sim.mustRest.includes(c.id) ? { ...c, task: "farm" as TaskId } : c));
+  const crew = sim.crew.map((c) => (sim.mustRest.includes(c.id) ? { ...c, task: "research" as TaskId } : c));
+  const newUnlocks = newOnSol(sim.level, sol);
+  const machines = newUnlocks.includes("greenhouse") ? { ...sim.machines, greenhouseLights: true } : sim.machines;
   return {
     ...sim,
     sol,
@@ -562,6 +574,8 @@ export function nextSol(sim: SimState): SimState {
     mustRest: [],
     eventResult: null,
     evaSite: null,
+    newUnlocks,
+    machines,
   };
 }
 
