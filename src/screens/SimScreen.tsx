@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { getRole } from "../content/roles";
 import { powerForecast, stormStatus, summarize } from "../sim/engine";
 import { getEvent } from "../sim/events";
+import { evaChecklist, getSite as getEvaSite, sitesFor } from "../sim/eva";
 import { CAPS, CROPS, DOSE_LIMIT, MACHINES, PHASES, TASKS, TASK_ORDER } from "../sim/rules";
 import type { CropId, MachineId, Phase, ResourceId, Resources, SimState } from "../sim/types";
 import type { IconName } from "../engine/types";
@@ -60,6 +61,10 @@ function hint(sim: SimState): string {
   if (storm === "today" && sim.storm.kind === "dust") return "Dust storm! The panels make very little power. Switch off what you can.";
   if (storm === "tomorrow" && sim.storm.kind === "solar") return `Warning from Earth: a solar storm hits tomorrow${date ? ` (like the real one on ${date})` : ""}. Plan to shelter.`;
   if (storm === "tomorrow" && sim.storm.kind === "dust") return "Weather warning: a dust storm arrives tomorrow and lasts 2 sols. Save battery today!";
+  const walkers = sim.crew.filter((c) => c.task === "eva").length;
+  if (walkers && !sim.evaSite) return "Someone is going on a spacewalk. Open the spacewalk plan and pick a destination.";
+  if (walkers === 1) return "Astronauts never go outside alone. Send a buddy on the spacewalk too.";
+  if (walkers && sim.evaSite && stormStatus(sim) === "today") return "There's a storm today. A spacewalk now is dangerous: think about waiting.";
   if (sim.broken.length && !sim.crew.some((c) => c.task === "repair")) return `The ${MACHINES[sim.broken[0]].name.toLowerCase()} is broken. Send someone to Repair it.`;
   if (sim.leak && !sim.crew.some((c) => c.task === "repair")) return "A pipe is leaking water every sol. Send someone to Repair it.";
   if (sim.dusty && !sim.crew.some((c) => c.task === "repair")) return "The panels are dusty and make less power. A Repair job will clean them.";
@@ -79,6 +84,7 @@ function hint(sim: SimState): string {
 export function SimScreen({ state, dispatch }: ScreenProps) {
   const sim = state.sim!;
   const [step, setStep] = useState<number | null>(null);
+  const [planning_eva, setPlanningEva] = useState(false);
   const fast = state.settings.reduceMotion;
 
   // Play the sol: step through morning, day, evening and night.
@@ -192,6 +198,7 @@ export function SimScreen({ state, dispatch }: ScreenProps) {
           <div className="panel scene-panel sim-scene-wrap">
             <SimScene sim={sim} phase={phase} res={shown} weather={stormStatus(sim) === "today" ? sim.storm.kind : "clear"} />
           </div>
+          <EvaBar sim={sim} onOpen={() => setPlanningEva(true)} disabled={!planning} />
           <div className="greenhouse-row" aria-label="Greenhouse">
             {sim.plots.map((p, i) => {
               const ripe = p.crop !== null && p.growth >= CROPS[p.crop].sols;
@@ -288,9 +295,142 @@ export function SimScreen({ state, dispatch }: ScreenProps) {
         nextLabel={`Run sol ${sim.sol}`}
       />
 
+      {planning && planning_eva && !sim.eventId && (
+        <EvaModal
+          sim={sim}
+          onPick={(site) => dispatch({ type: "SIM_EVA_SITE", site })}
+          onAssign={(crewId, on) => dispatch({ type: "SIM_ASSIGN", crewId, task: on ? "eva" : "research" })}
+          onClose={() => setPlanningEva(false)}
+        />
+      )}
       {planning && sim.eventId && <EventModal sim={sim} onPick={(index) => dispatch({ type: "SIM_EVENT", index })} />}
       {sim.mode !== "plan" && !playing && sim.report && <SolReportModal sim={sim} onNext={() => dispatch({ type: "SIM_NEXT" })} onHome={() => dispatch({ type: "RESTART" })} />}
     </main>
+  );
+}
+
+function EvaBar({ sim, onOpen, disabled }: { sim: SimState; onOpen: () => void; disabled: boolean }) {
+  const walkers = sim.crew.filter((c) => c.task === "eva");
+  const site = sim.evaSite ? getEvaSite(sim.evaSite) : null;
+  const list = evaChecklist(sim, stormStatus(sim) === "today");
+  const ok = list.filter((i) => i.ok).length;
+  return (
+    <div className={`eva-bar${walkers.length ? " active" : ""}`}>
+      <span className="eva-bar-title">
+        <Icon name="astronaut" size={16} />
+        Spacewalk
+      </span>
+      <span className="eva-bar-info">
+        {walkers.length ? `${walkers.map((w) => w.name).join(" + ")} → ${site ? site.name : "no destination"}` : "Nobody going outside today"}
+      </span>
+      <span className="eva-bar-rover mono" title="Rover battery">
+        Rover {Math.round(sim.rover.battery)}%{sim.rover.broken ? " · broken" : ""}
+      </span>
+      {walkers.length > 0 && (
+        <span className={`eva-bar-check mono${ok === list.length ? " ok" : ""}`}>
+          Checklist {ok}/{list.length}
+        </span>
+      )}
+      <button type="button" className="btn btn-secondary btn-small" onClick={onOpen} disabled={disabled}>
+        Plan spacewalk
+      </button>
+    </div>
+  );
+}
+
+function EvaModal({
+  sim,
+  onPick,
+  onAssign,
+  onClose,
+}: {
+  sim: SimState;
+  onPick: (site: string | null) => void;
+  onAssign: (crewId: string, on: boolean) => void;
+  onClose: () => void;
+}) {
+  const storm = stormStatus(sim) === "today";
+  const list = evaChecklist(sim, storm);
+  const walkers = sim.crew.filter((c) => c.task === "eva");
+  return (
+    <div className="modal-backdrop">
+      <section className="modal panel eva-modal" role="dialog" aria-modal="true" aria-labelledby="eva-h">
+        <div className="panel-head">
+          <span id="eva-h">Spacewalk plan · Sol {sim.sol}</span>
+          <span className="mono">Rover battery {Math.round(sim.rover.battery)}%</span>
+        </div>
+        <div className="panel-body eva-body">
+          <div className="eva-col">
+            <span className="label">1. Who goes outside</span>
+            <div className="eva-crew">
+              {sim.crew.map((c) => {
+                const going = c.task === "eva";
+                return (
+                  <button key={c.id} type="button" className="option-pill" aria-pressed={going} onClick={() => onAssign(c.id, !going)}>
+                    {c.name} · energy {Math.round(c.energy)}
+                  </button>
+                );
+              })}
+            </div>
+            <span className="label">2. Where to go</span>
+            <div className="eva-sites">
+              {sitesFor(sim).map((site) => {
+                const needsRover = site.rover > 0;
+                const roverShort = needsRover && (sim.rover.broken || sim.rover.battery < site.rover);
+                const visited = sim.visited.includes(site.id);
+                return (
+                  <button
+                    key={site.id}
+                    type="button"
+                    className={`eva-site${roverShort ? " short" : ""}`}
+                    aria-pressed={sim.evaSite === site.id}
+                    onClick={() => onPick(sim.evaSite === site.id ? null : site.id)}
+                  >
+                    <span className="eva-site-head">
+                      <strong>{site.name}</strong>
+                      <span className="mono">
+                        {site.km} km · {needsRover ? `rover ${site.rover}%` : "on foot"}
+                      </span>
+                    </span>
+                    <span className="eva-site-what">{site.what}</span>
+                    <span className="chips">
+                      <span className="chip good">Science +{visited ? 1 : site.science}{visited ? " (visited)" : ""}</span>
+                      {site.bonusText && <span className="chip good">{site.bonusText}</span>}
+                      <span className="chip bad">Suit O₂ −{site.suitO2}% each</span>
+                      <span className="chip bad">Radiation +{site.dose} mSv each</span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          <div className="eva-col">
+            <span className="label">3. Pre-spacewalk checklist</span>
+            <ul className="checklist">
+              {list.map((i) => (
+                <li key={i.id} className={i.ok ? "ok" : "no"}>
+                  <span className="check-mark" aria-hidden="true">{i.ok ? "✓" : "!"}</span>
+                  <span>
+                    <strong>{i.label}</strong>
+                    <small>{i.why}</small>
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <p className="real">
+              <span className="label">Real missions</span>
+              Astronauts check their suits, tools and the plan together before every spacewalk, and always go out in pairs.
+            </p>
+            {walkers.length === 0 && <p className="hint">Pick at least one astronaut to go outside.</p>}
+          </div>
+        </div>
+        <div className="modal-actions">
+          <button type="button" className="btn btn-primary" onClick={onClose} autoFocus>
+            Done
+          </button>
+        </div>
+      </section>
+    </div>
   );
 }
 

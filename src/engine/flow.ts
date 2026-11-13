@@ -2,7 +2,7 @@ import { getRole } from "../content/roles";
 import { getSite, sitesForLevel } from "../content/landingSites";
 import { DAMAGE_LINES, RADIO_DELAY_MIN, SCRIPT } from "../content/script";
 import { baseReducer, startBase } from "./base";
-import { assignTask, chooseEvent, createSim, nextSol, planPlot, runSol, toggleMachine } from "../sim/engine";
+import { assignTask, chooseEvent, createSim, nextSol, planEva, planPlot, runSol, toggleMachine } from "../sim/engine";
 import { START_GAUGES, applyEffects } from "./effects";
 import type { Action, DialogueLine, GameState, SavedProgress, Stage } from "./types";
 
@@ -148,6 +148,7 @@ export function next(state: GameState, action: Action): GameState {
     case "SIM_TOGGLE":
     case "SIM_PLOT":
     case "SIM_EVENT":
+    case "SIM_EVA_SITE":
     case "SIM_RUN":
     case "SIM_NEXT": {
       if (state.stage !== "sim" || !state.sim) return state;
@@ -157,6 +158,7 @@ export function next(state: GameState, action: Action): GameState {
         : action.type === "SIM_TOGGLE" ? toggleMachine(s, action.machine)
         : action.type === "SIM_PLOT" ? planPlot(s, action.plot, action.crop)
         : action.type === "SIM_EVENT" ? chooseEvent(s, action.index)
+        : action.type === "SIM_EVA_SITE" ? planEva(s, action.site)
         : action.type === "SIM_RUN" ? runSol(s)
         : nextSol(s);
       return sim === s ? state : { ...state, sim };
