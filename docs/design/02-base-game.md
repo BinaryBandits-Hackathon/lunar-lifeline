@@ -20,7 +20,7 @@ The crew uses 1 supply every sol.
 | | Cadet (7–9) | Commander (10–12) |
 |---|---|---|
 | Length | 7 sols | 10 sols |
-| Science goal | 4 | 5 |
+| Science goal | 4 | 6 |
 | Storm | Sol 4 | Sol 4–7 |
 | Options per card | 2 | 2–3 |
 | Power board | Pip suggests a split each sol | Keeps yesterday's split; no advice |
@@ -37,7 +37,7 @@ Endings, decided by the gauges at the end:
 
 Each run has one storm, solar (60%) or dust (40%), with a forecast card the sol before.
 
-- **Solar storm:** strength comes from a real NASA DONKI geomagnetic storm (`src/data/solar-storms.json`): Kp 6–7 → 3, Kp 8 → 4, Kp 9 → 5. The mission report names the real storm's date and links to NASA's record. If the data file is empty, the game uses strength 4 and says it is an example.
+- **Solar storm:** strength comes from a real NASA DONKI geomagnetic storm (`src/data/solar-storms.json`): Kp 6 → 3, Kp 7 → 4, Kp 8 → 5, Kp 9 → 6. The mission report names the real storm's date and links to NASA's record. The snapshot holds 47 storms from 2023–2025 (Kp 6 and up), including the Kp 9 storm of 10 May 2024. If the file is ever empty, the game uses strength 4 and says it is an example.
 - **Dust storm:** panels make 1 block. DONKI does not cover Mars weather; the card cites the real 2018 global dust storm.
 
 To refresh the storm data (DONKI allows 60 days per request; the free demo key allows 10 requests an hour):
@@ -55,7 +55,7 @@ NASA_API_KEY=your_key npm run fetch:storms -- 2023-01-01 2025-12-31
 After any change run `npm test`. The balance bots (`tests/bots.ts`) play 600 seeded runs per strategy and level, and the tests fail if:
 
 - a thoughtful player stops winning most of the time,
-- playing totally safe starts earning 3 stars,
+- playing totally safe earns 3 stars too often (Cadet allows up to 15%, since it is gentler on purpose),
 - chasing only science stops being risky,
 - ignoring the forecast stops doing worse,
 - random play wins too often or loses every time.
@@ -64,15 +64,14 @@ Current results (600 runs each):
 
 | Strategy | Cadet 3-star | Cadet lost | Commander 3-star | Commander lost |
 |---|---|---|---|---|
-| Thoughtful | 97% | 0% | 98% | 3% |
-| Always safe, no science | 10% | 1% | 5% | 2% |
-| Chasing science | 74% | 27% | 28% | 72% |
-| Ignores the forecast | 74% | 26% | 24% | 76% |
-| Random | 36% | 43% | 20% | 68% |
+| Thoughtful | 96% | 0% | 98% | 2% |
+| Always safe, no science | 11% | 1% | 0% | 2% |
+| Chasing science | 75% | 25% | 31% | 69% |
+| Ignores the forecast | 75% | 25% | 26% | 74% |
+| Random | 38% | 43% | 15% | 68% |
 
 ## Known gaps
 
-- Real storm data file is empty until the fetch script runs with a key.
 - Only one storm per mission; Commander could use a second, smaller one.
 - Card facts need checking against NASA sources before release.
 - Not yet playtested with children.

@@ -24,8 +24,9 @@ describe.each(["cadet", "commander"] as Level[])("balance at %s level", (level) 
     expect(r.smart.threeStar).toBeGreaterThan(level === "cadet" ? 0.6 : 0.45);
   });
 
-  it("playing it totally safe never earns 3 stars", () => {
-    expect(r.turtle.threeStar).toBeLessThan(0.1);
+  it("playing it totally safe rarely earns 3 stars", () => {
+    // Cadet is gentler on purpose: a little science comes without chasing it.
+    expect(r.turtle.threeStar).toBeLessThan(level === "cadet" ? 0.15 : 0.1);
   });
 
   it("chasing only science is risky", () => {

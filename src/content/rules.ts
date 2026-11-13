@@ -39,12 +39,13 @@ export const LEVEL_RULES: Record<
 > = {
   // Cadets get a supply cushion so a young player can learn without running out.
   cadet: { sols: 7, scienceGoal: 4, stormSols: [4, 4], bonusSupplies: 2 },
-  commander: { sols: 10, scienceGoal: 5, stormSols: [4, 7], bonusSupplies: 0 },
+  commander: { sols: 10, scienceGoal: 6, stormSols: [4, 7], bonusSupplies: 0 },
 };
 
 /** Storm strength from the real storm's Kp (measured at Earth, 0 to 9). */
 export function strengthFromKp(kp: number): number {
-  if (kp >= 9) return 5;
-  if (kp >= 8) return 4;
+  if (kp >= 9) return 6;
+  if (kp >= 8) return 5;
+  if (kp >= 7) return 4;
   return 3;
 }
