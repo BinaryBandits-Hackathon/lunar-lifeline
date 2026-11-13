@@ -2,6 +2,7 @@ import { useEffect, useReducer } from "react";
 import { createInitialState, currentLine, fillText, next, toSaved } from "./engine/flow";
 import type { GameState, Stage } from "./engine/types";
 import { Icon } from "./ui/Icon";
+import { rankFor } from "./content/academy";
 import { speak, stopSpeaking } from "./services/speech";
 import { loadProgress, prefersReducedMotion, saveProgress } from "./services/storage";
 import { Academy } from "./screens/Academy";
@@ -109,6 +110,7 @@ export function App() {
           <span className="topbar-name">
             <Icon name="astronaut" size={20} />
             {state.player.name || "Junior Astronaut"}
+            <span className="topbar-rank mono">{rankFor(state.career.points).name}</span>
           </span>
           <ol className="phases" aria-label="Mission progress">
             {PHASES.map((p, i) => (

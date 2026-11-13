@@ -5,7 +5,7 @@ import { assignTask, chooseEvent, createSim, nextSol, planEva, runSol, stormStat
 import { evaChecklist, sitesFor } from "../src/sim/eva";
 import type { SimState } from "../src/sim/types";
 
-function landed(level: Level = "cadet", role: RoleId = "scientist", site: SiteId = "plains"): GameState {
+function landed(level: Level = "commander", role: RoleId = "scientist", site: SiteId = "plains"): GameState {
   let s = [
     { type: "START" },
     { type: "SET_NAME", name: "Nova" },
@@ -79,8 +79,8 @@ describe("spacewalks and the rover", () => {
   });
 
   it("the ice cliff is only offered when the base is near ice", () => {
-    expect(sitesFor(createSim(landed("cadet", "scientist", "plains"), 3)).some((s) => s.id === "iceCliff")).toBe(false);
-    expect(sitesFor(createSim(landed("cadet", "scientist", "iceValley"), 3)).some((s) => s.id === "iceCliff")).toBe(true);
+    expect(sitesFor(createSim(landed("commander", "scientist", "plains"), 3)).some((s) => s.id === "iceCliff")).toBe(false);
+    expect(sitesFor(createSim(landed("commander", "scientist", "iceValley"), 3)).some((s) => s.id === "iceCliff")).toBe(true);
   });
 
   it("going out during a dust storm is cancelled", () => {
@@ -97,33 +97,36 @@ describe("spacewalks and the rover", () => {
   });
 
   it("over many missions, spacewalks pay off but sometimes go wrong", () => {
-    let wins = 0;
-    let incidents = 0;
-    let walks = 0;
-    for (let seed = 1; seed <= 60; seed++) {
-      let sim = createSim(landed(), seed);
-      for (let i = 0; i < 12 && sim.mode !== "ended"; i++) {
-        if (sim.eventId) sim = chooseEvent(sim, 0);
-        const calm = stormStatus(sim) !== "today";
-        if (calm && sim.crew[0].energy >= 50 && sim.crew[1].energy >= 50 && sim.res.oxygen > 40) {
+    const play = (walk: boolean) => {
+      let wins = 0;
+      let incidents = 0;
+      let walks = 0;
+      for (let seed = 1; seed <= 60; seed++) {
+        let sim = createSim(landed(), seed);
+        for (let i = 0; i < 12 && sim.mode !== "ended"; i++) {
+          if (sim.eventId) sim = chooseEvent(sim, 0);
+          const calm = stormStatus(sim) !== "today";
           const site = sitesFor(sim).find((s) => !sim.visited.includes(s.id) && s.rover <= sim.rover.battery);
-          if (site) {
+          if (walk && calm && site && sim.crew[0].energy >= 50 && sim.crew[1].energy >= 50 && sim.res.oxygen > 40) {
             sim = planEva(twoWalkers(sim), site.id);
             walks++;
+          } else {
+            sim = assignTask(assignTask(sim, "player", sim.crew[0].energy < 50 ? "rest" : "research"), sim.crew[1].id, sim.crew[1].energy < 50 ? "rest" : "research");
           }
-        } else {
-          sim = assignTask(assignTask(sim, "player", "rest"), sim.crew[1].id, "rest");
+          if (walk && !sim.machines.roverCharger && sim.res.battery > 40) sim = toggleMachine(sim, "roverCharger");
+          sim = runSol(sim);
+          incidents += sim.report!.notes.filter((n) => n.text.includes("suit alarm") || n.text.includes("rover wheel")).length;
+          sim = nextSol(sim);
         }
-        if (!sim.machines.roverCharger && sim.res.battery > 40) sim = toggleMachine(sim, "roverCharger");
-        sim = runSol(sim);
-        incidents += sim.report!.notes.filter((n) => n.text.includes("suit alarm") || n.text.includes("rover wheel")).length;
-        sim = nextSol(sim);
+        if (sim.ending && sim.ending.stars >= 2) wins++;
       }
-      if (sim.ending && sim.ending.stars >= 2) wins++;
-    }
-    expect(walks).toBeGreaterThan(60);
-    expect(incidents).toBeGreaterThan(0);
-    expect(incidents / walks).toBeLessThan(0.35);
-    expect(wins / 60).toBeGreaterThan(0.5);
+      return { wins, incidents, walks };
+    };
+    const withWalks = play(true);
+    const without = play(false);
+    expect(withWalks.walks).toBeGreaterThan(60);
+    expect(withWalks.incidents).toBeGreaterThan(0);
+    expect(withWalks.incidents / withWalks.walks).toBeLessThan(0.35);
+    expect(withWalks.wins).toBeGreaterThan(without.wins);
   });
 });

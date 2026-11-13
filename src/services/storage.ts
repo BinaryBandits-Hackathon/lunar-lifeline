@@ -1,3 +1,4 @@
+import { readCareer } from "../engine/career";
 import type { Level, RoleId, SavedProgress } from "../engine/types";
 
 // Saved in this browser only. Nothing here is ever sent to a server:
@@ -28,6 +29,7 @@ export function loadProgress(): Partial<SavedProgress> | undefined {
       };
     }
     if (typeof d.seenIntro === "boolean") out.seenIntro = d.seenIntro;
+    if (d.career) out.career = readCareer(d.career);
     return out;
   } catch {
     return undefined;

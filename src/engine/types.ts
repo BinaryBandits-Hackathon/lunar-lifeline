@@ -101,6 +101,8 @@ export interface GameState {
   seenIntro: boolean;
   /** The base game, from Sol 1 on. Null during the opening. */
   base: BaseState | null;
+  /** Progress across missions and drills, kept on this device. */
+  career: import("./career").Career;
   /** The base simulation. Null until it starts. */
   sim: import("../sim/types").SimState | null;
 }
@@ -215,6 +217,7 @@ export interface SavedProgress {
   player: Player;
   settings: Settings;
   seenIntro: boolean;
+  career: import("./career").Career;
 }
 
 export type Action =
@@ -236,6 +239,8 @@ export type Action =
   | { type: "SIM_PLOT"; plot: number; crop: import("../sim/types").CropId | null }
   | { type: "SIM_EVENT"; index: number }
   | { type: "SIM_EVA_SITE"; site: string | null }
+  | { type: "SIM_DISMISS_UNLOCKS" }
+  | { type: "RECORD_DRILL"; drill: string; score: number }
   | { type: "SIM_RUN" }
   | { type: "SIM_NEXT" }
   | { type: "ADD_BLOCK"; system: System }

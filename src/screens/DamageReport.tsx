@@ -3,7 +3,8 @@ import { getSite } from "../content/landingSites";
 import { GROUPS, arrivalReadings, type Reading } from "../content/systems";
 import { currentLine, fillText, isLastLine } from "../engine/flow";
 import { speak } from "../services/speech";
-import { BaseScene } from "../ui/BaseScene";
+import { createSim } from "../sim/engine";
+import { SimScene } from "../ui/SimScene";
 import { Dialogue } from "../ui/Dialogue";
 import { Icon } from "../ui/Icon";
 import type { ScreenProps } from "../ui/screen";
@@ -23,6 +24,7 @@ function fill(r: Reading): number {
 /** Systems check after a safe landing: every reading on the base, explained. */
 export function DamageReport({ state, dispatch }: ScreenProps) {
   const readings = useMemo(() => arrivalReadings(state), [state]);
+  const preview = useMemo(() => createSim(state, 1), [state]);
   const [selected, setSelected] = useState<string | null>(null);
   const [seen, setSeen] = useState<Set<string>>(new Set());
   const line = currentLine(state);
@@ -57,7 +59,7 @@ export function DamageReport({ state, dispatch }: ScreenProps) {
             <span>Base camera</span>
             <span className="mono">Mars · Sol 0</span>
           </div>
-          <BaseScene flags={state.flags} />
+          <SimScene sim={preview} phase="morning" />
         </div>
 
         <div className="systems-grid">

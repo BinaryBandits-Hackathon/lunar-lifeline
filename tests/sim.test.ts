@@ -82,13 +82,13 @@ describe("base simulation", () => {
   });
 
   it("heaters can't be switched off, other machines can", () => {
-    const sim = createSim(landed());
+    const sim = createSim(landed("commander"));
     expect(toggleMachine(sim, "heaters").machines.heaters).toBe(true);
     expect(toggleMachine(sim, "fuelPlant").machines.fuelPlant).toBe(true);
   });
 
   it("the fuel plant makes fuel but costs power", () => {
-    const base = assignTask(createSim(landed()), "player", "rest");
+    const base = assignTask(createSim(landed("commander")), "player", "rest");
     const off = runSol(base);
     const on = runSol(toggleMachine(base, "fuelPlant"));
     expect(on.res.fuel).toBeGreaterThan(off.res.fuel);
@@ -102,7 +102,7 @@ describe("base simulation", () => {
   });
 
   it("planted crops grow under lights and can be harvested", () => {
-    let sim = createSim(landed("cadet", "doctor", "plains"));
+    let sim = createSim(landed("commander", "doctor", "plains"));
     sim = planPlot(sim, 0, "lettuce");
     for (let sol = 0; sol < 4; sol++) {
       sim = runSol(assignTask(sim, "player", "farm"));
