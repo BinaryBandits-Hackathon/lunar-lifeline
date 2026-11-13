@@ -745,7 +745,64 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 .sim-scene .grain { fill: #000; opacity: 0.35; }
 .sim-scene .rock { fill: #6e3a20; }
 .sim-scene .track { fill: none; stroke: #6a3519; stroke-width: 4; stroke-dasharray: 3 5; opacity: 0.5; }
-.sim-scene .shadow-soft { fill: #000; opacity: 0.28; }
+.sim-scene .shadow-soft {
+  fill: #000; opacity: 0.32;
+  /* contact shadows lean away from the sun (vars set from the time of day) */
+  transform-box: fill-box; transform-origin: 50% 50%;
+  transform: translateX(calc(var(--sx, 0) * 1px)) scaleX(var(--ss, 1));
+  transition: transform 0.8s ease;
+}
+.sim-scene .cast-shadow { fill: #2a0f04; opacity: 0.3; transition: d 0.8s ease; }
+.sim-scene.time-night .cast-shadow { opacity: 0.12; }
+.sim-scene .suit.walking .suit-figure { animation: walk-bob 0.36s ease-in-out infinite alternate; }
+.sim-scene .controls-hint rect { fill: rgba(10, 11, 14, 0.7); stroke: rgba(255, 255, 255, 0.25); }
+.sim-scene .controls-hint text { fill: #f4f4f1; font-family: var(--mono); font-size: 13px; font-weight: 600; letter-spacing: 0.06em; }
+/* --- visual polish inspired by tilted-view Mars builders --- */
+.sim-scene .ripples path { fill: none; stroke: #c98457; stroke-width: 1.4; opacity: 0.35; }
+.sim-scene .hex-grid { opacity: 0.95; }
+.sim-scene #hexes polygon { fill: rgba(60, 210, 255, 0.28); stroke: #9af4ff; stroke-width: 1.8; }
+.sim-scene.time-evening .hex-grid, .sim-scene.time-night .hex-grid { opacity: 0.95; filter: url(#glow); }
+.sim-scene .cables path { fill: none; stroke: #2b2f3a; stroke-width: 3.2; stroke-linecap: round; opacity: 0.85; }
+.sim-scene .lamp-posts line { stroke: #5c5f66; stroke-width: 1.6; }
+.sim-scene .ground-lamp { fill: #ffd27a; opacity: 0.35; transition: opacity 0.8s; }
+.sim-scene.time-evening .ground-lamp, .sim-scene.time-night .ground-lamp { opacity: 1; filter: url(#glow); }
+
+.sim-scene .lander-body { stroke: #8a8d93; stroke-width: 1.4; }
+.sim-scene .lander-leg { stroke: #b9bcc2; stroke-width: 4; stroke-linecap: round; }
+.sim-scene .lander-foot { fill: #d7d9dc; stroke: #6b6e75; }
+.sim-scene .lander-fin { fill: #d7d9dc; stroke: #8a8d93; stroke-width: 1; }
+.sim-scene .lander-windows { fill: none; stroke: #1f2633; stroke-width: 5; stroke-dasharray: 4 3; stroke-linecap: round; }
+.sim-scene .lander-badge { fill: #f4f1ea; stroke: var(--accent); stroke-width: 2.5; }
+.sim-scene .lander-badge-mark { fill: none; stroke: var(--accent); stroke-width: 2.4; stroke-linejoin: round; }
+.sim-scene .lander-door { fill: #c8321f; stroke: #7a1d12; stroke-width: 1; }
+.sim-scene .lander-ramp { fill: #3a3d44; stroke: #c9ccd1; stroke-width: 1.4; }
+.sim-scene .lander-beacon { fill: #ff4a3a; filter: url(#glow); animation: blink 1.4s steps(2) infinite; }
+
+.sim-scene .turbine-base { fill: none; stroke: #d7d9dc; stroke-width: 2; }
+.sim-scene .turbine-mast { stroke: #4a4d54; stroke-width: 2; }
+.sim-scene .turbine-blades path { fill: none; stroke: #f4f4f1; stroke-width: 4; stroke-linecap: round; }
+.sim-scene .turbine-blades path.back { stroke: #d23b2a; stroke-width: 3; }
+.sim-scene .turbine-blades { transform-box: fill-box; transform-origin: 50% 50%; animation: turbine-spin 1.6s linear infinite; }
+.sim-scene .turbine:nth-of-type(2n) .turbine-blades { animation-duration: 1.9s; }
+.sim-scene .turbine-tip { fill: #d23b2a; }
+
+.sim-scene .rover-body { fill: #f4f4f1; }
+.sim-scene .rover-stripe { fill: #d23b2a; }
+
+.sim-scene .gh-lawn { opacity: 0.9; }
+.sim-scene .gh-tree line { stroke: #6b4a2b; stroke-width: 2; }
+.sim-scene .gh-tree circle { fill: #3d8b3d; stroke: #2a6a2a; stroke-width: 1; }
+.sim-scene .gh-ring { fill: #f2c230; stroke: #a57d12; stroke-width: 1; }
+
+.sim-scene .player-ring { fill: rgba(80, 200, 255, 0.18); stroke: #59d4ff; stroke-width: 2; filter: url(#glow); }
+.sim-scene .player-arrow { animation: arrow-bob 0.9s ease-in-out infinite alternate; }
+@keyframes arrow-bob { from { transform: translateY(0); } to { transform: translateY(-6px); } }
+@keyframes turbine-spin { 0% { transform: scaleX(1); } 50% { transform: scaleX(-1); } 100% { transform: scaleX(1); } }
+@media (prefers-reduced-motion: reduce) {
+  .sim-scene .turbine-blades, .sim-scene .player-arrow, .sim-scene .lander-beacon { animation: none; }
+}
+@keyframes walk-bob { from { transform: translateY(0) rotate(-3deg); } to { transform: translateY(-3px) rotate(3deg); } }
+@media (prefers-reduced-motion: reduce) { .sim-scene .suit.walking .suit-figure { animation: none; } }
 .sim-scene .ice { fill: #eef6f8; stroke: #c8e1ea; stroke-width: 1; }
 .sim-scene .ice-shine { fill: #ffffff; opacity: 0.8; }
 
