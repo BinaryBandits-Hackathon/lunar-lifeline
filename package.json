@@ -8,7 +8,8 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "typecheck": "tsc",
-    "test": "vitest run"
+    "test": "vitest run",
+    "fetch:storms": "node scripts/fetch-donki.mjs"
   },
   "dependencies": {
     "react": "^19.3.1",

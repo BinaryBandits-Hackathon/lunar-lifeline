@@ -1,6 +1,7 @@
 import { getRole } from "../content/roles";
 import { getSite, sitesForLevel } from "../content/landingSites";
 import { DAMAGE_LINES, RADIO_DELAY_MIN, SCRIPT } from "../content/script";
+import { baseReducer, startBase } from "./base";
 import { START_GAUGES, applyEffects } from "./effects";
 import type { Action, DialogueLine, GameState, SavedProgress, Stage } from "./types";
 
@@ -35,6 +36,7 @@ export function createInitialState(saved?: Partial<SavedProgress>): GameState {
     gauges: { ...START_GAUGES },
     flags: [],
     lineIndex: 0,
+    base: null,
   };
 }
 
@@ -70,7 +72,7 @@ export function canSkipIntro(state: GameState): boolean {
 
 /** Clears everything from the last run but keeps the player's badge and settings. */
 function freshRun(state: GameState, stage: Stage): GameState {
-  return { ...state, stage, pendingSite: null, site: null, gauges: { ...START_GAUGES }, flags: [], lineIndex: 0 };
+  return { ...state, stage, pendingSite: null, site: null, gauges: { ...START_GAUGES }, flags: [], lineIndex: 0, base: null };
 }
 
 function goTo(state: GameState, stage: Stage): GameState {
@@ -132,7 +134,17 @@ export function next(state: GameState, action: Action): GameState {
     }
 
     case "BEGIN_SOL_1":
-      return state.stage === "damageReport" ? { ...goTo(state, "sol1"), seenIntro: true } : state;
+      return state.stage === "damageReport" ? startBase({ ...state, seenIntro: true, lineIndex: 0 }, action.seed ?? 1) : state;
+
+    case "ADD_BLOCK":
+    case "REMOVE_BLOCK":
+    case "CONFIRM_BOARD":
+    case "CHOOSE_OPTION":
+    case "NEXT_SOL":
+      return baseReducer(state, action);
+
+    case "REPLAY":
+      return state.stage === "ending" ? freshRun(state, "landingChoice") : state;
 
     case "SET_SETTING":
       return { ...state, settings: { ...state.settings, [action.key]: action.value } };

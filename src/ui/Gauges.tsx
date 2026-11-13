@@ -9,17 +9,20 @@ interface Props {
   selected?: GaugeId | null;
   seen?: Set<GaugeId>;
   onSelect?: (id: GaugeId) => void;
+  /** Science target for this mission; replaces the default maximum. */
+  scienceGoal?: number;
 }
 
 /** Instrument readouts: label, value, and a segmented bar (one segment per unit). */
-export function Gauges({ gauges, selected, seen, onSelect }: Props) {
+export function Gauges({ gauges, selected, seen, onSelect, scienceGoal }: Props) {
   return (
     <div className="gauges">
       {ORDER.map((id) => {
         const info = GAUGE_INFO[id];
         const value = gauges[id];
+        const max = id === "science" && scienceGoal ? scienceGoal : info.max;
         const low = (id === "power" || id === "supplies") && value <= 3;
-        const high = id === "dose" && value >= info.max - 2;
+        const high = id === "dose" && value >= max - 2;
         const warn = low || high;
         const content = (
           <>
@@ -30,16 +33,16 @@ export function Gauges({ gauges, selected, seen, onSelect }: Props) {
             </span>
             <span className="gauge-value">
               {value}
-              <small>/{info.max}</small>
+              <small>/{max}</small>
             </span>
             <span className={`segments${warn ? " warn" : ""}`} aria-hidden="true">
-              {Array.from({ length: info.max }, (_, i) => (
+              {Array.from({ length: Math.max(max, value) }, (_, i) => (
                 <i key={i} className={i < value ? "on" : ""} />
               ))}
             </span>
           </>
         );
-        const label = `${info.label}: ${value} out of ${info.max}${warn ? (low ? ", low" : ", high") : ""}`;
+        const label = `${info.label}: ${value} out of ${max}${warn ? (low ? ", low" : ", high") : ""}`;
         if (!onSelect) return <div key={id} className="gauge" aria-label={label}>{content}</div>;
         return (
           <button

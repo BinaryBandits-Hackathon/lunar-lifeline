@@ -60,7 +60,7 @@ export function DamageReport({ state, dispatch }: ScreenProps) {
         mood={mood}
         form="rover"
         readAloud={state.settings.readAloud}
-        onNext={dialogueDone ? () => dispatch({ type: "BEGIN_SOL_1" }) : () => dispatch({ type: "NEXT" })}
+        onNext={dialogueDone ? () => dispatch({ type: "BEGIN_SOL_1", seed: Date.now() }) : () => dispatch({ type: "NEXT" })}
         nextLabel={dialogueDone ? "Begin Sol 1" : "Next"}
       >
         {dialogueDone && seen.size < 4 && <span className="hint">Tap the meters ({seen.size}/4)</span>}

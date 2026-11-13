@@ -13,12 +13,24 @@ export type Stage =
   | "descent"
   | "touchdown"
   | "damageReport"
-  | "sol1";
+  | "board"
+  | "card"
+  | "result"
+  | "ending";
 
 export type GaugeId = "power" | "supplies" | "dose" | "science";
 export type Gauges = Record<GaugeId, number>;
 
-export type Flag = "PANELS_DAMAGED" | "NEAR_ICE" | "FAR_FROM_ICE";
+export type Flag =
+  // from the landing
+  | "PANELS_DAMAGED"
+  | "NEAR_ICE"
+  | "FAR_FROM_ICE"
+  // set by choices on the base
+  | "SHELTER_BUILT"
+  | "SHELTER_STOCKED"
+  | "SHELTERED"
+  | "DUSTY_PANELS";
 
 export type Perk =
   | { kind: "repairDiscount"; power: number }
@@ -85,6 +97,112 @@ export interface GameState {
   lineIndex: number;
   settings: Settings;
   seenIntro: boolean;
+  /** The base game, from Sol 1 on. Null during the opening. */
+  base: BaseState | null;
+}
+
+// ---------- base game ----------
+
+export type System = "habitat" | "greenhouse" | "shield";
+export type Allocation = Record<System, number>;
+
+export type Tone = "good" | "bad" | "info";
+export interface LogLine {
+  text: string;
+  tone: Tone;
+}
+
+export type StormKind = "solar" | "dust";
+
+/** A real solar storm from NASA DONKI (src/data/solar-storms.json). */
+export interface StormRecord {
+  id: string;
+  start: string;
+  maxKp: number;
+  link: string;
+}
+
+export interface StormPlan {
+  sol: number;
+  kind: StormKind;
+  /** Radiation a solar storm adds before any protection. */
+  strength: number;
+  record: StormRecord | null;
+}
+
+export type OptionTag = "repair" | "shelter" | "research" | "outside";
+
+export interface CardOption {
+  label: string;
+  effects: Partial<Gauges>;
+  /** Extra growth for the greenhouse crop (can be negative). */
+  growth?: number;
+  /** What happened, shown on the result screen. */
+  outcome: string;
+  note?: string;
+  /** Only offered at Commander level. */
+  commander?: boolean;
+  requires?: Flag[];
+  excludes?: Flag[];
+  sets?: Flag[];
+  clears?: Flag[];
+  tags?: OptionTag[];
+  /** Effect that arrives on a later sol. */
+  later?: { inSols: number; effects: Partial<Gauges>; text: string };
+}
+
+export interface Card {
+  id: string;
+  title: string;
+  text: string;
+  /** Pool cards are drawn at random; fixed cards are placed by the engine. */
+  kind: "pool" | "fixed";
+  requires?: Flag[];
+  options: CardOption[];
+  teaches: string;
+  real: string;
+}
+
+export interface Delayed {
+  sol: number;
+  effects: Partial<Gauges>;
+  text: string;
+}
+
+export type EndingType = "commander" | "safe" | "grounded" | "early";
+export interface Ending {
+  type: EndingType;
+  stars: 0 | 1 | 2 | 3;
+  sol: number;
+}
+
+export interface SolRecord {
+  sol: number;
+  lines: LogLine[];
+  gauges: Gauges;
+}
+
+export interface BaseState {
+  sol: number;
+  totalSols: number;
+  scienceGoal: number;
+  /** Seeded random state, so a run can be replayed and tested. */
+  rng: number;
+  storm: StormPlan;
+  /** Blocks the panels make this sol. */
+  production: number;
+  allocation: Allocation;
+  /** Greenhouse crop progress toward a harvest. */
+  growth: number;
+  cardId: string;
+  seen: string[];
+  delayed: Delayed[];
+  /** News at the start of the sol. */
+  morning: LogLine[];
+  /** What happened at the end of the sol. */
+  today: LogLine[];
+  history: SolRecord[];
+  ending: Ending | null;
 }
 
 /** The part of the state kept on this device between visits. */
@@ -106,6 +224,12 @@ export type Action =
   | { type: "NEXT" }
   | { type: "PICK_SITE"; site: SiteId }
   | { type: "CONFIRM_SITE" }
-  | { type: "BEGIN_SOL_1" }
+  | { type: "BEGIN_SOL_1"; seed?: number }
+  | { type: "ADD_BLOCK"; system: System }
+  | { type: "REMOVE_BLOCK"; system: System }
+  | { type: "CONFIRM_BOARD" }
+  | { type: "CHOOSE_OPTION"; index: number }
+  | { type: "NEXT_SOL" }
+  | { type: "REPLAY" }
   | { type: "SET_SETTING"; key: keyof Settings; value: boolean }
   | { type: "RESTART" };

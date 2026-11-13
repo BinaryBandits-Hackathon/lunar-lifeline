@@ -10,14 +10,18 @@ import { Cockpit } from "./screens/Cockpit";
 import { DamageReport } from "./screens/DamageReport";
 import { Descent } from "./screens/Descent";
 import { LandingMap } from "./screens/LandingMap";
-import { Sol1 } from "./screens/Sol1";
+import { Board } from "./screens/Board";
+import { CardScreen } from "./screens/CardScreen";
+import { Ending } from "./screens/Ending";
+import { Result } from "./screens/Result";
 import { Title } from "./screens/Title";
 
 const PHASES: { label: string; stages: Stage[] }[] = [
   { label: "Badge", stages: ["badge"] },
   { label: "Approach", stages: ["approach", "alarm", "briefing"] },
   { label: "Landing", stages: ["landingChoice", "descent", "touchdown"] },
-  { label: "Base", stages: ["damageReport", "sol1"] },
+  { label: "Base", stages: ["damageReport", "board", "card", "result"] },
+  { label: "Report", stages: ["ending"] },
 ];
 
 function init(): GameState {
@@ -73,8 +77,17 @@ export function App() {
     case "damageReport":
       screen = <DamageReport {...props} />;
       break;
-    case "sol1":
-      screen = <Sol1 {...props} />;
+    case "board":
+      screen = <Board {...props} />;
+      break;
+    case "card":
+      screen = <CardScreen {...props} />;
+      break;
+    case "result":
+      screen = <Result {...props} />;
+      break;
+    case "ending":
+      screen = <Ending {...props} />;
       break;
   }
 
