@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { getRole } from "../content/roles";
 import { powerForecast, stormStatus, summarize } from "../sim/engine";
 import { getEvent } from "../sim/events";
+import { BADGES, rankFor } from "../content/academy";
+import { missionBadges, missionPoints } from "../engine/career";
 import { evaChecklist, getSite as getEvaSite, sitesFor } from "../sim/eva";
 import { FEATURE_INFO, isUnlocked, machineFeature, machineLocked, taskFeature, taskLocked, unlockSol } from "../sim/unlocks";
 import { CAPS, CROPS, DOSE_LIMIT, MACHINES, PHASES, TASKS, TASK_ORDER } from "../sim/rules";
@@ -309,7 +311,7 @@ export function SimScreen({ state, dispatch }: ScreenProps) {
         />
       )}
       {planning && sim.eventId && sim.newUnlocks.length === 0 && <EventModal sim={sim} onPick={(index) => dispatch({ type: "SIM_EVENT", index })} />}
-      {sim.mode !== "plan" && !playing && sim.report && <SolReportModal sim={sim} onNext={() => dispatch({ type: "SIM_NEXT" })} onHome={() => dispatch({ type: "RESTART" })} />}
+      {sim.mode !== "plan" && !playing && sim.report && <SolReportModal careerPoints={state.career.points} sim={sim} onNext={() => dispatch({ type: "SIM_NEXT" })} onHome={() => dispatch({ type: "RESTART" })} />}
     </main>
   );
 }
@@ -487,6 +489,29 @@ function EvaModal({
   );
 }
 
+function MissionAwards({ sim, careerPoints }: { sim: SimState; careerPoints: number }) {
+  const badges = missionBadges(sim);
+  const earned = missionPoints(sim);
+  const before = rankFor(careerPoints - earned);
+  const after = rankFor(careerPoints);
+  return (
+    <div className="mission-awards">
+      <span className="mono">+{earned} points</span>
+      {after.index > before.index && <strong className="rank-up">Promoted to {after.name}!</strong>}
+      {badges.length > 0 && (
+        <span className="award-badges">
+          {badges.map((b) => (
+            <span key={b} className="chip good" title={BADGES[b].what}>
+              <Icon name={BADGES[b].icon} size={14} />
+              {BADGES[b].name}
+            </span>
+          ))}
+        </span>
+      )}
+    </div>
+  );
+}
+
 function EventModal({ sim, onPick }: { sim: SimState; onPick: (index: number) => void }) {
   const event = getEvent(sim.eventId!);
   return (
@@ -521,7 +546,7 @@ function EventModal({ sim, onPick }: { sim: SimState; onPick: (index: number) =>
   );
 }
 
-function SolReportModal({ sim, onNext, onHome }: { sim: SimState; onNext: () => void; onHome: () => void }) {
+function SolReportModal({ sim, careerPoints, onNext, onHome }: { sim: SimState; careerPoints: number; onNext: () => void; onHome: () => void }) {
   const report = sim.report!;
   const lines = summarize(report);
   const groups = [...LEFT, "fuel", "science"] as ResourceId[];
@@ -544,6 +569,7 @@ function SolReportModal({ sim, onNext, onHome }: { sim: SimState; onNext: () => 
                   </svg>
                 ))}
               </span>
+              <MissionAwards sim={sim} careerPoints={careerPoints} />
               <span>
                 {ending.type === "emergency" || ending.type === "grounded"
                   ? ending.reason

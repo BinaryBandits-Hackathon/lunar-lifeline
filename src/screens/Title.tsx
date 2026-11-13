@@ -4,6 +4,7 @@ import { Icon } from "../ui/Icon";
 import { Pip } from "../ui/Pip";
 import type { ScreenProps } from "../ui/screen";
 import { LevelPicker } from "./Badge";
+import { RankCard } from "./Academy";
 
 export function Title({ state, dispatch }: ScreenProps) {
   const { settings } = state;
@@ -29,6 +30,8 @@ export function Title({ state, dispatch }: ScreenProps) {
               <strong>Hi, I'm Pip.</strong> I'll be your ship's computer. Ready to train?
             </p>
           </div>
+
+          {state.career.points > 0 || state.career.missions.length > 0 ? <RankCard points={state.career.points} compact /> : null}
 
           <div className="field">
             <span className="label">Level</span>

@@ -2,6 +2,7 @@ import { getRole } from "../content/roles";
 import { getSite, sitesForLevel } from "../content/landingSites";
 import { DAMAGE_LINES, RADIO_DELAY_MIN, SCRIPT } from "../content/script";
 import { baseReducer, startBase } from "./base";
+import { EMPTY_CAREER, recordDrill, recordMission } from "./career";
 import { assignTask, chooseEvent, createSim, dismissUnlocks, nextSol, planEva, planPlot, runSol, toggleMachine } from "../sim/engine";
 import { START_GAUGES, applyEffects } from "./effects";
 import type { Action, DialogueLine, GameState, SavedProgress, Stage } from "./types";
@@ -13,6 +14,7 @@ const DEFAULT_PROGRESS: SavedProgress = {
   player: { name: "", role: null },
   settings: { readAloud: false, reduceMotion: false, sound: true },
   seenIntro: false,
+  career: EMPTY_CAREER,
 };
 
 /** Stages that move on when their last dialogue line is done. */
@@ -32,6 +34,7 @@ export function createInitialState(saved?: Partial<SavedProgress>): GameState {
     player: { ...p.player },
     settings: { ...DEFAULT_PROGRESS.settings, ...p.settings },
     seenIntro: p.seenIntro,
+    career: p.career ?? EMPTY_CAREER,
     pendingSite: null,
     site: null,
     gauges: { ...START_GAUGES },
@@ -43,7 +46,7 @@ export function createInitialState(saved?: Partial<SavedProgress>): GameState {
 }
 
 export function toSaved(state: GameState): SavedProgress {
-  return { level: state.level, player: state.player, settings: state.settings, seenIntro: state.seenIntro };
+  return { level: state.level, player: state.player, settings: state.settings, seenIntro: state.seenIntro, career: state.career };
 }
 
 export function linesFor(state: GameState): DialogueLine[] {
@@ -163,8 +166,14 @@ export function next(state: GameState, action: Action): GameState {
         : action.type === "SIM_DISMISS_UNLOCKS" ? dismissUnlocks(s)
         : action.type === "SIM_RUN" ? runSol(s)
         : nextSol(s);
-      return sim === s ? state : { ...state, sim };
+      if (sim === s) return state;
+      // A mission that just ended goes into the career once.
+      const career = sim.ending && !s.ending ? recordMission(state.career, sim) : state.career;
+      return { ...state, sim, career };
     }
+
+    case "RECORD_DRILL":
+      return { ...state, career: recordDrill(state.career, action.drill, action.score) };
 
     case "ADD_BLOCK":
     case "REMOVE_BLOCK":
