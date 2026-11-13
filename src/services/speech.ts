@@ -1,20 +1,12 @@
 // Read-aloud through the browser's built-in voices. Captions always show,
 // so the game works without a voice. Read-aloud starts switched off.
 //
-// Browser voices vary a lot by device. We pick the most natural one we can
-// find (Microsoft "Natural"/"Online" voices on Windows and Edge, Google voices
-// in Chrome, Apple's Samantha on Mac/iPad) and avoid the robotic defaults.
-// The real fix is recorded voice lines; see docs/design/01-opening-sequence.md.
+// Privacy: only voices that run on the device are used. Online voices send
+// the text (which can include the child's name) to a cloud service, so they
+// are never chosen. Among on-device voices we pick the most natural one and
+// avoid the robotic defaults. The real fix is recorded voice lines.
 
-const PREFERRED = [
-  /natural/i,
-  /online/i,
-  /^Google US English$/i,
-  /^Google UK English Female$/i,
-  /Samantha/i,
-  /Ava/i,
-  /Aria|Jenny|Libby|Sonia/i,
-];
+const PREFERRED = [/natural/i, /Samantha/i, /Ava/i, /Aria|Jenny|Libby|Sonia|Zira|Hazel/i];
 const AVOID = /espeak|robot|whisper|zarvox|bad news|bells|bubbles|cellos|trinoids|organ|albert/i;
 
 let chosen: SpeechSynthesisVoice | null | undefined;
@@ -24,7 +16,9 @@ export function canSpeak(): boolean {
 }
 
 function pickVoice(): SpeechSynthesisVoice | null {
-  const voices = window.speechSynthesis.getVoices().filter((v) => v.lang.toLowerCase().startsWith("en") && !AVOID.test(v.name));
+  const voices = window.speechSynthesis
+    .getVoices()
+    .filter((v) => v.localService && v.lang.toLowerCase().startsWith("en") && !AVOID.test(v.name));
   if (voices.length === 0) return null;
   for (const pattern of PREFERRED) {
     const v = voices.find((x) => pattern.test(x.name));
