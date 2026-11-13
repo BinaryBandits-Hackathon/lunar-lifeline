@@ -627,7 +627,7 @@ export function SimScene({ sim, phase, weather = "clear", res = sim.res }: { sim
       {showWalker && player.y >= 640 && playerSuit}
 
       <g className="controls-hint" transform="translate(16 20)">
-        <rect width="250" height="26" rx="4" />
+        <rect width="290" height="26" rx="4" />
         <text x="10" y="17">Walk: tap the ground or W A S D</text>
       </g>
 
