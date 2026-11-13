@@ -86,6 +86,17 @@ The game is a website, so it is wrapped as a **Trusted Web Activity (TWA)**: a s
 4. Upload the `.aab` to **Testing → Internal testing** first, then the closed test.
 5. Prove the site belongs to the app: copy the **SHA-256 fingerprint** from Play Console (**Setup → App signing**) into `public/.well-known/assetlinks.json`, deploy, then check that the app opens without a browser bar.
 
+## 4b. Built so far
+
+The first build is done (version 1.0.0, code 1, minimum Android 7.0):
+
+- `C:Users	ijul.lunar-life-buildandroidapp-release-bundle.aab`: upload this to Play Console
+- `C:Users	ijul.lunar-life-buildandroidapp-release-signed.apk`: install directly on a phone to test
+- Signing key and passwords: `C:Users	ijul.lunar-life-buildandroidSIGNING-KEY-README.txt` (back it up, never commit it)
+- `public/.well-known/assetlinks.json` holds the upload key fingerprint. After the first upload, **also add** the app signing key fingerprint from Play Console (Setup → App signing), or the app will show a browser bar.
+
+To rebuild: raise `appVersionCode` in `twa-manifest.json`, then run `bubblewrap update` and `bubblewrap build` in that folder.
+
 ## 5. Release order
 
 1. Internal testing: the team installs and plays it.

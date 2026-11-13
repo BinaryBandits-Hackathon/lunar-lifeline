@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.binarybandits.lunarlife",
+      "sha256_cert_fingerprints": [
+        "8E:DB:EB:1E:7B:EE:0C:CF:9C:AB:DA:2D:E6:DE:FB:C9:5E:E8:B6:FC:8F:DB:60:52:2D:6B:47:12:2D:69:CF:49"
+      ]
+    }
+  }
+]
