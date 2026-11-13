@@ -3,6 +3,7 @@ import { strengthFromKp } from "../content/rules";
 import { STORMS, nextRandom } from "../engine/base";
 import type { GameState, RoleId, StormRecord } from "../engine/types";
 import { EVENTS, getEvent } from "./events";
+import { getSite as getEvaSite } from "./eva";
 import {
   CAPS,
   CO2_DANGER,
@@ -21,6 +22,11 @@ import {
   DUSTY_SOLAR,
   DUST_STORM_SOLAR,
   DUST_STORM_SOLS,
+  EVA_MIN_ENERGY,
+  EVA_RISK,
+  EVA_STORM_DOSE,
+  ROVER_CHARGE,
+  ROVER_START,
   EVENT_CHANCE,
   EXERCISE_HEALTH,
   FUEL_PER_SOL,
@@ -115,6 +121,9 @@ export function createSim(state: GameState, seed = 1): SimState {
     bonusScience: 0,
     mustRest: [],
     eventResult: null,
+    rover: { battery: ROVER_START, broken: false },
+    evaSite: null,
+    visited: [],
     sol: 1,
     totalSols: level.sols,
     level: state.level,
@@ -128,7 +137,7 @@ export function createSim(state: GameState, seed = 1): SimState {
       fuel: 8,
       science: 0,
     },
-    machines: { heaters: true, scrubber: true, oxygenMaker: true, recycler: true, greenhouseLights: true, fuelPlant: false },
+    machines: { heaters: true, scrubber: true, oxygenMaker: true, recycler: true, greenhouseLights: true, fuelPlant: false, roverCharger: false },
     panelsCracked: cracked,
     nearIce: !farIce,
     crew,
@@ -176,6 +185,16 @@ export function planPlot(sim: SimState, index: number, crop: CropId | null): Sim
   return { ...sim, plots: sim.plots.map((p, i) => (i === index ? { ...p, plan: crop } : p)) };
 }
 
+/** Sets where today's spacewalk goes (or clears it). */
+export function planEva(sim: SimState, siteId: string | null): SimState {
+  if (sim.mode !== "plan") return sim;
+  if (siteId) {
+    const site = getEvaSite(siteId);
+    if (site.only && !site.only(sim)) return sim;
+  }
+  return { ...sim, evaSite: siteId };
+}
+
 /** Picks one option of the surprise waiting at the start of the sol. */
 export function chooseEvent(sim: SimState, index: number): SimState {
   if (sim.mode !== "plan" || !sim.eventId) return sim;
@@ -214,6 +233,9 @@ export function runSol(sim: SimState): SimState {
   let broken = [...sim.broken];
   let leak = sim.leak;
   let dusty = sim.dusty;
+  let rover = { ...sim.rover };
+  let visited = [...sim.visited];
+  let rng = sim.rng;
   const ledger: LedgerEntry[] = [];
   const notes: SolReport["notes"] = [];
   const timeline: PhaseSnapshot[] = [];
@@ -275,6 +297,7 @@ export function runSol(sim: SimState): SimState {
       add("co2", -removed, "CO₂ scrubber");
     }
     if (ran.has("fuelPlant")) add("fuel", FUEL_PER_SOL / 2, "Fuel plant");
+    if (ran.has("roverCharger")) rover.battery = Math.min(100, rover.battery + ROVER_CHARGE);
     if (ran.has("greenhouseLights")) lightsRan.add(phase);
     if (phase === "night" && !ran.has("heaters")) heatersAtNight = false;
     if (leak) add("water", -LEAK_WATER / 4, "Leaking pipe");
@@ -304,6 +327,7 @@ export function runSol(sim: SimState): SimState {
           );
         }
       }
+      const evaGoers: CrewMember[] = [];
       for (const c of crew) {
         const task = TASKS[c.task];
         if (c.task === "shelter") continue;
@@ -349,6 +373,9 @@ export function runSol(sim: SimState): SimState {
               const fixed = broken[0];
               broken = broken.slice(1);
               notes.push({ tone: "good", text: `${c.name} repaired the ${MACHINES[fixed].name.toLowerCase()}.` });
+            } else if (rover.broken) {
+              rover.broken = false;
+              notes.push({ tone: "good", text: `${c.name} fixed the rover. It can drive again.` });
             } else if (leak) {
               leak = false;
               notes.push({ tone: "good", text: `${c.name} fixed the leaking pipe.` });
@@ -369,9 +396,60 @@ export function runSol(sim: SimState): SimState {
             break;
           case "rest":
             break;
+          case "eva":
+            evaGoers.push(c);
+            break;
         }
       }
       if (researched && sim.bonusScience) add("science", sim.bonusScience, "Earth's experiment");
+
+      // The spacewalk.
+      const walkers = evaGoers;
+      if (walkers.length) {
+        const site = sim.evaSite ? getEvaSite(sim.evaSite) : null;
+        const cancel = (why: string) => {
+          notes.push({ tone: "bad", text: `Spacewalk cancelled: ${why}` });
+          for (const w of walkers) w.energy += TASKS.eva.energy;
+        };
+        if (!site) cancel("no destination was planned.");
+        else if (dustStorm) cancel("too much dust to see the way back.");
+        else if (site.rover && rover.broken) cancel("the rover is broken.");
+        else if (site.rover && rover.battery < site.rover) cancel(`the rover needs ${site.rover}% battery but has ${Math.round(rover.battery)}%.`);
+        else {
+          const n = walkers.length;
+          add("oxygen", -site.suitO2 * n, "Filling spacesuits");
+          if (site.rover) rover.battery = Math.max(0, rover.battery - site.rover);
+          for (const w of walkers) {
+            const dose = site.dose * (solarStorm ? EVA_STORM_DOSE : 1);
+            w.dose += dose;
+          }
+          let risk = EVA_RISK.base;
+          if (n < 2) risk += EVA_RISK.solo;
+          if (walkers.some((w) => w.energy < EVA_MIN_ENERGY - TASKS.eva.energy)) risk += EVA_RISK.tired;
+          if (site.km > 6) risk += EVA_RISK.far;
+          let r: number;
+          [r, rng] = nextRandom(rng);
+          const firstVisit = !visited.includes(site.id);
+          let science = firstVisit ? site.science + (walkers.some((w) => w.role === "scientist") ? 1 : 0) : 1;
+          if (r < risk) {
+            science = Math.ceil(science / 2);
+            if (site.rover) {
+              rover.broken = true;
+              notes.push({ tone: "bad", text: `A rover wheel broke at the ${site.name.toLowerCase()}. The crew drove back slowly. Someone must Repair the rover.` });
+            } else {
+              add("oxygen", -3, "Suit alarm");
+              notes.push({ tone: "bad", text: `A suit alarm went off at the ${site.name.toLowerCase()}, so the crew came back early.` });
+            }
+          } else {
+            notes.push({ tone: "good", text: `${walkers.map((w) => w.name).join(" and ")} explored the ${site.name.toLowerCase()} (${site.km} km${site.rover ? " by rover" : " on foot"}).` });
+          }
+          if (n < 2) notes.push({ tone: "bad", text: "Going outside alone broke the buddy rule and made the spacewalk riskier." });
+          if (solarStorm) notes.push({ tone: "bad", text: "A spacewalk during a solar storm gave the crew three times the radiation." });
+          add("science", science, firstVisit ? `Spacewalk: ${site.name}` : `Spacewalk: ${site.name} (visited before)`);
+          if (firstVisit && site.bonus) for (const [k, v] of Object.entries(site.bonus)) add(k as ResourceId, v as number, `Spacewalk: ${site.name}`);
+          if (!visited.includes(site.id)) visited = [...visited, site.id];
+        }
+      }
     }
 
     clamp(res);
@@ -420,6 +498,9 @@ export function runSol(sim: SimState): SimState {
     broken,
     leak,
     dusty,
+    rover,
+    visited,
+    rng,
     report,
     history: [...sim.history, report],
     mode: "report",
@@ -480,6 +561,7 @@ export function nextSol(sim: SimState): SimState {
     bonusScience: 0,
     mustRest: [],
     eventResult: null,
+    evaSite: null,
   };
 }
 

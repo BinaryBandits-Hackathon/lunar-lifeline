@@ -8,7 +8,7 @@ import type { CropId, Phase, Resources, SimState, TaskId } from "../sim/types";
 
 type Weather = "clear" | "solar" | "dust";
 
-const OUTSIDE: TaskId[] = ["mine", "repair"];
+const OUTSIDE: TaskId[] = ["mine", "repair", "eva"];
 const IN_WINDOWS: TaskId[] = ["research", "exercise", "rest", "shelter"];
 
 const frac = (v: number, max: number) => Math.max(0, Math.min(1, v / max));
@@ -330,6 +330,8 @@ export function SimScene({ sim, phase, weather = "clear", res = sim.res }: { sim
         <rect x="-50" y="-30" width="58" height="14" rx="3" className="rover-deck" />
         <line x1="34" y1="-18" x2="34" y2="-48" className="post" />
         <rect x="26" y="-56" width="18" height="10" rx="2" className="metal-box" />
+        <rect x="-50" y="-44" width="58" height="7" rx="2" className="rover-charge-bg" />
+        <rect x="-50" y="-44" width={58 * Math.min(1, sim.rover.battery / 100)} height="7" rx="2" className={`rover-charge${sim.rover.broken ? " broken" : ""}`} />
         {[-42, 0, 42].map((x) => (
           <g key={x}>
             <circle cx={x} cy="14" r="12" className="wheel" />
@@ -340,7 +342,7 @@ export function SimScene({ sim, phase, weather = "clear", res = sim.res }: { sim
 
       {/* crew outside, in spacesuits */}
       {outside.map((c, i) => {
-        const spot = c.task === "mine" ? { x: 800 + i * 26, y: 344 } : { x: 210 + i * 30, y: 430 };
+        const spot = c.task === "mine" ? { x: 800 + i * 26, y: 344 } : c.task === "eva" ? { x: 360 + i * 30, y: 584 } : { x: 210 + i * 30, y: 430 };
         return <Suit key={c.id} x={spot.x} y={spot.y} player={c.isPlayer} flip={c.task === "repair"} />;
       })}
 

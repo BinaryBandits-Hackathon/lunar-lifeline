@@ -59,10 +59,18 @@ export const MACHINES: Record<MachineId, MachineInfo> = {
     canSwitchOff: true,
     what: "Makes rocket fuel from Mars air and water, for the trip home.",
   },
+  roverCharger: {
+    id: "roverCharger",
+    name: "Rover charger",
+    icon: "power",
+    use: { morning: 0, day: 4, evening: 4, night: 0 },
+    canSwitchOff: true,
+    what: "Charges the rover's battery for long trips.",
+  },
 };
 
 /** When power runs short, machines switch off in this order (first = first to go). */
-export const SHED_ORDER: MachineId[] = ["fuelPlant", "greenhouseLights", "recycler", "oxygenMaker", "scrubber", "heaters"];
+export const SHED_ORDER: MachineId[] = ["roverCharger", "fuelPlant", "greenhouseLights", "recycler", "oxygenMaker", "scrubber", "heaters"];
 
 export const TASKS: Record<TaskId, TaskInfo> = {
   farm: { id: "farm", name: "Farm", icon: "flask", energy: 20, what: "Plant seeds and harvest ripe crops." },
@@ -71,13 +79,14 @@ export const TASKS: Record<TaskId, TaskInfo> = {
   research: { id: "research", name: "Research", icon: "science", energy: 25, what: "Run experiments in the lab. Uses power." },
   exercise: { id: "exercise", name: "Exercise", icon: "strength", energy: 15, what: "Keeps muscles and bones strong." },
   rest: { id: "rest", name: "Rest", icon: "home", energy: -35, what: "Get energy back." },
+  eva: { id: "eva", name: "Spacewalk", icon: "astronaut", energy: 30, what: "Go outside in a spacesuit to explore. Plan it first!" },
   shelter: { id: "shelter", name: "Shelter", icon: "dose", energy: 0, what: "Hide in the shielded room. Safe from radiation, but no work gets done." },
 };
 
-export const TASK_ORDER: TaskId[] = ["farm", "mine", "repair", "research", "exercise", "rest", "shelter"];
+export const TASK_ORDER: TaskId[] = ["eva", "farm", "mine", "repair", "research", "exercise", "rest", "shelter"];
 
 /** Jobs done outside in a spacesuit. Inside jobs get some protection from the habitat walls. */
-export const OUTSIDE_TASKS: TaskId[] = ["mine", "repair"];
+export const OUTSIDE_TASKS: TaskId[] = ["mine", "repair", "eva"];
 
 export const TASK_POWER = { mine: 8, research: 6 } as const;
 export const MINE_WATER = { near: 25, far: 10 } as const;
@@ -141,3 +150,15 @@ export const DUSTY_SOLAR = 0.7;
 // ---------- surprises ----------
 export const EVENT_CHANCE = 0.5;
 export const LEAK_WATER = 5;
+
+// ---------- spacewalks and the rover ----------
+/** Rover battery points added in each part of the sol while charging. */
+export const ROVER_CHARGE = 12;
+export const ROVER_START = 40;
+/** Base chance something goes wrong on a spacewalk, before the extra risks. */
+export const EVA_RISK = { base: 0.08, solo: 0.25, tired: 0.12, far: 0.1 } as const;
+/** Oxygen to keep in the tanks after the suits are filled. */
+export const EVA_O2_RESERVE = 20;
+export const EVA_MIN_ENERGY = 40;
+/** Radiation on a spacewalk is this many times higher during a solar storm. */
+export const EVA_STORM_DOSE = 3;

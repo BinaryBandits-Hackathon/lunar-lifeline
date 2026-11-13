@@ -864,6 +864,48 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 @keyframes dust-blow { to { stroke-dashoffset: -140; } }
 @keyframes particles { to { stroke-dashoffset: -48; } }
 
+/* spacewalk */
+.eva-bar { display: flex; align-items: center; gap: 10px; padding: 6px 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; flex-wrap: wrap; }
+.eva-bar.active { border-color: var(--accent); }
+.eva-bar-title { display: inline-flex; align-items: center; gap: 6px; font-family: var(--display); font-weight: 700; text-transform: uppercase; font-size: 16px; }
+.eva-bar-info { flex: 1; min-width: 0; font-size: 13px; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.eva-bar-rover, .eva-bar-check { font-size: 11px; color: var(--ink-2); }
+.eva-bar-check { color: var(--alert); }
+.eva-bar-check.ok { color: var(--good); }
+.btn-small { min-height: 32px; padding: 4px 12px; font-size: 15px; }
+.eva-modal { width: min(1040px, 100%); }
+.eva-body { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 16px; overflow-y: auto; }
+.eva-col { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.eva-crew { display: flex; flex-wrap: wrap; gap: 6px; }
+.eva-sites { display: flex; flex-direction: column; gap: 6px; }
+.eva-site { display: flex; flex-direction: column; gap: 4px; text-align: left; padding: 8px 10px; background: var(--surface-2); border: 1px solid var(--line-2); border-radius: 4px; cursor: pointer; }
+.eva-site:hover { border-color: var(--ink-2); }
+.eva-site[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.eva-site.short { opacity: 0.65; }
+.eva-site-head { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.eva-site-head strong { font-family: var(--display); font-size: 19px; text-transform: uppercase; }
+.eva-site-head .mono { color: var(--ink-2); font-size: 11px; }
+.eva-site-what { font-size: 13px; color: var(--ink-2); }
+.checklist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.checklist li { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 8px; align-items: start; padding: 6px 8px; border: 1px solid var(--line); border-radius: 4px; }
+.checklist li strong { display: block; font-size: 14px; }
+.checklist li small { display: block; font-size: 12px; color: var(--ink-2); }
+.checklist .check-mark { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; }
+.checklist li.ok { border-color: rgba(94, 224, 138, 0.4); }
+.checklist li.ok .check-mark { background: rgba(94, 224, 138, 0.18); color: var(--good); }
+.checklist li.no { border-color: rgba(255, 59, 48, 0.4); }
+.checklist li.no .check-mark { background: rgba(255, 59, 48, 0.18); color: var(--alert); }
+.sim-scene .rover-charge-bg { fill: #111317; }
+.sim-scene .rover-charge { fill: #4ee08a; }
+.sim-scene .rover-charge.broken { fill: #ff3b30; }
+@media (max-width: 900px) { .eva-body { grid-template-columns: minmax(0, 1fr); } }
+@media (max-height: 520px) {
+  .eva-bar { padding: 2px 6px; gap: 6px; }
+  .eva-bar-title { font-size: 12px; }
+  .eva-bar-info, .eva-bar-rover { font-size: 10px; }
+  .eva-bar .btn-small { min-height: 26px; font-size: 12px; padding: 2px 8px; }
+}
+
 /* sol report */
 .modal-backdrop { position: fixed; inset: 0; z-index: 40; background: rgba(0, 0, 0, 0.62); display: grid; place-items: center; padding: 16px max(16px, env(safe-area-inset-right, 0px)) 16px max(16px, env(safe-area-inset-left, 0px)); }
 .modal { width: min(880px, 100%); max-height: 100%; display: flex; flex-direction: column; box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6); }

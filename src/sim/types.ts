@@ -5,9 +5,9 @@ export type Resources = Record<ResourceId, number>;
 
 export type Phase = "morning" | "day" | "evening" | "night";
 
-export type MachineId = "heaters" | "scrubber" | "oxygenMaker" | "recycler" | "greenhouseLights" | "fuelPlant";
+export type MachineId = "heaters" | "scrubber" | "oxygenMaker" | "recycler" | "greenhouseLights" | "fuelPlant" | "roverCharger";
 
-export type TaskId = "farm" | "mine" | "repair" | "research" | "exercise" | "rest" | "shelter";
+export type TaskId = "farm" | "mine" | "repair" | "research" | "exercise" | "rest" | "shelter" | "eva";
 
 export type CropId = "lettuce" | "potato";
 
@@ -81,6 +81,12 @@ export interface SimState {
   bonusScience: number;
   /** Crew who must rest today (from an event). */
   mustRest: string[];
+  /** The rover: its own battery (0-100) and whether it needs a repair. */
+  rover: { battery: number; broken: boolean };
+  /** Where today's spacewalk goes, or null. */
+  evaSite: string | null;
+  /** Sites already explored (a second visit gives little new science). */
+  visited: string[];
   /** What the player chose for this sol's surprise, shown in the report. */
   eventResult: string | null;
   sol: number;
