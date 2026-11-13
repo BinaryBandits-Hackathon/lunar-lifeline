@@ -1,0 +1,6 @@
+{
+  "source": "NASA DONKI, Geomagnetic Storm (GST) records, https://kauai.ccmc.gsfc.nasa.gov/DONKI/",
+  "note": "Archived snapshot, not live. Kp is measured at Earth; the game uses it as the storm's strength.",
+  "fetched": "",
+  "storms": []
+}

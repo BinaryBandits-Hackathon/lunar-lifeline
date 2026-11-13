@@ -31,7 +31,7 @@ function playToSol1(level: Level, role: RoleId, site: SiteId): GameState {
   s = nextUntilStageChanges(s); // descent → touchdown
   s = nextUntilStageChanges(s); // touchdown → damageReport
   expect(s.stage).toBe("damageReport");
-  return next(s, { type: "BEGIN_SOL_1" });
+  return s;
 }
 
 // Hand-off table from docs/design/01-opening-sequence.md, section 9.
@@ -45,11 +45,16 @@ describe("opening sequence", () => {
   for (const role of ROLES) {
     for (const h of HANDOFF) {
       it(`${role.name} landing at ${h.site} (${h.level}) reaches Sol 1 with the right state`, () => {
-        const s = playToSol1(h.level, role.id, h.site);
-        expect(s.stage).toBe("sol1");
-        expect(s.gauges).toEqual({ power: h.power, supplies: h.supplies, dose: h.dose, science: 0 });
-        expect([...s.flags].sort()).toEqual([...h.flags].sort());
-        expect(s.player.role).toBe(role.id);
+        const report = playToSol1(h.level, role.id, h.site);
+        expect(report.gauges).toEqual({ power: h.power, supplies: h.supplies, dose: h.dose, science: 0 });
+        expect([...report.flags].sort()).toEqual([...h.flags].sort());
+        expect(report.player.role).toBe(role.id);
+
+        const s = next(report, { type: "BEGIN_SOL_1", seed: 42 });
+        expect(s.stage).toBe("board");
+        expect(s.base?.sol).toBe(1);
+        // Cadets get a 2-supply cushion when the base game starts.
+        expect(s.gauges.supplies).toBe(Math.min(10, h.supplies + (h.level === "cadet" ? 2 : 0)));
         expect(s.seenIntro).toBe(true);
       });
     }
@@ -85,7 +90,7 @@ describe("opening sequence", () => {
 
   it("skip goes to the landing choice, not the base, and only after a first run", () => {
     expect(next(createInitialState(), { type: "SKIP_INTRO" }).stage).toBe("title");
-    const done = playToSol1("cadet", "engineer", "iceValley");
+    const done = next(playToSol1("cadet", "engineer", "iceValley"), { type: "BEGIN_SOL_1" });
     const back = next(done, { type: "RESTART" });
     expect(back.stage).toBe("title");
     expect(back.gauges.power).toBe(6);
