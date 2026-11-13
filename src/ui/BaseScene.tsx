@@ -19,8 +19,8 @@ export function BaseScene({ flags }: { flags: Flag[] }) {
         <ellipse cx="402" cy="183" rx="26" ry="8" className="base-ice" />
       ) : (
         <g className="base-far-ice">
-          <ellipse cx="452" cy="104" rx="18" ry="5" className="base-ice" />
-          <text x="452" y="96" textAnchor="middle">ice, far away</text>
+          <ellipse cx="415" cy="104" rx="18" ry="5" className="base-ice" />
+          <text x="415" y="96" textAnchor="middle">ice, far away</text>
         </g>
       )}
 
@@ -33,7 +33,7 @@ export function BaseScene({ flags }: { flags: Flag[] }) {
           return (
             <g key={i}>
               <line x1={x + 14} y1={y + 18} x2={x + 14} y2={y + 30} className="panel-leg" />
-              <path d={`M${x} ${y} L${x + 30} ${y - 10} L${x + 30} ${y + 12} L${x} ${y + 22} Z`} className={broken ? "panel broken" : "panel"} />
+              <path d={`M${x} ${y} L${x + 30} ${y - 10} L${x + 30} ${y + 12} L${x} ${y + 22} Z`} className={broken ? "solar broken" : "solar"} />
               {broken && <path d={`M${x + 6} ${y + 4} L${x + 15} ${y + 9} L${x + 11} ${y + 14} L${x + 24} ${y + 6}`} className="panel-crack" />}
             </g>
           );

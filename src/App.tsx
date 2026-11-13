@@ -1,6 +1,7 @@
 import { useEffect, useReducer } from "react";
 import { createInitialState, currentLine, fillText, next, toSaved } from "./engine/flow";
-import type { GameState } from "./engine/types";
+import type { GameState, Stage } from "./engine/types";
+import { Icon } from "./ui/Icon";
 import { speak, stopSpeaking } from "./services/speech";
 import { loadProgress, prefersReducedMotion, saveProgress } from "./services/storage";
 import { Academy } from "./screens/Academy";
@@ -11,6 +12,13 @@ import { Descent } from "./screens/Descent";
 import { LandingMap } from "./screens/LandingMap";
 import { Sol1 } from "./screens/Sol1";
 import { Title } from "./screens/Title";
+
+const PHASES: { label: string; stages: Stage[] }[] = [
+  { label: "Badge", stages: ["badge"] },
+  { label: "Approach", stages: ["approach", "alarm", "briefing"] },
+  { label: "Landing", stages: ["landingChoice", "descent", "touchdown"] },
+  { label: "Base", stages: ["damageReport", "sol1"] },
+];
 
 function init(): GameState {
   const saved = loadProgress();
@@ -70,23 +78,35 @@ export function App() {
       break;
   }
 
+  const phase = PHASES.findIndex((p) => p.stages.includes(state.stage));
+
   return (
     <div className={`app${state.settings.reduceMotion ? " reduce-motion" : ""}`}>
       {state.stage !== "title" && (
         <nav className="topbar" aria-label="Game controls">
           <span className="topbar-name">
-            {state.player.name ? `👩‍🚀 ${state.player.name}` : "Junior Astronaut"}
+            <Icon name="astronaut" size={20} />
+            {state.player.name || "Junior Astronaut"}
           </span>
+          <ol className="phases" aria-label="Mission progress">
+            {PHASES.map((p, i) => (
+              <li key={p.label} className={i < phase ? "done" : i === phase ? "now" : ""} aria-current={i === phase ? "step" : undefined}>
+                {p.label}
+              </li>
+            ))}
+          </ol>
           <button
             type="button"
-            className="btn btn-ghost btn-small"
+            className="btn btn-icon"
             aria-pressed={state.settings.readAloud}
+            aria-label={state.settings.readAloud ? "Turn voice off" : "Turn voice on"}
+            title={state.settings.readAloud ? "Voice on" : "Voice off"}
             onClick={() => dispatch({ type: "SET_SETTING", key: "readAloud", value: !state.settings.readAloud })}
           >
-            {state.settings.readAloud ? "🔊 Voice on" : "🔇 Voice off"}
+            <Icon name={state.settings.readAloud ? "speaker" : "speakerOff"} />
           </button>
-          <button type="button" className="btn btn-ghost btn-small" onClick={() => dispatch({ type: "RESTART" })}>
-            ⌂ Start screen
+          <button type="button" className="btn btn-icon" aria-label="Back to start screen" title="Start screen" onClick={() => dispatch({ type: "RESTART" })}>
+            <Icon name="home" />
           </button>
         </nav>
       )}

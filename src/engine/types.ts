@@ -25,10 +25,16 @@ export type Perk =
   | { kind: "shelterDiscount"; supplies: number }
   | { kind: "scienceBonus"; science: number };
 
+export type IconName =
+  | GaugeId
+  | "wrench" | "medical" | "flask" | "speaker" | "speakerOff" | "home" | "rocket"
+  | "academy" | "pin" | "replay" | "next" | "back" | "check"
+  | "water" | "strength" | "paths" | "astronaut";
+
 export interface Role {
   id: RoleId;
   name: string;
-  icon: string;
+  icon: IconName;
   oneLiner: string;
   perk: Perk;
   perkText: string;

@@ -9,7 +9,7 @@ export const NAME_MAX = 16;
 const DEFAULT_PROGRESS: SavedProgress = {
   level: "cadet",
   player: { name: "", role: null },
-  settings: { readAloud: true, reduceMotion: false, sound: true },
+  settings: { readAloud: false, reduceMotion: false, sound: true },
   seenIntro: false,
 };
 

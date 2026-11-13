@@ -1,11 +1,12 @@
 import { PRESET_NAMES, ROLES, getRole } from "../content/roles";
 import { NAME_MAX } from "../engine/flow";
 import type { Level } from "../engine/types";
+import { Icon } from "../ui/Icon";
 import type { ScreenProps } from "../ui/screen";
 
 export function LevelPicker({ level, onPick }: { level: Level; onPick: (l: Level) => void }) {
   return (
-    <div className="level-picker" role="group" aria-label="Difficulty">
+    <div className="segmented" role="group" aria-label="Level">
       <button type="button" aria-pressed={level === "cadet"} onClick={() => onPick("cadet")}>
         <strong>Cadet</strong>
         <span>Ages 7–9</span>
@@ -25,42 +26,52 @@ export function Badge({ state, dispatch }: ScreenProps) {
 
   return (
     <main className="screen badge-screen">
+      <header className="screen-head">
+        <span className="label">Pre-flight</span>
+        <h2>Make your crew badge</h2>
+      </header>
       <div className="badge-layout">
-        <section className="badge-form" aria-labelledby="badge-h">
-          <h2 id="badge-h">Make your astronaut badge</h2>
-
-          <div className="field">
-            <span className="field-label">1. Pick a name</span>
-            <div className="name-presets">
-              {PRESET_NAMES.map((n) => (
-                <button
-                  key={n}
-                  type="button"
-                  className="pill"
-                  aria-pressed={name === n}
-                  onClick={() => dispatch({ type: "SET_NAME", name: n })}
-                >
-                  {n}
-                </button>
-              ))}
+        <div className="badge-form">
+          <section className="panel">
+            <div className="panel-head">
+              <span>Step 1</span>
+              <span>Your name</span>
             </div>
-            <label className="name-input">
-              <span>or type your own</span>
-              <input
-                id="astronaut-name"
-                type="text"
-                value={name}
-                maxLength={NAME_MAX}
-                autoComplete="off"
-                placeholder="Your name"
-                onChange={(e) => dispatch({ type: "SET_NAME", name: e.target.value })}
-              />
-            </label>
-          </div>
+            <div className="panel-body">
+              <div className="name-presets">
+                {PRESET_NAMES.map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    className="option-pill"
+                    aria-pressed={name === n}
+                    onClick={() => dispatch({ type: "SET_NAME", name: n })}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+              <label className="name-input" htmlFor="astronaut-name">
+                <span className="label">Or type your own</span>
+                <input
+                  id="astronaut-name"
+                  type="text"
+                  value={name}
+                  maxLength={NAME_MAX}
+                  autoComplete="off"
+                  placeholder="Your name"
+                  onChange={(e) => dispatch({ type: "SET_NAME", name: e.target.value })}
+                />
+              </label>
+            </div>
+          </section>
 
-          <div className="field">
-            <span className="field-label">2. Pick your job</span>
-            <div className="roles">
+          <section className="panel">
+            <div className="panel-head">
+              <span>Step 2</span>
+              <span>Your job</span>
+            </div>
+            <div className="panel-body roles">
               {ROLES.map((r) => (
                 <button
                   key={r.id}
@@ -69,41 +80,68 @@ export function Badge({ state, dispatch }: ScreenProps) {
                   aria-pressed={role === r.id}
                   onClick={() => dispatch({ type: "PICK_ROLE", role: r.id })}
                 >
-                  <span className="role-icon" aria-hidden="true">{r.icon}</span>
+                  <span className="role-icon">
+                    <Icon name={r.icon} size={26} />
+                  </span>
                   <strong>{r.name}</strong>
-                  <span>{r.oneLiner}</span>
+                  <span className="role-line">{r.oneLiner}</span>
                   <span className="role-perk">{r.perkText}</span>
                 </button>
               ))}
             </div>
-          </div>
+          </section>
 
-          <div className="field">
-            <span className="field-label">3. Pick your level</span>
-            <LevelPicker level={state.level} onPick={(level) => dispatch({ type: "SET_LEVEL", level })} />
-          </div>
-        </section>
+          <section className="panel">
+            <div className="panel-head">
+              <span>Step 3</span>
+              <span>Your level</span>
+            </div>
+            <div className="panel-body">
+              <LevelPicker level={state.level} onPick={(level) => dispatch({ type: "SET_LEVEL", level })} />
+            </div>
+          </section>
+        </div>
 
         <aside className="badge-preview" aria-label="Your badge">
           <div className="badge-card">
-            <span className="badge-agency">Mars Base 1 · Crew badge</span>
-            <span className="badge-photo" aria-hidden="true">{chosen?.icon ?? "👩‍🚀"}</span>
+            <div className="badge-top">
+              <span>Mars Base 1</span>
+              <span className="mono">Crew ID</span>
+            </div>
+            <div className="badge-photo">
+              <Icon name={chosen ? chosen.icon : "astronaut"} size={52} />
+            </div>
             <strong className="badge-name">{name.trim() || "Your name"}</strong>
-            <span className="badge-role">{chosen?.name ?? "Pick a job"}</span>
-            <span className="badge-level">{state.level === "cadet" ? "Cadet" : "Commander"}</span>
+            <dl className="badge-fields">
+              <div>
+                <dt>Job</dt>
+                <dd>{chosen?.name ?? "—"}</dd>
+              </div>
+              <div>
+                <dt>Level</dt>
+                <dd>{state.level === "cadet" ? "Cadet" : "Commander"}</dd>
+              </div>
+              <div>
+                <dt>Mission</dt>
+                <dd>Mars Base 1</dd>
+              </div>
+            </dl>
+            <div className="badge-stripe" aria-hidden="true" />
           </div>
-          {chosen && <p className="badge-fact">Real astronauts: {chosen.fact}</p>}
+          {chosen && (
+            <p className="badge-fact">
+              <span className="label">Real astronauts</span>
+              {chosen.fact}
+            </p>
+          )}
           <div className="badge-actions">
             <button type="button" className="btn btn-ghost" onClick={() => dispatch({ type: "BACK_TO_TITLE" })}>
-              ◀ Back
+              <Icon name="back" size={18} />
+              Back
             </button>
-            <button
-              type="button"
-              className="btn btn-primary btn-big"
-              disabled={!ready}
-              onClick={() => dispatch({ type: "NEXT" })}
-            >
-              Board the ship ▶
+            <button type="button" className="btn btn-primary btn-big" disabled={!ready} onClick={() => dispatch({ type: "NEXT" })}>
+              Board the ship
+              <Icon name="next" size={18} />
             </button>
           </div>
           {!ready && <p className="hint">Pick a name and a job to board.</p>}

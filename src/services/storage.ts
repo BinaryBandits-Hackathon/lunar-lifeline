@@ -22,7 +22,7 @@ export function loadProgress(): Partial<SavedProgress> | undefined {
     }
     if (d.settings && typeof d.settings === "object") {
       out.settings = {
-        readAloud: d.settings.readAloud !== false,
+        readAloud: d.settings.readAloud === true,
         reduceMotion: d.settings.reduceMotion === true,
         sound: d.settings.sound !== false,
       };

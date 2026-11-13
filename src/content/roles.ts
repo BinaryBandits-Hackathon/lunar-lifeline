@@ -6,7 +6,7 @@ export const ROLES: Role[] = [
   {
     id: "engineer",
     name: "Engineer",
-    icon: "🔧",
+    icon: "wrench",
     oneLiner: "Fixes machines and keeps the power on.",
     perk: { kind: "repairDiscount", power: 1 },
     perkText: "Repairs cost 1 less power.",
@@ -15,7 +15,7 @@ export const ROLES: Role[] = [
   {
     id: "doctor",
     name: "Doctor",
-    icon: "🩺",
+    icon: "medical",
     oneLiner: "Keeps the crew healthy and safe.",
     perk: { kind: "shelterDiscount", supplies: 1 },
     perkText: "Sheltering from storms costs 1 less supplies.",
@@ -24,7 +24,7 @@ export const ROLES: Role[] = [
   {
     id: "scientist",
     name: "Scientist",
-    icon: "🔬",
+    icon: "flask",
     oneLiner: "Studies rocks, plants and the sky.",
     perk: { kind: "scienceBonus", science: 1 },
     perkText: "Research gives 1 extra science.",

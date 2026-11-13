@@ -6,10 +6,10 @@ import { Dialogue } from "../ui/Dialogue";
 import type { ScreenProps } from "../ui/screen";
 
 // Marker positions on the placeholder map (viewBox 0 0 400 240).
-const MARKERS: Record<SiteId, { x: number; y: number }> = {
-  plains: { x: 110, y: 160 },
-  iceValley: { x: 290, y: 150 },
-  holdOrbit: { x: 200, y: 34 },
+const MARKERS: Record<SiteId, { x: number; y: number; code: string }> = {
+  plains: { x: 110, y: 160, code: "A" },
+  iceValley: { x: 290, y: 150, code: "B" },
+  holdOrbit: { x: 200, y: 34, code: "C" },
 };
 
 export function LandingMap({ state, dispatch }: ScreenProps) {
@@ -23,33 +23,47 @@ export function LandingMap({ state, dispatch }: ScreenProps) {
 
   return (
     <main className="screen landing-screen">
-      <h2 className="screen-title">Where should we land?</h2>
+      <header className="screen-head">
+        <span className="label">Decision</span>
+        <h2>Where should we land?</h2>
+      </header>
       <div className="landing-layout">
-        <svg className="landing-map" viewBox="0 0 400 240" role="img" aria-label="Map of the landing area with a dust storm in the middle">
-          <rect width="400" height="240" className="map-ground" />
-          <ellipse cx="200" cy="34" rx="150" ry="18" className="map-orbit" />
-          <path d="M0 200 Q100 180 200 205 T400 190 V240 H0 Z" className="map-low" />
-          <path d="M230 120 l20 -30 l15 25 l20 -35 l18 30 l20 -20 l25 40 Z" className="map-rocks" />
-          <ellipse cx="300" cy="175" rx="38" ry="14" className="map-ice" />
-          <circle cx="205" cy="125" r="52" className="map-storm" />
-          <text x="205" y="129" textAnchor="middle" className="map-storm-label">Dust storm</text>
-          {LANDING_SITES.map((s) => {
-            const m = MARKERS[s.id];
-            const allowed = isAllowed(s.id);
-            return (
-              <g
-                key={s.id}
-                className={`map-marker${state.pendingSite === s.id ? " selected" : ""}${allowed ? "" : " locked"}`}
-                onClick={() => allowed && pick(s.id)}
-              >
-                <circle cx={m.x} cy={m.y} r="14" />
-                <text x={m.x} y={m.y + 30} textAnchor="middle">
-                  {allowed ? s.name : `${s.name} (Commander)`}
-                </text>
-              </g>
-            );
-          })}
-        </svg>
+        <div className="panel scene-panel">
+          <div className="panel-head">
+            <span>Landing site survey</span>
+            <span className="mono tag tag-warn">Dust storm</span>
+          </div>
+          <svg className="landing-map" viewBox="0 0 400 240" role="img" aria-label="Map of the landing area with a dust storm in the middle">
+            <rect width="400" height="240" className="map-ground" />
+            <g className="map-grid">
+              {[80, 160, 240, 320].map((x) => <line key={`x${x}`} x1={x} y1="0" x2={x} y2="240" />)}
+              {[60, 120, 180].map((y) => <line key={`y${y}`} x1="0" y1={y} x2="400" y2={y} />)}
+            </g>
+            <ellipse cx="200" cy="34" rx="150" ry="18" className="map-orbit" />
+            <path d="M0 200 Q100 180 200 205 T400 190 V240 H0 Z" className="map-low" />
+            <path d="M230 120 l20 -30 l15 25 l20 -35 l18 30 l20 -20 l25 40 Z" className="map-rocks" />
+            <ellipse cx="300" cy="175" rx="38" ry="14" className="map-ice" />
+            <circle cx="205" cy="125" r="52" className="map-storm" />
+            <text x="205" y="129" textAnchor="middle" className="map-storm-label">DUST STORM</text>
+            {LANDING_SITES.map((s) => {
+              const m = MARKERS[s.id];
+              const allowed = isAllowed(s.id);
+              return (
+                <g
+                  key={s.id}
+                  className={`map-marker${state.pendingSite === s.id ? " selected" : ""}${allowed ? "" : " locked"}`}
+                  onClick={() => allowed && pick(s.id)}
+                >
+                  <circle cx={m.x} cy={m.y} r="13" />
+                  <text x={m.x} y={m.y + 4.5} textAnchor="middle" className="map-code">{m.code}</text>
+                  <text x={m.x} y={m.y + 30} textAnchor="middle" className="map-name">
+                    {allowed ? s.name : `${s.name} (Commander)`}
+                  </text>
+                </g>
+              );
+            })}
+          </svg>
+        </div>
 
         <div className="site-list">
           {LANDING_SITES.filter((s) => isAllowed(s.id)).map((s) => (
@@ -60,8 +74,11 @@ export function LandingMap({ state, dispatch }: ScreenProps) {
               aria-pressed={state.pendingSite === s.id}
               onClick={() => pick(s.id)}
             >
-              <strong>{s.name}</strong>
-              <span>{s.pitch}</span>
+              <span className="site-head">
+                <span className="site-code">{MARKERS[s.id].code}</span>
+                <strong>{s.name}</strong>
+              </span>
+              <span className="site-pitch">{s.pitch}</span>
               <EffectChips effects={s.effects} flags={s.flags} />
             </button>
           ))}

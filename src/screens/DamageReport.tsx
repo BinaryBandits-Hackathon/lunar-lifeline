@@ -28,16 +28,29 @@ export function DamageReport({ state, dispatch }: ScreenProps) {
 
   return (
     <main className="screen report-screen">
-      <h2 className="screen-title">Landing report{site ? `: ${site.name}` : ""}</h2>
+      <header className="screen-head">
+        <span className="label">Touchdown</span>
+        <h2>Landing report{site ? `: ${site.name}` : ""}</h2>
+      </header>
       <div className="report-layout">
-        <BaseScene flags={state.flags} />
+        <div className="panel scene-panel">
+          <div className="panel-head">
+            <span>Base camera</span>
+            <span className="mono">Sol 0</span>
+          </div>
+          <BaseScene flags={state.flags} />
+        </div>
         <aside className="report-side">
           {site && (
-            <div className="report-card">
-              <span className="eyebrow">What the landing did</span>
-              <EffectChips effects={site.effects} flags={site.flags} />
-              <p className="report-lesson">{site.lesson}</p>
-            </div>
+            <section className="panel">
+              <div className="panel-head">
+                <span>What the landing did</span>
+              </div>
+              <div className="panel-body">
+                <EffectChips effects={site.effects} flags={site.flags} />
+                <p className="report-lesson">{site.lesson}</p>
+              </div>
+            </section>
           )}
           <Gauges gauges={state.gauges} selected={selected} seen={seen} onSelect={dialogueDone ? select : undefined} />
         </aside>

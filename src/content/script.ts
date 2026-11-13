@@ -1,4 +1,4 @@
-import type { DialogueLine, GaugeId, SiteId, Stage } from "../engine/types";
+import type { DialogueLine, GaugeId, IconName, SiteId, Stage } from "../engine/types";
 
 /** Working name, to be decided by the team. */
 export const MASCOT_NAME = "Pip";
@@ -62,28 +62,28 @@ export const DAMAGE_LINES: Record<SiteId, DialogueLine[]> = {
   ],
 };
 
-export const GAUGE_INFO: Record<GaugeId, { label: string; icon: string; max: number; explain: string }> = {
+export const GAUGE_INFO: Record<GaugeId, { label: string; icon: IconName; max: number; explain: string }> = {
   power: {
     label: "Power",
-    icon: "⚡",
+    icon: "power",
     max: 10,
     explain: "Power runs everything on the base. Our solar panels make it from sunlight.",
   },
   supplies: {
     label: "Supplies",
-    icon: "💧",
+    icon: "supplies",
     max: 10,
     explain: "Supplies are our air, water and food. We use some every sol. A sol is one day on Mars.",
   },
   dose: {
     label: "Radiation",
-    icon: "☢️",
+    icon: "dose",
     max: 7,
     explain: "This shows how much space radiation the crew has soaked up. It only goes up, never down.",
   },
   science: {
     label: "Science",
-    icon: "🔭",
+    icon: "science",
     max: 5,
     explain: "Science is what we came to discover. It's your mission score.",
   },

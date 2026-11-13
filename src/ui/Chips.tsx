@@ -1,8 +1,9 @@
 import { FLAG_TEXT } from "../content/landingSites";
 import { GAUGE_INFO } from "../content/script";
 import type { Flag, GaugeId, Gauges } from "../engine/types";
+import { Icon } from "./Icon";
 
-/** Cost and gain chips for a choice. Dose going up is bad, everything else going up is good. */
+/** Cost and gain chips for a choice. Radiation going up is bad; everything else going up is good. */
 export function EffectChips({ effects, flags = [] }: { effects: Partial<Gauges>; flags?: Flag[] }) {
   const items = (Object.keys(effects) as GaugeId[])
     .filter((k) => effects[k])
@@ -11,7 +12,8 @@ export function EffectChips({ effects, flags = [] }: { effects: Partial<Gauges>;
       const good = k === "dose" ? v < 0 : v > 0;
       return (
         <span key={k} className={`chip ${good ? "good" : "bad"}`}>
-          {GAUGE_INFO[k].icon} {GAUGE_INFO[k].label} {v > 0 ? "+" : "−"}
+          <Icon name={GAUGE_INFO[k].icon} size={14} />
+          {GAUGE_INFO[k].label} {v > 0 ? "+" : "−"}
           {Math.abs(v)}
         </span>
       );
