@@ -13,6 +13,8 @@ export type Stage =
   | "descent"
   | "touchdown"
   | "damageReport"
+  | "simReady"
+  | "sim"
   | "board"
   | "card"
   | "result"
@@ -99,6 +101,8 @@ export interface GameState {
   seenIntro: boolean;
   /** The base game, from Sol 1 on. Null during the opening. */
   base: BaseState | null;
+  /** The base simulation. Null until it starts. */
+  sim: import("../sim/types").SimState | null;
 }
 
 // ---------- base game ----------
@@ -225,6 +229,14 @@ export type Action =
   | { type: "PICK_SITE"; site: SiteId }
   | { type: "CONFIRM_SITE" }
   | { type: "BEGIN_SOL_1"; seed?: number }
+  | { type: "START_SIMULATION" }
+  | { type: "BEGIN_SIM"; seed?: number }
+  | { type: "SIM_ASSIGN"; crewId: string; task: import("../sim/types").TaskId }
+  | { type: "SIM_TOGGLE"; machine: import("../sim/types").MachineId }
+  | { type: "SIM_PLOT"; plot: number; crop: import("../sim/types").CropId | null }
+  | { type: "SIM_EVENT"; index: number }
+  | { type: "SIM_RUN" }
+  | { type: "SIM_NEXT" }
   | { type: "ADD_BLOCK"; system: System }
   | { type: "REMOVE_BLOCK"; system: System }
   | { type: "CONFIRM_BOARD" }

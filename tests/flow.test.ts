@@ -132,3 +132,22 @@ function playToLandingChoice(level: Level): GameState {
   for (let i = 0; i < 3; i++) s = nextUntilStageChanges(s);
   return s;
 }
+
+describe("after landing", () => {
+  it("the systems check leads to the simulation start, and stops there", () => {
+    let s = run(createInitialState(), [
+      { type: "START" },
+      { type: "SET_NAME", name: "Ada" },
+      { type: "PICK_ROLE", role: "doctor" },
+      { type: "NEXT" },
+    ]);
+    for (let i = 0; i < 20 && s.stage !== "landingChoice"; i++) s = next(s, { type: "NEXT" });
+    s = run(s, [{ type: "PICK_SITE", site: "plains" }, { type: "CONFIRM_SITE" }]);
+    for (let i = 0; i < 20 && s.stage !== "damageReport"; i++) s = next(s, { type: "NEXT" });
+    s = next(s, { type: "START_SIMULATION" });
+    expect(s.stage).toBe("simReady");
+    expect(s.seenIntro).toBe(true);
+    expect(s.base).toBeNull();
+    expect(next(s, { type: "NEXT" })).toBe(s);
+  });
+});
