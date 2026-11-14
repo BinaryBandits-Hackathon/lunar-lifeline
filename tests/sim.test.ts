@@ -222,3 +222,26 @@ describe("real solar particle storms", () => {
     expect(sepStrength(g[1])).toBe(3);
   });
 });
+
+import { storyFor } from "../src/sim/story";
+describe("story beats", () => {
+  it("a crewmate speaks after every sol, and Earth writes on sol 1 with the radio delay", () => {
+    let sim = createSim(landed(), 3);
+    sim = runSol(sim);
+    const beat = storyFor(sim);
+    expect(beat.crew?.line.length).toBeGreaterThan(10);
+    expect(beat.earth?.from).toContain("minutes ago");
+  });
+  it("the crew talks about the shelter after sheltering from a solar storm", () => {
+    let seed = 1;
+    while (createSim(landed(), seed).storm.kind !== "solar") seed++;
+    let sim = createSim(landed(), seed);
+    while (sim.sol < sim.storm.sol) {
+      if (sim.eventId) sim = chooseEvent(sim, 0);
+      sim = nextSol(runSol(sim));
+    }
+    if (sim.eventId) sim = chooseEvent(sim, 0);
+    for (const c of sim.crew) sim = assignTask(sim, c.id, "shelter");
+    expect(storyFor(runSol(sim)).crew?.line).toContain("shelter");
+  });
+});

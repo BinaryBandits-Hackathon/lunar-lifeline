@@ -50,6 +50,7 @@ Each fact was checked against NASA mission results we know (14 November 2026). "
 | 23 | Crews on the Space Station have run thousands of experiments. | Scientist job | ISS research overview | Matches |
 | 24 | Curiosity measured about 0.64 mSv a day on the Martian surface. | NASA data screen, every sol | Hassler et al., Science 2014 (RAD) | Matches |
 | 25 | In September 2017 a solar storm hit Mars and Curiosity saw the radiation on the ground more than double. | Solar storm, NASA data screen | NASA/JPL news, 29 Sept 2017 | Matches |
+| 26 | Sunsets on Mars look blue. | Crew line after a quiet sol | Curiosity sunset images (2015) | Matches |
 
 Where to find them in the code: `src/sim/events.ts`, `src/sim/eva.ts`, `src/sim/unlocks.ts`, `src/content/academy.ts`, `src/content/systems.ts`, `src/content/roles.ts`, `src/content/script.ts`.
 

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getRole } from "../content/roles";
 import { NasaData } from "../ui/NasaData";
+import { storyFor } from "../sim/story";
 import { powerForecast, stormStatus, summarize } from "../sim/engine";
 import { getEvent } from "../sim/events";
 import { BADGES, rankFor } from "../content/academy";
@@ -194,7 +195,8 @@ export function SimScreen({ state, dispatch }: ScreenProps) {
                   <Icon name={info.icon} size={18} />
                   <span className="machine-text">
                     <strong>{info.name}</strong>
-                    <span>{info.what}</span>
+                    {/* Cadets read what a machine does on their first sols; after that the name is enough (the full text stays in the tooltip). */}
+                    {(sim.level === "commander" || sim.sol <= 2 || locked) && <span>{info.what}</span>}
                   </span>
                   {locked && feature ? <span className="tag lock-tag">Sol {unlockSol(sim, feature)}</span> : broken ? <span className="tag tag-low">Broken</span> : <span className="machine-use mono">−{use}</span>}
                   <span className="switch" aria-hidden="true">
@@ -573,8 +575,14 @@ function SolReportModal({ sim, careerPoints, onNext, onHome }: { sim: SimState; 
   const report = sim.report!;
   const lines = summarize(report);
   const [showData, setShowData] = useState(false);
+  // Cadets (ages 7-9) see the big changes first; the details are one tap away.
+  const [details, setDetails] = useState(sim.level === "commander");
   const groups = [...LEFT, "fuel", "science"] as ResourceId[];
   const ending = sim.ending;
+  const story = storyFor(sim);
+  const order = { bad: 0, good: 1, info: 2 } as const;
+  const notes = details ? report.notes : [...report.notes].sort((a, b) => order[a.tone] - order[b.tone]).slice(0, 3);
+  const hidden = report.notes.length - notes.length;
   return (
     <div className="modal-backdrop">
       <section className="modal panel" role="dialog" aria-modal="true" aria-labelledby="report-h">
@@ -601,6 +609,23 @@ function SolReportModal({ sim, careerPoints, onNext, onHome }: { sim: SimState; 
               </span>
             </div>
           )}
+          {(story.crew || story.earth) && (
+            <div className="story">
+              {story.earth && (
+                <p className="story-earth">
+                  <Icon name="speaker" size={15} />
+                  <span>
+                    <strong>{story.earth.from}:</strong> {story.earth.text}
+                  </span>
+                </p>
+              )}
+              {story.crew && (
+                <p className="story-crew">
+                  <strong>{story.crew.name}:</strong> "{story.crew.line}"
+                </p>
+              )}
+            </div>
+          )}
           <p className="report-key">
             <span className="pos">+ green</span> means the base gained some. <span className="neg">− red</span> means it was used up.
           </p>
@@ -619,27 +644,32 @@ function SolReportModal({ sim, careerPoints, onNext, onHome }: { sim: SimState; 
                       {show(id, total) === 0 ? "no change" : `${total > 0 ? "up" : "down"} ${change(id, total).slice(1)}`}
                     </strong>
                   </span>
-                  <ul>
+                  {details && <ul>
                     {shown.map((l) => (
                       <li key={l.cause}>
                         <span>{l.cause}</span>
                         <span className={`mono ${goodNews(id, l.amount) ? "pos" : "neg"}`}>{change(id, l.amount)}</span>
                       </li>
                     ))}
-                  </ul>
+                  </ul>}
                 </div>
               );
             })}
           </div>
-          {report.notes.length > 0 && (
+          {notes.length > 0 && (
             <ul className="log">
-              {report.notes.map((n, i) => (
+              {notes.map((n, i) => (
                 <li key={i} className={n.tone}>
                   <span className="dot" aria-hidden="true" />
                   <span>{n.text}</span>
                 </li>
               ))}
             </ul>
+          )}
+          {!details && (
+            <button type="button" className="btn btn-ghost btn-small report-more" onClick={() => setDetails(true)}>
+              More details{hidden > 0 ? ` (${hidden} more news)` : ""}
+            </button>
           )}
         </div>
         <div className="modal-actions">

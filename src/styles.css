@@ -1430,3 +1430,12 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 .nasa-body ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; font-size: 14px; line-height: 1.45; }
 .nasa-lead { padding: 8px 10px; border-left: 3px solid var(--accent); background: rgba(255, 255, 255, 0.04); font-size: 14px; }
 .nasa-note { color: var(--ink-2); font-style: italic; }
+
+/* story beats in the sol report */
+.story { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
+.story p { margin: 0; font-size: 15px; line-height: 1.4; }
+.story-earth { display: flex; gap: 8px; align-items: flex-start; padding: 8px 10px; border-left: 3px solid var(--accent); background: rgba(255, 255, 255, 0.04); }
+.story-earth .icon { flex: none; margin-top: 3px; color: var(--accent); }
+.story-crew { font-style: italic; color: var(--ink); }
+.story-crew strong { font-style: normal; }
+.report-more { align-self: flex-start; margin-top: 6px; }

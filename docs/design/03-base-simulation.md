@@ -120,6 +120,13 @@ Each surprise happens at most once per mission.
 | 3 | Ice drill, fuel plant, Suit check and spacewalks on foot |
 | 5 | Rover (after one walk on foot) |
 
+## Sol report and story
+
+- **Cadet** sees each total ("Water: down 7 L") and the 3 most important news lines; **More details** shows every line. Commander sees everything.
+- After each sol a crewmate says one line about what really happened (storm, shelter, harvest, walk, cold night), from `src/sim/story.ts`.
+- **Messages from Earth** arrive on sol 1, sol 2, the sol before a solar storm and the second-to-last sol, always marked "sent 12 minutes ago" to show the radio delay.
+- Cadet machine descriptions show on sols 1-2 only; after that the name is enough (the text stays in the tooltip).
+
 ## Career
 
 - **Points:** 10 per star, 5 per badge, 5 for the first walk on foot, 5 for a rover trip, 5 for passing a drill and 10 for a perfect drill (improvements only).
