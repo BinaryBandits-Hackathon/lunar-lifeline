@@ -162,6 +162,8 @@ Only list the decisions the player actually chose. Then offer **Try again** (sam
 
 ## 8. How to build it (for a developer or AI)
 
+> **Team of 3:** the work is split into three independent jobs with no shared files. Start with [docs/team/README.md](../team/README.md), then your own task doc: [Person 1: logic](../team/person-1-logic.md), [Person 2: screens](../team/person-2-screens.md), [Person 3: content and science](../team/person-3-content.md). The shared contract is `src/story/types.ts`; the first English draft of the story is `src/story/content/crises.ts`.
+
 ### Screens, in order
 1. **Title** (keep the current one): name, language, Start.
 2. **Prologue**: 2-3 lines from Pip on the spaceship, meteoroid strike (screen shake, honours Reduce motion).
