@@ -1,7 +1,7 @@
 import { ROLES } from "../content/roles";
-import { strengthFromKp } from "../content/rules";
-import { STORMS, nextRandom } from "../engine/base";
-import type { GameState, RoleId, StormRecord } from "../engine/types";
+import { nextRandom } from "../engine/base";
+import { RAD_FACTS, SEP_STORMS, sepStrength, type SepStorm } from "./sep";
+import type { GameState, RoleId } from "../engine/types";
 import { EVENTS, getEvent } from "./events";
 import { getSite as getEvaSite } from "./eva";
 import { isUnlocked, machineLocked, newOnSol, roverReady, taskLocked } from "./unlocks";
@@ -93,12 +93,12 @@ export function createSim(state: GameState, seed = 1): SimState {
   const kind = r < SOLAR_CHANCE ? "solar" : "dust";
   [r, rng] = nextRandom(rng);
   const stormSol = level.stormSols[0] + Math.floor(r * (level.stormSols[1] - level.stormSols[0] + 1));
-  let record: StormRecord | null = null;
+  let record: SepStorm | null = null;
   let strength = kind === "solar" ? 4 : DUST_STORM_SOLS;
-  if (kind === "solar" && STORMS.length > 0) {
+  if (kind === "solar" && SEP_STORMS.length > 0) {
     [r, rng] = nextRandom(rng);
-    record = STORMS[Math.floor(r * STORMS.length)];
-    strength = strengthFromKp(record.maxKp);
+    record = SEP_STORMS[Math.floor(r * SEP_STORMS.length)];
+    strength = sepStrength(record);
   }
 
   const crew: CrewMember[] = roles.map((role, i) => ({
@@ -485,7 +485,9 @@ export function runSol(sim: SimState): SimState {
     energy += heatersAtNight ? SLEEP_ENERGY : COLD_SLEEP_ENERGY;
     if (!heatersAtNight) health -= COLD_HEALTH;
     if (!exercised.has(c.id)) health -= NO_EXERCISE_HEALTH;
-    return { ...c, energy: Math.max(0, Math.min(100, energy)), health: Math.max(0, Math.min(100, health)) };
+    // Everyday radiation on Mars, as Curiosity's RAD measured it on the surface.
+    const dose = c.dose + RAD_FACTS.surfacePerDay;
+    return { ...c, dose, energy: Math.max(0, Math.min(100, energy)), health: Math.max(0, Math.min(100, health)) };
   });
   if (!heatersAtNight) notes.push({ tone: "bad", text: "The heaters ran out of power at night. The crew slept badly in the cold." });
   const skipped = crew.filter((c) => !exercised.has(c.id)).length;

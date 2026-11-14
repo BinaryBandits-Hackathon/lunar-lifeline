@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getRole } from "../content/roles";
+import { NasaData } from "../ui/NasaData";
 import { powerForecast, stormStatus, summarize } from "../sim/engine";
 import { getEvent } from "../sim/events";
 import { BADGES, rankFor } from "../content/academy";
@@ -75,7 +76,7 @@ function hint(sim: SimState): string {
   const storm = stormStatus(sim);
   const date = stormDate(sim);
   if (storm === "today" && sim.storm.kind === "solar" && sim.crew.some((c) => c.task !== "shelter"))
-    return `Solar storm today! Send the crew to Shelter. Anyone outside gets the most radiation.${date ? ` This storm is based on a real one NASA recorded on ${date}.` : ""}`;
+    return `Solar storm today! Send the crew to Shelter. Anyone outside gets the most radiation.${date ? ` This storm is based on a real burst of particles from the Sun that NASA recorded on ${date}.` : ""}`;
   if (storm === "today" && sim.storm.kind === "dust") return "Dust storm! The panels make very little power. Switch off what you can.";
   if (storm === "tomorrow" && sim.storm.kind === "solar") return `Warning from Earth: a solar storm hits tomorrow${date ? ` (like the real one on ${date})` : ""}. Plan to shelter.`;
   if (storm === "tomorrow" && sim.storm.kind === "dust") return "Weather warning: a dust storm arrives tomorrow and lasts 2 sols. Save battery today!";
@@ -569,6 +570,7 @@ function EventModal({ sim, onPick }: { sim: SimState; onPick: (index: number) =>
 function SolReportModal({ sim, careerPoints, onNext, onHome }: { sim: SimState; careerPoints: number; onNext: () => void; onHome: () => void }) {
   const report = sim.report!;
   const lines = summarize(report);
+  const [showData, setShowData] = useState(false);
   const groups = [...LEFT, "fuel", "science"] as ResourceId[];
   const ending = sim.ending;
   return (
@@ -639,6 +641,12 @@ function SolReportModal({ sim, careerPoints, onNext, onHome }: { sim: SimState; 
           )}
         </div>
         <div className="modal-actions">
+          {ending && (
+            <button type="button" className="btn btn-secondary" onClick={() => setShowData(true)}>
+              <Icon name="science" size={18} />
+              NASA data behind this mission
+            </button>
+          )}
           {ending ? (
             <button type="button" className="btn btn-primary" onClick={onHome}>
               <Icon name="home" size={18} />
@@ -652,6 +660,7 @@ function SolReportModal({ sim, careerPoints, onNext, onHome }: { sim: SimState; 
           )}
         </div>
       </section>
+      {showData && <NasaData storm={sim.storm.kind === "solar" ? sim.storm.record : null} onClose={() => setShowData(false)} />}
     </div>
   );
 }

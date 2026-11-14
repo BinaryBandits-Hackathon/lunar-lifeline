@@ -121,7 +121,7 @@ export function arrivalReadings(state: GameState): Reading[] {
       status: "ok",
       short: "Like standing on a beach on Earth.",
       explain:
-        "Inside, the air pushes as hard as it does on Earth. Outside, Mars air is about 100 times thinner, so the crew need spacesuits.",
+        "Inside, the air pushes as hard as it does on Earth. Outside, Mars air is more than 100 times thinner, so the crew need spacesuits.",
     },
 
     // ---------- water and food ----------

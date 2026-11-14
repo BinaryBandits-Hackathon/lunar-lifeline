@@ -1399,12 +1399,12 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 
 /* phones held sideways: keep the whole title and crew panels on screen */
 @media (orientation: landscape) and (max-height: 520px) {
-  .title-tab, .title-emblem, .title-brief { display: none; }
+  .title-tab, .title-emblem, .title-brief, .title-panel .rank-card { display: none; }
   .title-panel { margin: 10px clamp(12px, 4vw, 48px) 10px 12px; gap: 6px; width: min(360px, calc(100% - 24px)); }
   .title-name { font-size: 32px; }
   .title-studio { margin-top: -4px; font-size: 13px; }
   .title-rows { gap: 0; }
-  .title-rows li { min-height: 26px; }
+  .title-rows li { min-height: 22px; }
   .row-key, .row-value, .row-choice button { font-size: 16px; }
   .title-nav { margin-top: 2px; padding-top: 6px; }
   .title-start { font-size: 24px; }
@@ -1422,3 +1422,11 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
   .title-panel { margin-top: 36px; margin-bottom: 16px; gap: 10px; }
   .title-emblem { width: 72px; height: 72px; }
 }
+
+/* NASA data screen */
+.nasa-data { max-width: 640px; }
+.nasa-body { display: flex; flex-direction: column; gap: 8px; max-height: min(70vh, 560px); overflow-y: auto; }
+.nasa-body h3 { display: flex; align-items: center; gap: 6px; font-size: 16px; margin-top: 6px; }
+.nasa-body ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; font-size: 14px; line-height: 1.45; }
+.nasa-lead { padding: 8px 10px; border-left: 3px solid var(--accent); background: rgba(255, 255, 255, 0.04); font-size: 14px; }
+.nasa-note { color: var(--ink-2); font-style: italic; }

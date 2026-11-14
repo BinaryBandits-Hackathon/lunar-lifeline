@@ -1,4 +1,5 @@
-import type { IconName, Level, RoleId, StormRecord } from "../engine/types";
+import type { IconName, Level, RoleId } from "../engine/types";
+import type { SepStorm } from "./sep";
 
 export type ResourceId = "battery" | "oxygen" | "co2" | "water" | "food" | "fuel" | "science";
 export type Resources = Record<ResourceId, number>;
@@ -61,9 +62,10 @@ export interface SimEnding {
 export interface SimStorm {
   sol: number;
   kind: "solar" | "dust";
-  /** Solar storm strength from the real record (Kp), or the dust storm length in sols. */
+  /** Solar storm strength (3-6) from the real particle storm, or the dust storm length in sols. */
   strength: number;
-  record: StormRecord | null;
+  /** The real NASA solar particle storm behind a solar storm. */
+  record: SepStorm | null;
 }
 
 export interface SimState {

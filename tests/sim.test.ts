@@ -166,7 +166,8 @@ describe("storms and surprises", () => {
     let safe = sim;
     for (const c of sim.crew) safe = assignTask(safe, c.id, "shelter");
     safe = runSol(safe);
-    expect(safe.crew.map((c) => c.dose)).toEqual(before);
+    // the shelter blocks the storm; only the everyday Mars dose (about 0.64 mSv) is left
+    safe.crew.forEach((c, i) => expect(c.dose - before[i]).toBeLessThan(1));
     const exposed = runSol(assignTask(sim, "player", "mine"));
     expect(exposed.crew[0].dose).toBeGreaterThan(before[0]);
   });
@@ -202,5 +203,22 @@ describe("storms and surprises", () => {
     expect(toggleMachine(sim, "scrubber")).toBe(sim);
     sim = runSol(assignTask(sim, "player", "repair"));
     expect(sim.broken).toEqual([]);
+  });
+});
+
+import { groupStorms, sepStrength, SEP_STORMS } from "../src/sim/sep";
+describe("real solar particle storms", () => {
+  it("groups DONKI records into storms and rates them 3-6", () => {
+    expect(SEP_STORMS.length).toBeGreaterThan(5);
+    for (const s of SEP_STORMS) expect(sepStrength(s)).toBeGreaterThanOrEqual(3);
+    for (const s of SEP_STORMS) expect(sepStrength(s)).toBeLessThanOrEqual(6);
+    const g = groupStorms([
+      { id: "a", start: "2024-05-10T00:00Z", highEnergy: false, flare: true, instruments: ["x"], link: "" },
+      { id: "b", start: "2024-05-11T00:00Z", highEnergy: true, flare: false, instruments: ["y"], link: "" },
+      { id: "c", start: "2024-06-20T00:00Z", highEnergy: false, flare: false, instruments: ["z"], link: "" },
+    ]);
+    expect(g).toHaveLength(2);
+    expect(sepStrength(g[0])).toBe(6);
+    expect(sepStrength(g[1])).toBe(3);
   });
 });

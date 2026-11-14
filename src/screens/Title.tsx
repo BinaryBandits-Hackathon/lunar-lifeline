@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { canSkipIntro } from "../engine/flow";
+import { NasaData } from "../ui/NasaData";
 import { canSpeak } from "../services/speech";
 import { Pip } from "../ui/Pip";
 import type { ScreenProps } from "../ui/screen";
@@ -34,6 +36,7 @@ function Emblem() {
 export function Title({ state, dispatch }: ScreenProps) {
   const { settings } = state;
   const commander = state.level === "commander";
+  const [showData, setShowData] = useState(false);
   const toggle = (key: "readAloud" | "reduceMotion") => dispatch({ type: "SET_SETTING", key, value: !settings[key] });
 
   return (
@@ -87,6 +90,12 @@ export function Title({ state, dispatch }: ScreenProps) {
               Astronaut Academy
             </button>
           </li>
+          <li>
+            <span className="row-key">Science</span>
+            <button type="button" className="row-value" onClick={() => setShowData(true)}>
+              Real NASA data
+            </button>
+          </li>
         </ul>
 
         <div className="title-rule" />
@@ -112,6 +121,7 @@ export function Title({ state, dispatch }: ScreenProps) {
           </button>
         </div>
       </section>
+      {showData && <NasaData onClose={() => setShowData(false)} />}
     </main>
   );
 }
