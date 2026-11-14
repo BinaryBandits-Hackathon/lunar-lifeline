@@ -5,7 +5,7 @@
 .app-story { height: 100%; min-height: 0; }
 .app-story .phases { display: none; }
 .app-story .topbar { min-height: 44px; padding-block: 4px; }
-.story-screen { position: relative; flex: 1; min-height: 0; max-width: none; padding: 0; overflow: hidden; background: #050811; }
+.screen.story-screen { position: relative; flex: 1; min-height: 0; width: 100%; max-width: none; margin: 0; padding: 0; overflow: hidden; background: #050811; }
 .story-beats { position: relative; flex: 1; min-height: 0; display: flex; align-items: flex-end; }
 .story-art { position: absolute; inset: 0; }
 .story-art svg { width: 100%; height: 100%; display: block; object-fit: cover; }
