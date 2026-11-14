@@ -137,11 +137,17 @@ export const LEVELS: Record<Level, { sols: number; fuelGoal: number; scienceGoal
 // ---------- storms ----------
 /** Chance the mission's storm is a solar storm (the rest are dust storms). */
 export const SOLAR_CHANCE = 0.6;
-/** mSv of radiation per point of solar storm strength. */
+/**
+ * mSv of radiation per point of solar storm strength. GAME SCALE: real storms on
+ * the Martian surface add a few mSv (the air shields a lot); in open space an
+ * unshielded astronaut could get far more. The game uses a bigger number so the
+ * choice to shelter matters in a 7-10 sol mission. The NASA data screen says so.
+ */
 export const DOSE_OUTSIDE = 25;
 export const DOSE_INSIDE = 12;
 /** NASA's career radiation limit for astronauts, in mSv. */
 export const DOSE_LIMIT = 600;
+/** The trip: about 6 months at RAD's measured 1.8 mSv a day in cruise is about 330 mSv, plus training and earlier flights. */
 export const DOSE_START = 380;
 /** Solar power during a dust storm, and with dusty panels afterwards. */
 export const DUST_STORM_SOLAR = 0.2;

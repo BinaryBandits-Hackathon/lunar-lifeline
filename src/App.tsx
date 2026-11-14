@@ -3,7 +3,7 @@ import { createInitialState, currentLine, fillText, next, toSaved } from "./engi
 import type { GameState, Stage } from "./engine/types";
 import { Icon } from "./ui/Icon";
 import { rankFor } from "./content/academy";
-import { speak, stopSpeaking } from "./services/speech";
+import { speak, stopSpeaking, setSpeechLanguage } from "./services/speech";
 import { loadProgress, prefersReducedMotion, saveProgress } from "./services/storage";
 import { Academy } from "./screens/Academy";
 import { Badge } from "./screens/Badge";
@@ -42,6 +42,8 @@ export function App() {
   useEffect(() => {
     saveProgress(toSaved(state));
   }, [state]);
+
+  useEffect(() => setSpeechLanguage(state.settings.bangla ? "bn" : "en"), [state.settings.bangla]);
 
   // Read each new line of Pip's dialogue aloud.
   const line = currentLine(state);

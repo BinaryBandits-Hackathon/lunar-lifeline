@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { canSkipIntro } from "../engine/flow";
+import { NasaData } from "../ui/NasaData";
 import { canSpeak } from "../services/speech";
 import { Pip } from "../ui/Pip";
 import type { ScreenProps } from "../ui/screen";
@@ -34,6 +36,7 @@ function Emblem() {
 export function Title({ state, dispatch }: ScreenProps) {
   const { settings } = state;
   const commander = state.level === "commander";
+  const [showData, setShowData] = useState(false);
   const toggle = (key: "readAloud" | "reduceMotion") => dispatch({ type: "SET_SETTING", key, value: !settings[key] });
 
   return (
@@ -70,6 +73,17 @@ export function Title({ state, dispatch }: ScreenProps) {
             </span>
           </li>
           <li>
+            <span className="row-key">Language</span>
+            <span className="row-choice" role="group" aria-label="Language for Pip and the crew">
+              <button type="button" aria-pressed={!settings.bangla} onClick={() => dispatch({ type: "SET_SETTING", key: "bangla", value: false })}>
+                English
+              </button>
+              <button type="button" lang="bn" aria-pressed={settings.bangla} onClick={() => dispatch({ type: "SET_SETTING", key: "bangla", value: true })}>
+                বাংলা
+              </button>
+            </span>
+          </li>
+          <li>
             <span className="row-key">Read to me</span>
             <button type="button" className="row-value" aria-pressed={settings.readAloud} disabled={!canSpeak()} onClick={() => toggle("readAloud")}>
               {!canSpeak() ? "Not available" : settings.readAloud ? "On" : "Off"}
@@ -85,6 +99,12 @@ export function Title({ state, dispatch }: ScreenProps) {
             <span className="row-key">Training</span>
             <button type="button" className="row-value" onClick={() => dispatch({ type: "OPEN_ACADEMY" })}>
               Astronaut Academy
+            </button>
+          </li>
+          <li>
+            <span className="row-key">Science</span>
+            <button type="button" className="row-value" onClick={() => setShowData(true)}>
+              Real NASA data
             </button>
           </li>
         </ul>
@@ -107,11 +127,15 @@ export function Title({ state, dispatch }: ScreenProps) {
               Skip to landing
             </button>
           )}
+          <button type="button" className="title-link" onClick={() => dispatch({ type: "QUICK_START" })} title="Skip the flight and landing: start on sol 3 with a storm coming.">
+            Quick start
+          </button>
           <button type="button" className="title-link title-start" onClick={() => dispatch({ type: "START" })}>
             Start mission
           </button>
         </div>
       </section>
+      {showData && <NasaData onClose={() => setShowData(false)} />}
     </main>
   );
 }

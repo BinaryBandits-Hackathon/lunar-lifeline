@@ -9,10 +9,12 @@
     "preview": "vite preview",
     "typecheck": "tsc",
     "test": "vitest run",
-    "fetch:storms": "node scripts/fetch-donki.mjs"
+    "fetch:storms": "node scripts/fetch-donki.mjs",
+    "fetch:sep": "node scripts/fetch-sep.mjs"
   },
   "dependencies": {
     "@fontsource/ibm-plex-mono": "^5.3.0",
+    "@fontsource/noto-sans-bengali": "^5.3.0",
     "@fontsource/saira-condensed": "^5.3.0",
     "@fontsource/saira-semi-condensed": "^5.3.0",
     "react": "^19.3.1",

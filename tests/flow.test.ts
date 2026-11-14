@@ -151,3 +151,17 @@ describe("after landing", () => {
     expect(next(s, { type: "NEXT" })).toBe(s);
   });
 });
+
+import { startQuick } from "../src/engine/quickStart";
+describe("quick start", () => {
+  it("starts on sol 3 of a Cadet mission with a real solar storm on sol 4", () => {
+    const s = next(createInitialState(), { type: "QUICK_START" });
+    expect(s.stage).toBe("sim");
+    expect(s.sim!.sol).toBe(3);
+    expect(s.sim!.quickStart).toBe(true);
+    expect(s.sim!.storm.kind).toBe("solar");
+    expect(s.sim!.storm.sol).toBe(4);
+    expect(s.player.name).toBe("Nova");
+    expect(startQuick(createInitialState()).level).toBe("cadet");
+  });
+});

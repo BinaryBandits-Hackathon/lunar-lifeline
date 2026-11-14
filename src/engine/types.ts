@@ -78,6 +78,8 @@ export interface Settings {
   readAloud: boolean;
   reduceMotion: boolean;
   sound: boolean;
+  /** Pip's narration and the crew story in Bangla (buttons stay in English). */
+  bangla: boolean;
 }
 
 export interface Player {
@@ -223,6 +225,7 @@ export interface SavedProgress {
 export type Action =
   | { type: "START" }
   | { type: "SKIP_INTRO" }
+  | { type: "QUICK_START" }
   | { type: "OPEN_ACADEMY" }
   | { type: "BACK_TO_TITLE" }
   | { type: "SET_LEVEL"; level: Level }

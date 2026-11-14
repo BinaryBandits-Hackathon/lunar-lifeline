@@ -35,7 +35,7 @@ export const FEATURE_INFO: Record<Feature, { name: string; icon: IconName; what:
     name: "Spacewalks",
     icon: "astronaut",
     what: "Two new jobs. First Suit check: practise in the airlock and get a suit ready. Then Spacewalk: two astronauts with ready suits explore on foot.",
-    real: "Astronauts always go on spacewalks in pairs, and check every part of their suits first.",
+    real: "On the Space Station, astronauts go on spacewalks in pairs, and check every part of their suits first.",
   },
   rover: {
     name: "Rover",

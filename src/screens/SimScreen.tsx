@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 import { getRole } from "../content/roles";
+import { NasaData } from "../ui/NasaData";
+import { BN_HINT } from "../content/bn";
+import { storyFor } from "../sim/story";
 import { powerForecast, stormStatus, summarize } from "../sim/engine";
 import { getEvent } from "../sim/events";
 import { BADGES, rankFor } from "../content/academy";
@@ -70,35 +73,39 @@ function stormDate(sim: SimState): string {
   return Number.isNaN(d.getTime()) ? "" : d.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
 }
 
-function hint(sim: SimState): string {
+function hint(sim: SimState, bangla = false): string {
   const f = powerForecast(sim);
   const storm = stormStatus(sim);
   const date = stormDate(sim);
+  const L = (en: string, bn: string) => (bangla ? bn : en);
+  if (sim.quickStart && sim.sol === 3 && !sim.crew.some((c) => c.task === "suitPrep" || c.task === "shelter"))
+    return L(`Quick start: welcome to sol 3 on Mars! A real solar storm${date ? ` (recorded by NASA on ${date})` : ""} hits tomorrow. Today: give jobs, check the power, and get spacesuits ready. Tomorrow: Shelter!`, BN_HINT.quickStart(date));
   if (storm === "today" && sim.storm.kind === "solar" && sim.crew.some((c) => c.task !== "shelter"))
-    return `Solar storm today! Send the crew to Shelter. Anyone outside gets the most radiation.${date ? ` This storm is based on a real one NASA recorded on ${date}.` : ""}`;
-  if (storm === "today" && sim.storm.kind === "dust") return "Dust storm! The panels make very little power. Switch off what you can.";
-  if (storm === "tomorrow" && sim.storm.kind === "solar") return `Warning from Earth: a solar storm hits tomorrow${date ? ` (like the real one on ${date})` : ""}. Plan to shelter.`;
-  if (storm === "tomorrow" && sim.storm.kind === "dust") return "Weather warning: a dust storm arrives tomorrow and lasts 2 sols. Save battery today!";
+    return L(`Solar storm today! Send the crew to Shelter. Anyone outside gets the most radiation.${date ? ` This storm is based on a real burst of particles from the Sun that NASA recorded on ${date}.` : ""}`, BN_HINT.solarToday(date));
+  if (storm === "today" && sim.storm.kind === "dust") return L("Dust storm! The panels make very little power. Switch off what you can.", BN_HINT.dustToday);
+  if (storm === "tomorrow" && sim.storm.kind === "solar") return L(`Warning from Earth: a solar storm hits tomorrow${date ? ` (like the real one on ${date})` : ""}. Plan to shelter.`, BN_HINT.solarTomorrow(date));
+  if (storm === "tomorrow" && sim.storm.kind === "dust") return L("Weather warning: a dust storm arrives tomorrow and lasts 2 sols. Save battery today!", BN_HINT.dustTomorrow);
   const walkers = sim.crew.filter((c) => c.task === "eva").length;
-  if (walkers && !sim.evaSite) return "Someone is going on a spacewalk. Open the spacewalk plan and pick a destination.";
-  if (walkers === 1) return "Astronauts never go outside alone. Send a buddy on the spacewalk too.";
-  if (walkers > sim.suitsReady) return `Only ${sim.suitsReady} spacesuit${sim.suitsReady === 1 ? " is" : "s are"} ready. Give someone the Suit check job first, then go outside the next sol.`;
-  if (walkers && sim.evaSite && stormStatus(sim) === "today") return "There's a storm today. A spacewalk now is dangerous: think about waiting.";
-  if (sim.broken.length && !sim.crew.some((c) => c.task === "repair")) return `The ${MACHINES[sim.broken[0]].name.toLowerCase()} is broken. Send someone to Repair it.`;
-  if (sim.leak && !sim.crew.some((c) => c.task === "repair")) return "A pipe is leaking water every sol. Send someone to Repair it.";
-  if (sim.dusty && !sim.crew.some((c) => c.task === "repair")) return "The panels are dusty and make less power. A Repair job will clean them.";
+  if (walkers && !sim.evaSite) return L("Someone is going on a spacewalk. Open the spacewalk plan and pick a destination.", BN_HINT.noSite);
+  if (walkers === 1) return L("Astronauts never go outside alone. Send a buddy on the spacewalk too.", BN_HINT.alone);
+  if (walkers > sim.suitsReady) return L(`Only ${sim.suitsReady} spacesuit${sim.suitsReady === 1 ? " is" : "s are"} ready. Give someone the Suit check job first, then go outside the next sol.`, BN_HINT.suits(sim.suitsReady));
+  if (walkers && sim.evaSite && stormStatus(sim) === "today") return L("There's a storm today. A spacewalk now is dangerous: think about waiting.", BN_HINT.walkInStorm);
+  if (sim.broken.length && !sim.crew.some((c) => c.task === "repair")) return L(`The ${MACHINES[sim.broken[0]].name.toLowerCase()} is broken. Send someone to Repair it.`, BN_HINT.broken(`"${MACHINES[sim.broken[0]].name}"`));
+  if (sim.leak && !sim.crew.some((c) => c.task === "repair")) return L("A pipe is leaking water every sol. Send someone to Repair it.", BN_HINT.leak);
+  if (sim.dusty && !sim.crew.some((c) => c.task === "repair")) return L("The panels are dusty and make less power. A Repair job will clean them.", BN_HINT.dusty);
   const ripe = sim.plots.some((p) => p.crop && p.growth >= CROPS[p.crop].sols);
   const tired = sim.crew.find((c) => c.energy < 30 && c.task !== "rest");
-  if (sim.panelsCracked && !sim.crew.some((c) => c.task === "repair")) return "Two solar panels are cracked. Send someone to Repair them for full power.";
-  if (sim.res.oxygen < 40 && !sim.machines.oxygenMaker) return "Oxygen is getting low. Switch on the oxygen maker.";
-  if (sim.res.water < 60) return "Water is low. Mine ice, or switch on the water recycler.";
-  if (sim.res.food < 8) return "Food is running low. Plant crops and send someone to Farm.";
-  if (tired) return `${tired.name} is very tired. Let them Rest today.`;
-  if (ripe && !sim.crew.some((c) => c.task === "farm")) return "Crops are ripe! Send someone to Farm to harvest them.";
-  if (sim.res.battery + f.make - f.use < 20) return "Careful: the machines and jobs use more power than you have. The heaters need power at night.";
-  if (isUnlocked(sim, "eva") && sim.suitsReady < 2 && !sim.crew.some((c) => c.task === "suitPrep" || c.task === "eva")) return `Spacewalks are open! First get 2 suits ready with the Suit check job. Suits ready: ${sim.suitsReady} of 2.`;
-  if (!sim.machines.fuelPlant && sim.res.fuel < sim.goals.fuel && isUnlocked(sim, "fuel")) return "To fly home you need fuel. The fuel plant uses lots of power, so plan around it.";
-  return "Plan the sol: give everyone a job and choose which machines run. Then press Run sol.";
+  if (sim.panelsCracked && !sim.crew.some((c) => c.task === "repair")) return L("Two solar panels are cracked. Send someone to Repair them for full power.", BN_HINT.cracked);
+  if (sim.res.oxygen < 40 && !sim.machines.oxygenMaker) return L("Oxygen is getting low. Switch on the oxygen maker.", BN_HINT.oxygen);
+  if (sim.res.water < 60) return L("Water is low. Mine ice, or switch on the water recycler.", BN_HINT.water);
+  if (sim.res.food < 8) return L("Food is running low. Plant crops and send someone to Farm.", BN_HINT.food);
+  if (tired) return L(`${tired.name} is very tired. Let them Rest today.`, BN_HINT.tired(tired.name));
+  if (ripe && !sim.crew.some((c) => c.task === "farm")) return L("Crops are ripe! Send someone to Farm to harvest them.", BN_HINT.ripe);
+  if (sim.res.battery + f.make - f.use < 20) return L("Careful: the machines and jobs use more power than you have. The heaters need power at night.", BN_HINT.power);
+  if (isUnlocked(sim, "eva") && sim.suitsReady < 2 && !sim.crew.some((c) => c.task === "suitPrep" || c.task === "eva"))
+    return L(`Spacewalks are open! First get 2 suits ready with the Suit check job. Suits ready: ${sim.suitsReady} of 2.`, BN_HINT.suitsFirst(sim.suitsReady));
+  if (!sim.machines.fuelPlant && sim.res.fuel < sim.goals.fuel && isUnlocked(sim, "fuel")) return L("To fly home you need fuel. The fuel plant uses lots of power, so plan around it.", BN_HINT.fuel);
+  return L("Plan the sol: give everyone a job and choose which machines run. Then press Run sol.", BN_HINT.plan);
 }
 
 export function SimScreen({ state, dispatch }: ScreenProps) {
@@ -125,7 +132,8 @@ export function SimScreen({ state, dispatch }: ScreenProps) {
   const phase: Phase = snapshot ? snapshot.phase : sim.mode === "plan" ? "morning" : "night";
   const planning = sim.mode === "plan";
   const forecast = powerForecast(sim);
-  const tip = planning ? hint(sim) : "";
+  const bangla = state.settings.bangla;
+  const tip = planning ? hint(sim, bangla) : "";
   useSpeak(planning && sim.newUnlocks.length === 0 ? tip : null, state.settings.readAloud);
 
   const run = () => {
@@ -191,7 +199,8 @@ export function SimScreen({ state, dispatch }: ScreenProps) {
                   <Icon name={info.icon} size={18} />
                   <span className="machine-text">
                     <strong>{info.name}</strong>
-                    <span>{info.what}</span>
+                    {/* Cadets read what a machine does on their first sols; after that the name is enough (the full text stays in the tooltip). */}
+                    {(sim.level === "commander" || sim.sol <= 2 || locked) && <span>{info.what}</span>}
                   </span>
                   {locked && feature ? <span className="tag lock-tag">Sol {unlockSol(sim, feature)}</span> : broken ? <span className="tag tag-low">Broken</span> : <span className="machine-use mono">−{use}</span>}
                   <span className="switch" aria-hidden="true">
@@ -310,7 +319,7 @@ export function SimScreen({ state, dispatch }: ScreenProps) {
       </div>
 
       <Dialogue
-        text={planning ? tip : playing ? `${PHASE_LABEL[phase]} on Mars...` : "Sol complete."}
+        text={planning ? tip : playing ? (bangla ? BN_HINT.playing : `${PHASE_LABEL[phase]} on Mars...`) : bangla ? BN_HINT.done : "Sol complete."}
         mood={planning && tip.startsWith("Careful") ? "alert" : "calm"}
         form="rover"
         readAloud={state.settings.readAloud}
@@ -328,7 +337,7 @@ export function SimScreen({ state, dispatch }: ScreenProps) {
         />
       )}
       {planning && sim.eventId && sim.newUnlocks.length === 0 && <EventModal sim={sim} onPick={(index) => dispatch({ type: "SIM_EVENT", index })} />}
-      {sim.mode !== "plan" && !playing && sim.report && <SolReportModal careerPoints={state.career.points} sim={sim} onNext={() => dispatch({ type: "SIM_NEXT" })} onHome={() => dispatch({ type: "RESTART" })} />}
+      {sim.mode !== "plan" && !playing && sim.report && <SolReportModal careerPoints={state.career.points} bangla={state.settings.bangla} sim={sim} onNext={() => dispatch({ type: "SIM_NEXT" })} onHome={() => dispatch({ type: "RESTART" })} />}
     </main>
   );
 }
@@ -566,11 +575,18 @@ function EventModal({ sim, onPick }: { sim: SimState; onPick: (index: number) =>
   );
 }
 
-function SolReportModal({ sim, careerPoints, onNext, onHome }: { sim: SimState; careerPoints: number; onNext: () => void; onHome: () => void }) {
+function SolReportModal({ sim, careerPoints, bangla, onNext, onHome }: { sim: SimState; careerPoints: number; bangla: boolean; onNext: () => void; onHome: () => void }) {
   const report = sim.report!;
   const lines = summarize(report);
+  const [showData, setShowData] = useState(false);
+  // Cadets (ages 7-9) see the big changes first; the details are one tap away.
+  const [details, setDetails] = useState(sim.level === "commander");
   const groups = [...LEFT, "fuel", "science"] as ResourceId[];
   const ending = sim.ending;
+  const story = storyFor(sim, bangla);
+  const order = { bad: 0, good: 1, info: 2 } as const;
+  const notes = details ? report.notes : [...report.notes].sort((a, b) => order[a.tone] - order[b.tone]).slice(0, 3);
+  const hidden = report.notes.length - notes.length;
   return (
     <div className="modal-backdrop">
       <section className="modal panel" role="dialog" aria-modal="true" aria-labelledby="report-h">
@@ -597,6 +613,23 @@ function SolReportModal({ sim, careerPoints, onNext, onHome }: { sim: SimState; 
               </span>
             </div>
           )}
+          {(story.crew || story.earth) && (
+            <div className="story">
+              {story.earth && (
+                <p className="story-earth">
+                  <Icon name="speaker" size={15} />
+                  <span>
+                    <strong>{story.earth.from}:</strong> {story.earth.text}
+                  </span>
+                </p>
+              )}
+              {story.crew && (
+                <p className="story-crew">
+                  <strong>{story.crew.name}:</strong> "{story.crew.line}"
+                </p>
+              )}
+            </div>
+          )}
           <p className="report-key">
             <span className="pos">+ green</span> means the base gained some. <span className="neg">− red</span> means it was used up.
           </p>
@@ -615,21 +648,21 @@ function SolReportModal({ sim, careerPoints, onNext, onHome }: { sim: SimState; 
                       {show(id, total) === 0 ? "no change" : `${total > 0 ? "up" : "down"} ${change(id, total).slice(1)}`}
                     </strong>
                   </span>
-                  <ul>
+                  {details && <ul>
                     {shown.map((l) => (
                       <li key={l.cause}>
                         <span>{l.cause}</span>
                         <span className={`mono ${goodNews(id, l.amount) ? "pos" : "neg"}`}>{change(id, l.amount)}</span>
                       </li>
                     ))}
-                  </ul>
+                  </ul>}
                 </div>
               );
             })}
           </div>
-          {report.notes.length > 0 && (
+          {notes.length > 0 && (
             <ul className="log">
-              {report.notes.map((n, i) => (
+              {notes.map((n, i) => (
                 <li key={i} className={n.tone}>
                   <span className="dot" aria-hidden="true" />
                   <span>{n.text}</span>
@@ -637,8 +670,19 @@ function SolReportModal({ sim, careerPoints, onNext, onHome }: { sim: SimState; 
               ))}
             </ul>
           )}
+          {!details && (
+            <button type="button" className="btn btn-ghost btn-small report-more" onClick={() => setDetails(true)}>
+              More details{hidden > 0 ? ` (${hidden} more news)` : ""}
+            </button>
+          )}
         </div>
         <div className="modal-actions">
+          {ending && (
+            <button type="button" className="btn btn-secondary" onClick={() => setShowData(true)}>
+              <Icon name="science" size={18} />
+              NASA data behind this mission
+            </button>
+          )}
           {ending ? (
             <button type="button" className="btn btn-primary" onClick={onHome}>
               <Icon name="home" size={18} />
@@ -652,6 +696,7 @@ function SolReportModal({ sim, careerPoints, onNext, onHome }: { sim: SimState; 
           )}
         </div>
       </section>
+      {showData && <NasaData storm={sim.storm.kind === "solar" ? sim.storm.record : null} onClose={() => setShowData(false)} />}
     </div>
   );
 }

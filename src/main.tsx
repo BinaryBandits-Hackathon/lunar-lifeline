@@ -11,6 +11,8 @@ import "@fontsource/saira-semi-condensed/400.css";
 import "@fontsource/saira-semi-condensed/500.css";
 import "@fontsource/saira-semi-condensed/600.css";
 import "@fontsource/saira-semi-condensed/700.css";
+import "@fontsource/noto-sans-bengali/400.css";
+import "@fontsource/noto-sans-bengali/600.css";
 import "./styles.css";
 
 createRoot(document.getElementById("root")!).render(

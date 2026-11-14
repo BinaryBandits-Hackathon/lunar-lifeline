@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createInitialState, next } from "../src/engine/flow";
+import { createInitialState, currentLine, fillText, next } from "../src/engine/flow";
 import type { Action, GameState, Level, RoleId, SiteId } from "../src/engine/types";
 import { assignTask, chooseEvent, createSim, nextSol, planPlot, powerForecast, runSol, stormStatus, summarize, toggleMachine } from "../src/sim/engine";
 import type { SimState } from "../src/sim/types";
@@ -166,7 +166,8 @@ describe("storms and surprises", () => {
     let safe = sim;
     for (const c of sim.crew) safe = assignTask(safe, c.id, "shelter");
     safe = runSol(safe);
-    expect(safe.crew.map((c) => c.dose)).toEqual(before);
+    // the shelter blocks the storm; only the everyday Mars dose (about 0.64 mSv) is left
+    safe.crew.forEach((c, i) => expect(c.dose - before[i]).toBeLessThan(1));
     const exposed = runSol(assignTask(sim, "player", "mine"));
     expect(exposed.crew[0].dose).toBeGreaterThan(before[0]);
   });
@@ -202,5 +203,115 @@ describe("storms and surprises", () => {
     expect(toggleMachine(sim, "scrubber")).toBe(sim);
     sim = runSol(assignTask(sim, "player", "repair"));
     expect(sim.broken).toEqual([]);
+  });
+});
+
+import { groupStorms, sepStrength, SEP_STORMS } from "../src/sim/sep";
+describe("real solar particle storms", () => {
+  it("groups DONKI records into storms and rates them 3-6", () => {
+    expect(SEP_STORMS.length).toBeGreaterThan(5);
+    for (const s of SEP_STORMS) expect(sepStrength(s)).toBeGreaterThanOrEqual(3);
+    for (const s of SEP_STORMS) expect(sepStrength(s)).toBeLessThanOrEqual(6);
+    const g = groupStorms([
+      { id: "a", start: "2024-05-10T00:00Z", highEnergy: false, flare: true, instruments: ["x"], link: "" },
+      { id: "b", start: "2024-05-11T00:00Z", highEnergy: true, flare: false, instruments: ["y"], link: "" },
+      { id: "c", start: "2024-06-20T00:00Z", highEnergy: false, flare: false, instruments: ["z"], link: "" },
+    ]);
+    expect(g).toHaveLength(2);
+    expect(sepStrength(g[0])).toBe(6);
+    expect(sepStrength(g[1])).toBe(3);
+  });
+});
+
+import { storyFor } from "../src/sim/story";
+describe("story beats", () => {
+  it("a crewmate speaks after every sol, and Earth writes on sol 1 with the radio delay", () => {
+    let sim = createSim(landed(), 3);
+    sim = runSol(sim);
+    const beat = storyFor(sim);
+    expect(beat.crew?.line.length).toBeGreaterThan(10);
+    expect(beat.earth?.from).toContain("minutes ago");
+  });
+  it("the crew talks about the shelter after sheltering from a solar storm", () => {
+    let seed = 1;
+    while (createSim(landed(), seed).storm.kind !== "solar") seed++;
+    let sim = createSim(landed(), seed);
+    while (sim.sol < sim.storm.sol) {
+      if (sim.eventId) sim = chooseEvent(sim, 0);
+      sim = nextSol(runSol(sim));
+    }
+    if (sim.eventId) sim = chooseEvent(sim, 0);
+    for (const c of sim.crew) sim = assignTask(sim, c.id, "shelter");
+    expect(storyFor(runSol(sim)).crew?.line).toContain("shelter");
+  });
+});
+
+describe("Commander missions with every real solar particle storm", () => {
+  const start = landed("commander", "engineer", "iceValley");
+  /** Same mission, but forced to use this storm on its storm sol. */
+  const withStorm = (storm: (typeof SEP_STORMS)[number], seed: number) => {
+    const sim = createSim(start, seed);
+    return { ...sim, storm: { ...sim.storm, kind: "solar" as const, record: storm, strength: sepStrength(storm) } };
+  };
+  const run = (sim: SimState, bot: Bot) => {
+    for (let i = 0; i < 30 && sim.mode !== "ended"; i++) {
+      if (sim.eventId) sim = chooseEvent(sim, 0);
+      sim = nextSol(runSol(bot(sim)));
+    }
+    return sim;
+  };
+  /** Ignores storm warnings: the engineer keeps mining outside. */
+  const ignoresStorm: Bot = (sim) => {
+    const s = sensible(sim);
+    return s.storm.kind === "solar" && stormStatus(s) === "today" ? s.crew.reduce((x, c) => assignTask(x, c.id, c.role === "engineer" ? "mine" : "research"), s) : s;
+  };
+
+  const rows = SEP_STORMS.flatMap((storm) => [1, 2, 3, 4, 5].map((seed) => ({ storm, safe: run(withStorm(storm, seed), sensible), risky: run(withStorm(storm, seed), ignoresStorm) })));
+  const maxDose = (s: SimState) => Math.max(...s.crew.map((c) => c.dose));
+  console.log(
+    "commander storms: " +
+      SEP_STORMS.map((st) => `${st.start.slice(0, 10)} s${sepStrength(st)}`).join(", ") +
+      `\n  sheltering: grounded ${rows.filter((r) => r.safe.ending?.type === "grounded").length}/${rows.length}, max dose ${Math.round(Math.max(...rows.map((r) => maxDose(r.safe))))} mSv` +
+      `\n  ignoring: grounded ${rows.filter((r) => r.risky.ending?.type === "grounded").length}/${rows.length}, max dose ${Math.round(Math.max(...rows.map((r) => maxDose(r.risky))))} mSv`,
+  );
+
+  it("sheltering keeps every crew under the 600 mSv limit, whatever the storm", () => {
+    for (const r of rows) expect(r.safe.ending?.type).not.toBe("grounded");
+  });
+
+  it("ignoring the storm always costs more radiation, and more for stronger storms", () => {
+    for (const r of rows) expect(maxDose(r.risky)).toBeGreaterThan(maxDose(r.safe) + 30);
+    const extra = (strength: number) => rows.filter((r) => sepStrength(r.storm) === strength).map((r) => maxDose(r.risky) - maxDose(r.safe));
+    const avg = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / Math.max(1, xs.length);
+    expect(avg(extra(6))).toBeGreaterThan(avg(extra(4)));
+  });
+});
+
+import { BN_LINES } from "../src/content/bn";
+import { SCRIPT, DAMAGE_LINES } from "../src/content/script";
+describe("Bangla narration", () => {
+  const bengali = /[ঀ-৿]/;
+  it("every opening line has a Bangla version", () => {
+    const lines = [...Object.values(SCRIPT).flat(), ...Object.values(DAMAGE_LINES).flat()];
+    for (const l of lines) expect(BN_LINES[l!.text], l!.text).toMatch(bengali);
+  });
+  it("every crew line and Earth message is shown in Bangla when chosen", () => {
+    for (let seed = 1; seed <= 30; seed++) {
+      let sim = createSim(landed("commander"), seed);
+      for (let i = 0; i < 10 && sim.mode !== "ended"; i++) {
+        if (sim.eventId) sim = chooseEvent(sim, 0);
+        sim = runSol(sim);
+        const b = storyFor(sim, true);
+        if (b.crew) expect(b.crew.line, b.crew.line).toMatch(bengali);
+        if (b.earth) expect(b.earth.text).toMatch(bengali);
+        sim = nextSol(sim);
+      }
+    }
+  });
+  it("Pip's lines switch to Bangla in the opening", () => {
+    let s = next(createInitialState({ settings: { readAloud: false, reduceMotion: false, sound: true, bangla: true } }), { type: "START" });
+    s = [{ type: "SET_NAME", name: "Nova" }, { type: "PICK_ROLE", role: "engineer" }, { type: "NEXT" }].reduce((a, x) => next(a, x as Action), s);
+    expect(fillText(currentLine(s)!.text, s)).toContain("Nova");
+    expect(fillText(currentLine(s)!.text, s)).toMatch(bengali);
   });
 });
