@@ -75,6 +75,11 @@ Everything below is already merged into `main`, which is the live game. The othe
 | `feat/academy` | The Astronaut Academy: drills, badges and ranks. |
 | `feat/play-store` | Android app and Google Play preparation (on hold). |
 | `docs/team-docs` | The team documentation. |
+| `feat/data-validity` | Real Mars radiation science: NASA solar particle storms, Curiosity's measured dose, the Real NASA data screen, the fact check. |
+| `feat/quick-start` | Quick start: begin on sol 3 without the flight and landing. |
+| `feat/kid-friendly` | Shorter Cadet reports, the crew's story and messages from Earth. |
+| `feat/bangla` | Bangla narration (choose বাংলা on the title screen). |
+| `docs/classroom` | Teacher guide and playtest kit. |
 
 New work starts on a short branch from `main` and comes back through a pull request (see [CONTRIBUTING.md](CONTRIBUTING.md)).
 
