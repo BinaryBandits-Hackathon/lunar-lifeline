@@ -28,9 +28,8 @@ export const SCRIPT: Partial<Record<Stage, DialogueLine[]>> = {
     {
       speaker: "pip",
       mood: "calm",
-      text: "Earth is so far away that a radio message takes {delay} minutes to get there. Landing takes about 7 minutes.",
+      text: "A radio message takes {delay} minutes to reach Earth, but landing takes only 7. Earth can't help in time: we decide ourselves.",
     },
-    { speaker: "pip", mood: "calm", text: "So Earth can't help us in time. We have to decide ourselves." },
     {
       speaker: "pip",
       mood: "calm",

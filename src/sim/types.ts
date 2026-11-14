@@ -95,6 +95,8 @@ export interface SimState {
   visited: string[];
   /** What the player chose for this sol's surprise, shown in the report. */
   eventResult: string | null;
+  /** Started with Quick start (sol 3, no flight). */
+  quickStart?: boolean;
   sol: number;
   totalSols: number;
   level: Level;

@@ -2,6 +2,7 @@ import { getRole } from "../content/roles";
 import { getSite, sitesForLevel } from "../content/landingSites";
 import { DAMAGE_LINES, RADIO_DELAY_MIN, SCRIPT } from "../content/script";
 import { baseReducer, startBase } from "./base";
+import { startQuick } from "./quickStart";
 import { EMPTY_CAREER, recordDrill, recordMission } from "./career";
 import { assignTask, chooseEvent, createSim, dismissUnlocks, nextSol, planEva, planPlot, runSol, toggleMachine } from "../sim/engine";
 import { START_GAUGES, applyEffects } from "./effects";
@@ -92,6 +93,9 @@ export function next(state: GameState, action: Action): GameState {
 
     case "SKIP_INTRO":
       return state.stage === "title" && canSkipIntro(state) ? freshRun(state, "landingChoice") : state;
+
+    case "QUICK_START":
+      return state.stage === "title" ? startQuick(freshRun(state, "title")) : state;
 
     case "OPEN_ACADEMY":
       return state.stage === "title" ? goTo(state, "academy") : state;

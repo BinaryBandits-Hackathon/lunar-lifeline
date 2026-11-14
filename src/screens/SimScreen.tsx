@@ -75,6 +75,8 @@ function hint(sim: SimState): string {
   const f = powerForecast(sim);
   const storm = stormStatus(sim);
   const date = stormDate(sim);
+  if (sim.quickStart && sim.sol === 3 && !sim.crew.some((c) => c.task === "suitPrep" || c.task === "shelter"))
+    return `Quick start: welcome to sol 3 on Mars! A real solar storm${date ? ` (recorded by NASA on ${date})` : ""} hits tomorrow. Today: give jobs, check the power, and get spacesuits ready. Tomorrow: Shelter!`;
   if (storm === "today" && sim.storm.kind === "solar" && sim.crew.some((c) => c.task !== "shelter"))
     return `Solar storm today! Send the crew to Shelter. Anyone outside gets the most radiation.${date ? ` This storm is based on a real burst of particles from the Sun that NASA recorded on ${date}.` : ""}`;
   if (storm === "today" && sim.storm.kind === "dust") return "Dust storm! The panels make very little power. Switch off what you can.";
