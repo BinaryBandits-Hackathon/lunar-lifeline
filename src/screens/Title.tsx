@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { canSkipIntro } from "../engine/flow";
 import { NasaData } from "../ui/NasaData";
 import { canSpeak } from "../services/speech";
 import { Pip } from "../ui/Pip";
@@ -122,15 +121,7 @@ export function Title({ state, dispatch }: ScreenProps) {
         </div>
 
         <div className="title-nav">
-          {canSkipIntro(state) && (
-            <button type="button" className="title-link" onClick={() => dispatch({ type: "SKIP_INTRO" })}>
-              Skip to landing
-            </button>
-          )}
-          <button type="button" className="title-link" onClick={() => dispatch({ type: "QUICK_START" })} title="Skip the flight and landing: start on sol 3 with a storm coming.">
-            Quick start
-          </button>
-          <button type="button" className="title-link title-start" onClick={() => dispatch({ type: "START" })}>
+          <button type="button" className="title-link title-start" onClick={() => dispatch({ type: "START_STORY" })}>
             Start mission
           </button>
         </div>

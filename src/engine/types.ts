@@ -18,7 +18,9 @@ export type Stage =
   | "board"
   | "card"
   | "result"
-  | "ending";
+  | "ending"
+  /** The "14 Sols" story game (src/story). */
+  | "story";
 
 export type GaugeId = "power" | "supplies" | "dose" | "science";
 export type Gauges = Record<GaugeId, number>;
@@ -226,6 +228,8 @@ export type Action =
   | { type: "START" }
   | { type: "SKIP_INTRO" }
   | { type: "QUICK_START" }
+  | { type: "START_STORY" }
+  | { type: "EXIT_STORY" }
   | { type: "OPEN_ACADEMY" }
   | { type: "BACK_TO_TITLE" }
   | { type: "SET_LEVEL"; level: Level }

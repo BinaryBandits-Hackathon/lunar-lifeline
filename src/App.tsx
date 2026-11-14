@@ -18,6 +18,7 @@ import { Result } from "./screens/Result";
 import { SimReady } from "./screens/SimReady";
 import { SimScreen } from "./screens/SimScreen";
 import { Title } from "./screens/Title";
+import { StoryGame } from "./story/StoryGame";
 
 const PHASES: { label: string; stages: Stage[] }[] = [
   { label: "Badge", stages: ["badge"] },
@@ -85,6 +86,17 @@ export function App() {
       break;
     case "sim":
       screen = <SimScreen {...props} />;
+      break;
+    case "story":
+      screen = (
+        <StoryGame
+          lang={state.settings.bangla ? "bn" : "en"}
+          readAloud={state.settings.readAloud}
+          reduceMotion={state.settings.reduceMotion}
+          playerName={state.player.name}
+          onExit={() => dispatch({ type: "EXIT_STORY" })}
+        />
+      );
       break;
     case "simReady":
       screen = <SimReady {...props} />;

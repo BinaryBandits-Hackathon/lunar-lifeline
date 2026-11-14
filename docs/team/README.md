@@ -1,51 +1,68 @@
 # Team plan: building "14 Sols" with 3 people
 
-The game is described in [docs/design/04-story-plan.md](../design/04-story-plan.md). This page splits the work between **3 people who work independently** and merge at the end without conflicts.
+**Read first:** [docs/design/04-story-plan.md](../design/04-story-plan.md), the master story. It has the full story text, every decision, the hidden calculation, the real NASA data and the art list. Everyone builds from that one file, so we stay on the same page.
+
+## How the work is split
+
+The game is cut into **3 parts of the story**. Each person owns **one whole part**: its screens and logic, its pictures and its text (English and Bangla).
+
+| Person | Part | Story | Decisions | Pictures | Branch | Task doc |
+|---|---|---|---|---|---|---|
+| **Person 1** | Part 1: The fall | Prologue on the ship, crisis 1, the landing | 1, 2 | `ship`, `orbit`, `descent` | `story/part1` | [part-1.md](part-1.md) |
+| **Person 2** | Part 2: Surviving Mars | Crisis 2 (dust storm), crisis 3 (solar storm) | 3, 4, 5, 6 | `dustStorm`, `solarStorm` | `story/part2` | [part-2.md](part-2.md) |
+| **Person 3** | Part 3: The way home | Crisis 4 (launch day), both endings | 7, 8 | `launch`, `home`, `stranded` | `story/part3` | [part-3.md](part-3.md) |
 
 ## The rule that prevents conflicts
 
-**Each file has exactly one owner. You only create or edit files you own.** If you need something in someone else's file, ask them in the team chat.
+**You only edit files inside your own folder.**
 
-| Person | Role | Branch | Owns (only these) | Task doc |
-|---|---|---|---|---|
-| **Person 1** | Logic | `story/logic` | `src/story/logic.ts`, `tests/story.test.ts` | [person-1-logic.md](person-1-logic.md) |
-| **Person 2** | Screens | `story/screens` | `src/story/ui/` (all files), `src/story/ui/story.css`; **at the very end only:** `src/App.tsx`, `src/screens/Title.tsx`, `src/engine/types.ts`, `src/engine/flow.ts` | [person-2-screens.md](person-2-screens.md) |
-| **Person 3** | Content and science | `story/content` | `src/story/content/` (all files), `src/story/art/` (all files), `docs/NASA-DATA.md` | [person-3-content.md](person-3-content.md) |
+| Folder or file | Owner |
+|---|---|
+| `src/story/part1/` | Person 1 |
+| `src/story/part2/` | Person 2 |
+| `src/story/part3/` | Person 3 |
+| `tests/story-part1.test.ts`, `-part2`, `-part3` (optional, new) | The matching person |
+| **Frozen, nobody edits:** `src/story/types.ts`, `src/story/core/*`, `src/story/StoryGame.tsx`, `tests/story.test.ts`, `docs/design/04-story-plan.md`, and the wiring in `src/App.tsx`, `src/engine/*`, `src/screens/Title.tsx` | Team lead, only with everyone's OK |
 
-**Shared and frozen:** `src/story/types.ts` (the contract). Nobody edits it on their own branch. If it must change, agree in the chat; Person 1 changes it on `main` and everyone pulls.
+If you think a frozen file must change, post it in the team chat first. Never change it on your own branch.
 
-## Step 0 (team lead, once): merge `plan` into `main`
+## What is already built (on the `plan` branch)
 
-The `plan` branch adds only docs and two new files the game doesn't use yet, so merging it doesn't change the live game. After that, everyone branches from `main`.
+The whole game **already runs end to end** with simple placeholder pictures. You are upgrading your part, not starting from nothing.
 
-## What exists on `main` after step 0 (your starting point)
+- `src/story/types.ts`: the contract. Your part gets `PartProps` (Person 3 gets `FinalPartProps`).
+- `src/story/core/outcome.ts`: **the hidden calculation, done and tested** (`tests/story.test.ts` checks all 256 paths). Nobody re-codes it.
+- `src/story/core/labels.ts`: short labels for all 16 options (used by the ending).
+- `src/story/core/Beats.tsx`: a simple shared player for story lines, decisions and facts. You may use it, or build your own screens in your folder.
+- `src/story/core/story.css`: the shared layout (`story-` classes).
+- `src/story/StoryGame.tsx`: runs part 1 → part 2 → part 3 and passes the choices along.
+- Each part folder has a working starter: `index.tsx` (the component), `content.ts` (English + first-draft Bangla, exactly as in the master story), `art.tsx` (placeholder pictures) and `partN.css`.
+- **Start mission** on the title screen opens the story.
 
-- `src/story/types.ts`: the contract (all shapes and function signatures).
-- `src/story/content/crises.ts`: the full English story as data (first draft).
-- `docs/design/04-story-plan.md`: the plan, including the exact calculation.
-
-So everyone can start at the same time: Person 2 builds screens using the real story data, Person 1 builds logic against the types, Person 3 polishes text, adds Bangla and draws the scenes.
-
-## How the pieces connect
+## How the parts connect (the contract)
 
 ```mermaid
 flowchart LR
-  T[types.ts<br/>contract] --> L[Person 1<br/>logic.ts]
-  T --> C[Person 3<br/>content + art]
-  T --> U[Person 2<br/>ui/]
-  L -- storyReducer, finalOutcome --> U
-  C -- CRISES, STORY_TEXT, BN text, scenes --> U
-  U -- StoryGame --> A[App.tsx<br/>wired last by Person 2]
+  T[Title: Start mission] --> S[StoryGame shell]
+  S --> P1[Part 1<br/>decisions 1-2]
+  P1 -- onDone --> P2[Part 2<br/>decisions 3-6]
+  P2 -- onDone --> P3[Part 3<br/>decisions 7-8 + ending]
+  P1 & P2 & P3 -- onChoose A/B --> S
+  S -- finalOutcome of 8 choices --> P3
+  P3 -- onRestart / onExit --> S
 ```
 
-- Person 2's screens **import** from `../logic`, `../content/...` and `../art/...`. They never copy that code.
-- Until Person 1's `logic.ts` is merged, Person 2 uses a temporary file `src/story/ui/mockLogic.ts` (their own) and deletes it before the final merge.
+Every part must:
+1. Call `onChoose("A" | "B")` **exactly once per decision, in order** (Part 1: 2 times, Part 2: 4 times, Part 3: 2 times).
+2. Call `onDone()` when it's finished (Part 3 shows the ending instead, using `outcome`).
+3. Use `lang` ("en" or "bn"), `readAloud`, `reduceMotion` and `playerName` from the props.
+4. Never show whether a choice was good or bad.
 
 ## Steps for everyone
 
-1. `git checkout main && git pull`
-2. `git checkout -b <your branch>` (see table)
-3. Work only in your files. Commit often.
+1. `git fetch && git checkout plan && git pull`
+2. `git checkout -b story/partN` (your part number)
+3. Work only in your folder. Commit often.
 4. Before pushing, all three must pass:
    ```bash
    npm run typecheck
@@ -56,29 +73,21 @@ flowchart LR
    ```bash
    npm run build
    ```
-5. Push your branch and open a pull request into `main`. **Don't merge yet.**
+5. Play the whole game (`npm run dev`, then **Start mission**) in English and Bangla, at 1280×760, 1024×768 and 812×375.
+6. Push and open a pull request **into `plan`** (not `main`).
 
-## Merge order (at the end)
+## Merging at the end
 
-1. **Person 1 (`story/logic`)** merges first. It only adds new files.
-2. **Person 3 (`story/content`)** merges second. It only touches its own folders and `docs/NASA-DATA.md`.
-3. **Person 2 (`story/screens`)** pulls `main`, deletes `mockLogic.ts`, switches imports to the real `logic.ts`, does the final wiring (App, Title button), checks the whole game, then merges last.
+1. All three pull requests go into `plan`, in any order. They can't conflict, because each touches only its own folder.
+2. The team lead plays the full game on `plan` once more.
+3. The team lead merges `plan` into `main`. **That puts the game live.**
 
-Because nobody shares a file, steps 1 and 2 cannot conflict. Step 3 is the only one that touches existing game files, and only Person 2 touches them.
+## Done when (whole team)
 
-**Merging to `main` puts the game live.** The team lead gives the OK for step 3.
-
-## Definition of done (whole team)
-
-- [ ] Title → prologue → 4 crises × 2 decisions → ending, in English and Bangla
+- [ ] Prologue → 4 crises → ending works, in English and Bangla
+- [ ] Every line matches the master story
 - [ ] No hint of good or bad before the ending
-- [ ] The ending always matches `finalOutcome()` (tested over all 256 combinations)
-- [ ] Fail screen shows the reason and the player's own decisions
-- [ ] Works at 1280×760, 1024×768 and 812×375, offline, no console errors
-- [ ] Every NASA fact in the story has a source link in `docs/NASA-DATA.md`
-
-## Talking to each other
-
-- Post in the team chat when you push something others depend on (types change, logic merged, new art names).
-- Name the file and line when you ask for a change in someone else's file.
-- If you're blocked for more than an hour, say so.
+- [ ] Endings match `finalOutcome()`: try `AAAAAAAA` (Fail: fuel), `BBBBBBBB` (Fail: health), `AABAAAAA` (Success)
+- [ ] All 8 pictures drawn (no words inside pictures)
+- [ ] Works at the three sizes, offline, no console errors
+- [ ] Every NASA fact links to its source

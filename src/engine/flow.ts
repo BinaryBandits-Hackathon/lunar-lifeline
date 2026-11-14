@@ -98,6 +98,12 @@ export function next(state: GameState, action: Action): GameState {
     case "SKIP_INTRO":
       return state.stage === "title" && canSkipIntro(state) ? freshRun(state, "landingChoice") : state;
 
+    case "START_STORY":
+      return state.stage === "title" ? goTo(state, "story") : state;
+
+    case "EXIT_STORY":
+      return state.stage === "story" ? goTo(state, "title") : state;
+
     case "QUICK_START":
       return state.stage === "title" ? startQuick(freshRun(state, "title")) : state;
 
