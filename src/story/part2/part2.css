@@ -1,1 +1,21 @@
 /* PART 2 styles. Owned by Person 2. Prefix classes with story-p2-. */
+
+/* The wrapper must not break the shell's flex layout (story fills the screen). */
+.story-p2 { display: contents; }
+
+.story-p2-move { transform-box: view-box; }
+.story-p2-drift { animation: story-p2-drift 9s linear infinite; }
+.story-p2-drift-slow { animation: story-p2-drift 16s linear infinite; }
+.story-p2-rain { animation: story-p2-rain 3.5s linear infinite; }
+.story-p2-pulse { animation: story-p2-pulse 2.4s ease-in-out infinite; }
+.story-p2-blink { animation: story-p2-blink 0.5s steps(2, jump-none) infinite; }
+
+@keyframes story-p2-drift { from { transform: translateX(-200px); } to { transform: translateX(200px); } }
+@keyframes story-p2-rain { from { transform: translate(-60px, -85px); } to { transform: translate(60px, 85px); } }
+@keyframes story-p2-pulse { 50% { opacity: 0.55; } }
+@keyframes story-p2-blink { 50% { opacity: 0.15; } }
+
+/* Reduce motion: the app setting, the shell's still mode, or the system setting. */
+.story-p2-still .story-p2-move,
+.story-still .story-p2-move { animation: none; }
+@media (prefers-reduced-motion: reduce) { .story-p2-move { animation: none; } }
