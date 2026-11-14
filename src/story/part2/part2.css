@@ -1,1 +1,33 @@
-/* PART 2 styles. Owned by Person 2. Prefix classes with story-p2-. */
+/* PART 2 styles. Prefix classes with story-p2-. Part 2 shares Part 1's player
+   styles (story-p1-*); these are the Part 2 scene effects. */
+
+.story-p2-overlay { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
+
+/* dust storm gusts sliding across */
+.story-p2-anim-gust { animation: story-p2-gust 3s linear infinite; }
+@keyframes story-p2-gust { from { transform: translateX(-300px); } to { transform: translateX(300px); } }
+/* a swirl of wind crossing the panels */
+.story-p2-anim-swirl { transform-box: fill-box; transform-origin: 50% 100%; animation: story-p2-swirl 4s ease-in-out infinite; }
+@keyframes story-p2-swirl { 0% { transform: translateX(-200px) skewX(10deg); opacity: 0; } 20% { opacity: 1; } 80% { opacity: 1; } 100% { transform: translateX(160px) skewX(-10deg); opacity: 0; } }
+/* inside: a struggling fan and slow, stuffy haze */
+.story-p2-anim-slowfan { animation: story-p1b-spin 4s linear infinite; }
+.story-p2-anim-haze { animation: story-p2-haze 6s ease-in-out infinite; }
+@keyframes story-p2-haze { 0%, 100% { opacity: 0.08; } 50% { opacity: 0.2; } }
+/* the flare pulsing, radio waves arriving */
+.story-p2-anim-flare { transform-box: fill-box; transform-origin: center; animation: story-p2-flare 2.4s ease-in-out infinite; }
+@keyframes story-p2-flare { 0%, 100% { opacity: 0.75; transform: scale(1); } 50% { opacity: 1; transform: scale(1.12); } }
+.story-p2-anim-radio path { animation: story-p2-radio 1.8s ease-out infinite; }
+.story-p2-anim-radio path:nth-child(2) { animation-delay: 0.3s; }
+.story-p2-anim-radio path:nth-child(3) { animation-delay: 0.6s; }
+@keyframes story-p2-radio { 0% { opacity: 0; } 30% { opacity: 1; } 100% { opacity: 0; } }
+/* particles streaking down through the night sky: each streak flies the
+   whole way along its own slope (70 left for every 110 down), fading in and out */
+.story-p2-anim-streak { animation: story-p2-streak 1.6s linear infinite; }
+@keyframes story-p2-streak {
+  0% { transform: translate(190px, -300px); opacity: 0; }
+  12% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { transform: translate(-320px, 500px); opacity: 0; }
+}
+
+.story-p1-still [class*="story-p2-anim-"], .story-p1-still .story-p2-anim-radio path { animation: none !important; }

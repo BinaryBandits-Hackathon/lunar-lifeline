@@ -171,21 +171,7 @@ function BaseScene({ built, night, fresh, upcoming }: { built: Set<ItemId>; nigh
           ))}
       </svg>
       <div className="story-p1b-dark" aria-hidden="true" />
-      {night && (
-        <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" className="story-p1b-overlay" aria-hidden="true">
-          {/* the base keeps its lights on through the night (positions after PLACE) */}
-          {built.has("habitat") &&
-            [904, 964, 1024].map((x) => (
-              <g key={x}>
-                <circle cx={x} cy="588" r="26" fill="#ffd98a" opacity="0.28" />
-                <circle cx={x} cy="588" r="12" fill="#ffe7b0" />
-              </g>
-            ))}
-          {built.has("fuel") && <circle cx="260" cy="473" r="10" fill="#ffb347" className="story-p1-anim-blink" />}
-          {built.has("oxygen") && <circle cx="1250" cy="587" r="7" fill="#7fe0ff" />}
-          {built.has("battery") && <rect x="1212" y="655" width="110" height="14" rx="3" fill="#4ee08a" opacity="0.8" />}
-        </svg>
-      )}
+      {night && <NightLights built={built} />}
       {night && (
         <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" className="story-p1b-overlay story-p1b-nightstars" aria-hidden="true">
           {Array.from({ length: 70 }, (_, i) => (
@@ -193,6 +179,36 @@ function BaseScene({ built, night, fresh, upcoming }: { built: Set<ItemId>; nigh
           ))}
         </svg>
       )}
+    </div>
+  );
+}
+
+/** The base keeps its lights on through the night (positions after PLACE). */
+function NightLights({ built }: { built: Set<ItemId> }) {
+  return (
+      <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" className="story-p1b-overlay" aria-hidden="true">
+        {/* the base keeps its lights on through the night (positions after PLACE) */}
+        {built.has("habitat") &&
+          [904, 964, 1024].map((x) => (
+            <g key={x}>
+              <circle cx={x} cy="588" r="26" fill="#ffd98a" opacity="0.28" />
+              <circle cx={x} cy="588" r="12" fill="#ffe7b0" />
+            </g>
+          ))}
+        {built.has("fuel") && <circle cx="260" cy="473" r="10" fill="#ffb347" className="story-p1-anim-blink" />}
+        {built.has("oxygen") && <circle cx="1250" cy="587" r="7" fill="#7fe0ff" />}
+        {built.has("battery") && <rect x="1212" y="655" width="110" height="14" rx="3" fill="#4ee08a" opacity="0.8" />}
+      </svg>
+  );
+}
+
+/** The finished base (all six buildings), by day or by night. Used by Part 2. */
+export function FinishedBase({ night = false }: { night?: boolean }) {
+  const all = new Set(ITEMS.map((it) => it.id));
+  return (
+    <div className="story-p1b-finished">
+      <BaseScene built={all} night={night} fresh={null} upcoming={[]} />
+      {night && <NightLights built={all} />}
     </div>
   );
 }

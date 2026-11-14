@@ -2,8 +2,8 @@
 // own branch. Changes need the whole team's OK (see docs/team/README.md).
 
 export type Choice = "A" | "B";
-/** Decisions are numbered 1-8 across the whole story. */
-export type DecisionId = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+/** Decisions are numbered 1-12 across the whole story. */
+export type DecisionId = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
 export type FailReason = "time" | "fuel" | "health";
 export type Lang = "en" | "bn";
 
@@ -46,6 +46,6 @@ export interface FinalPartProps extends PartProps {
 /** Which decisions each part asks. A part must ask exactly these, in order. */
 export const PART_DECISIONS: Record<1 | 2 | 3, DecisionId[]> = {
   1: [1, 2],
-  2: [3, 4, 5, 6],
-  3: [7, 8],
+  2: [3, 4, 5, 6, 7, 8],
+  3: [9, 10, 11, 12],
 };

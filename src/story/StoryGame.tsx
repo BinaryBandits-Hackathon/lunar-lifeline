@@ -1,8 +1,8 @@
 // The shell that runs the three parts of "14 Sols" in order. FROZEN.
-// Part 1 asks decisions 1-2, part 2 asks 3-6, part 3 asks 7-8 and shows the ending.
+// Part 1 asks decisions 1-2, part 2 asks 3-8, part 3 asks 9-12 and shows the ending.
 
 import { useMemo, useState } from "react";
-import { finalOutcome } from "./core/outcome";
+import { DECISIONS, finalOutcome } from "./core/outcome";
 import { Part1 } from "./part1";
 import { Part2 } from "./part2";
 import { Part3 } from "./part3";
@@ -23,14 +23,14 @@ export function StoryGame({ lang, readAloud, reduceMotion, playerName, onExit }:
   // A new key restarts every part's own state on "Try again".
   const [run, setRun] = useState(0);
 
-  const outcome = useMemo(() => (choices.length === 8 ? finalOutcome(choices) : null), [choices]);
+  const outcome = useMemo(() => (choices.length === DECISIONS.length ? finalOutcome(choices) : null), [choices]);
   const common = {
     choices,
     lang,
     readAloud,
     reduceMotion,
     playerName: playerName.trim() || (lang === "bn" ? "কমান্ডার" : "Commander"),
-    onChoose: (c: Choice) => setChoices((prev) => (prev.length < 8 ? [...prev, c] : prev)),
+    onChoose: (c: Choice) => setChoices((prev) => (prev.length < DECISIONS.length ? [...prev, c] : prev)),
   };
 
   return (

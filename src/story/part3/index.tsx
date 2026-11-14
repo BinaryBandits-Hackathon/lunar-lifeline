@@ -1,9 +1,11 @@
-// PART 3: crisis 4 (decisions 7-8) and the ending. Owned by Person 3.
-// Must ask exactly decisions 7 and 8, then show the ending from `outcome`.
+// PART 3: crisis 5 (marsquake, decisions 9-10), crisis 6 (launch day,
+// decisions 11-12) and the ending. Must ask exactly decisions 9-12, then show
+// the ending from `outcome`.
 
 import { useState } from "react";
 import { Beats } from "../core/Beats";
 import { CRISIS_OF, DECISION_LABELS } from "../core/labels";
+import { DECISIONS } from "../core/outcome";
 import type { DecisionId, FinalPartProps } from "../types";
 import { PART3_ART } from "./art";
 import "./part3.css";
@@ -45,7 +47,7 @@ export function Part3(props: FinalPartProps) {
           </>
         )}
         <p className="story-p3-path">
-          <strong>{ENDING_TEXT.path[lang]}:</strong> {([1, 2, 3, 4, 5, 6, 7, 8] as DecisionId[]).map((id) => `${CRISIS_OF[id]}${choices[id - 1]} ${label(id)}`).join(" → ")}
+          <strong>{ENDING_TEXT.path[lang]}:</strong> {DECISIONS.map((id) => `${CRISIS_OF[id]}${choices[id - 1]} ${label(id)}`).join(" → ")}
         </p>
         <div className="story-p3-actions">
           <button type="button" className="btn btn-primary" onClick={onRestart} autoFocus>

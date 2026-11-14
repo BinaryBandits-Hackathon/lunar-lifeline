@@ -478,3 +478,5 @@ html:has(.story-p1), body:has(.story-p1) { overflow: hidden; }
   .story-p1b-hex-sol { display: none; }
   .story-p1b-check { right: 6px; bottom: 2px; font-size: 11px; }
 }
+
+.story-p1b-finished { position: absolute; inset: 0; }

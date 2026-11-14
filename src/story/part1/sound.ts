@@ -18,6 +18,7 @@ class Part1Sound {
   private hissLayer: Layer | null = null;
   private alarmTimer: number | null = null;
   private thrustLayer: Layer | null = null;
+  private geigerTimer: number | null = null;
   private enabled = true;
 
   /** Creates the audio graph on first use (after the player has clicked). */
@@ -352,6 +353,19 @@ class Part1Sound {
     this.tone("sine", 98, 73, 0.2, 2.8);
   }
 
+  /** A radiation counter: random clicks; rate is clicks per second. */
+  geiger(rate: number) {
+    if (this.geigerTimer !== null) window.clearTimeout(this.geigerTimer);
+    this.geigerTimer = null;
+    if (rate <= 0) return;
+    const click = () => {
+      this.burst("highpass", 3200, 1, 0.22, 0.012);
+      // random gaps sound like a real counter
+      this.geigerTimer = window.setTimeout(click, (-Math.log(1 - Math.random()) / rate) * 1000);
+    };
+    click();
+  }
+
   /** A soft tick for buttons. */
   tick() {
     this.tone("triangle", 1400, 1100, 0.05, 0.05);
@@ -425,6 +439,7 @@ class Part1Sound {
 
   stopAll() {
     this.stopAlarm();
+    this.geiger(0);
     this.thrust(false);
     this.hiss("off");
     this.bed(null);

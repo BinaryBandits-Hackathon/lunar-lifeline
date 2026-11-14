@@ -1,4 +1,6 @@
-// PART 3 text: crisis 4 (decisions 7-8) and both endings.
+// PART 3 text: crisis 5 (marsquake, decisions 9-10), crisis 6 (launch day,
+// decisions 11-12) and both endings. The marsquake text is in place so the
+// 12-decision game reaches its ending; its pictures come in the next round.
 // Owned by Person 3. English must match docs/design/04-story-plan.md exactly.
 // Bangla is a first draft in everyday style; Person 3 reviews it.
 
@@ -6,7 +8,46 @@ import type { Beat } from "../core/Beats";
 import type { FailReason } from "../types";
 
 export const PART3_BEATS: Beat[] = [
-  // Crisis 4: Launch day (sol 13)
+  // Crisis 5: The ground shakes (sol 11)
+  { kind: "line", art: "launch", line: { en: "Sol 11. The ground shakes. Cups rattle, and dust falls from the ceiling.", bn: "১১ নম্বর সোল। মাটি কেঁপে উঠল। কাপগুলো ঠকঠক করছে, ছাদ থেকে ধুলা পড়ছে।" } },
+  { kind: "line", line: { who: "pip", en: "Was that a marsquake, or a meteorite hitting nearby? NASA's InSight lander felt both.", bn: "এটা কি মার্সকোয়েক, নাকি কাছে কোথাও উল্কা পড়ল? নাসার ইনসাইট ল্যান্ডার দুটোই টের পেয়েছিল।" } },
+  { kind: "line", line: { who: "tunde", en: "Ow, my wrist! And the fuel tank seal has a crack.", bn: "আহ, আমার কবজি! আর ফুয়েল ট্যাংকের সিলে একটা ফাটল।" } },
+  { kind: "line", line: { who: "mei", en: "No doctor can fly here from Earth. On Mars, I am the hospital.", bn: "পৃথিবী থেকে কোনো ডাক্তার এখানে আসতে পারবে না। মঙ্গলে আমিই হাসপাতাল।" } },
+  {
+    kind: "decide",
+    question: { who: "pip", en: "Tunde is hurt. What should he do?", bn: "তুন্দে ব্যথা পেয়েছে। ও এখন কী করবে?" },
+    a: {
+      label: { en: "Tunde rests", bn: "তুন্দে বিশ্রাম নিক" },
+      detail: { en: "Mei treats him. The work waits.", bn: "মেই ওর চিকিৎসা করবে। কাজ একটু পিছাবে।" },
+      reaction: { en: "Mei splints his wrist. Tunde rests while the others work slowly.", bn: "মেই ওর কবজিতে স্প্লিন্ট বেঁধে দিল। তুন্দে বিশ্রাম নিচ্ছে, বাকিরা ধীরে কাজ করছে।" },
+    },
+    b: {
+      label: { en: "Tunde keeps working", bn: "তুন্দে কাজ চালিয়ে যাক" },
+      detail: { en: "A brace, and back to work. It may hurt more.", bn: "একটা ব্রেস পরে আবার কাজে। ব্যথা বাড়তে পারে।" },
+      reaction: { en: "Tunde straps on a brace and grits his teeth.", bn: "তুন্দে একটা ব্রেস বেঁধে দাঁতে দাঁত চেপে কাজে লাগল।" },
+    },
+  },
+  {
+    kind: "decide",
+    question: { who: "pip", en: "The fuel tank seal is cracked. How do we fix it?", bn: "ফুয়েল ট্যাংকের সিল ফেটে গেছে। কীভাবে সারাব?" },
+    a: {
+      label: { en: "Fix the seal properly", bn: "সিলটা ঠিকমতো সারাই" },
+      detail: { en: "Take it apart and do it right. It takes time.", bn: "খুলে ঠিকমতো লাগাই। সময় লাগবে।" },
+      reaction: { en: "We drain the tank, fit a new seal, and fill it again.", bn: "ট্যাংক খালি করে নতুন সিল লাগিয়ে আবার ভরলাম।" },
+    },
+    b: {
+      label: { en: "A quick patch", bn: "তাড়াতাড়ি জোড়াতালি দিই" },
+      detail: { en: "Tape it now. A little fuel may leak.", bn: "এখনই টেপ মেরে দিই। একটু ফুয়েল লিক হতে পারে।" },
+      reaction: { en: "The patch holds, but a thin hiss of fuel escapes.", bn: "জোড়াতালি টিকে আছে, কিন্তু সরু হিসহিস শব্দে একটু ফুয়েল বের হয়ে যাচ্ছে।" },
+    },
+  },
+  {
+    kind: "fact",
+    fact: { en: "NASA's InSight lander recorded 1,319 marsquakes, including quakes caused by meteorites hitting Mars.", bn: "নাসার ইনসাইট ল্যান্ডার ১,৩১৯টা মার্সকোয়েক রেকর্ড করেছে, যার মধ্যে মঙ্গলে উল্কা পড়ার কারণে হওয়া কম্পনও আছে।" },
+    source: "https://www.nasa.gov/missions/insight/nasa-retires-insight-mars-lander-mission-after-years-of-science/",
+  },
+
+  // Crisis 6: Launch day (sol 13)
   { kind: "line", art: "launch", line: { en: "Sol 13. The return rocket stands ready. Its fuel tanks are almost full. Almost.", bn: "১৩ নম্বর সোল। রিটার্ন রকেট রেডি। ফুয়েল ট্যাংক প্রায় ভরা। প্রায়।" } },
   { kind: "line", line: { who: "pip", en: "Tomorrow the planets start to move out of line.", bn: "কালকে থেকে গ্রহগুলো লাইন থেকে সরে যেতে শুরু করবে।" } },
   {
