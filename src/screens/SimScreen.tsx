@@ -3,9 +3,9 @@ import { getRole } from "../content/roles";
 import { powerForecast, stormStatus, summarize } from "../sim/engine";
 import { getEvent } from "../sim/events";
 import { BADGES, rankFor } from "../content/academy";
-import { missionBadges, missionPoints } from "../engine/career";
+import { missionBadges, missionPoints, fieldPoints } from "../engine/career";
 import { evaChecklist, getSite as getEvaSite, sitesFor } from "../sim/eva";
-import { FEATURE_INFO, isUnlocked, machineFeature, machineLocked, taskFeature, taskLocked, unlockSol } from "../sim/unlocks";
+import { FEATURE_INFO, isUnlocked, roverReady, walkedOnFoot, machineFeature, machineLocked, taskFeature, taskLocked, unlockSol } from "../sim/unlocks";
 import { CAPS, CROPS, DOSE_LIMIT, MACHINES, PHASES, TASKS, TASK_ORDER } from "../sim/rules";
 import type { CropId, MachineId, Phase, ResourceId, Resources, SimState } from "../sim/types";
 import type { IconName } from "../engine/types";
@@ -23,6 +23,21 @@ const RES_INFO: Record<ResourceId, { label: string; icon: IconName; unit: string
   fuel: { label: "Fuel", icon: "rocket", unit: "%" },
   science: { label: "Science", icon: "science", unit: "" },
 };
+/** Whole numbers for young players; CO₂ keeps one decimal because its numbers are small. */
+export function show(id: ResourceId, v: number): number {
+  return id === "co2" ? Math.round(v * 10) / 10 : Math.round(v);
+}
+
+/** A change as a kid reads it: "+4%" or "−8 L", with a real minus sign. */
+function change(id: ResourceId, v: number): string {
+  const n = Math.abs(show(id, v));
+  const unit = RES_INFO[id].unit;
+  return `${v > 0 ? "+" : "−"}${n}${unit === " meals" ? (n === 1 ? " meal" : " meals") : unit}`;
+}
+
+/** Whether a change is good news. More CO₂ is bad; more of everything else is good. */
+const goodNews = (id: ResourceId, v: number) => (id === "co2" ? v < 0 : v > 0);
+
 const LEFT: ResourceId[] = ["battery", "oxygen", "co2", "water", "food"];
 const PHASE_LABEL: Record<Phase, string> = { morning: "Morning", day: "Day", evening: "Evening", night: "Night" };
 
@@ -32,12 +47,12 @@ function Meter({ id, value, goal }: { id: ResourceId; value: number; goal?: numb
   const warn = (info.low !== undefined && value <= info.low) || (info.high !== undefined && value >= info.high);
   const done = goal !== undefined && value >= goal;
   return (
-    <div className={`meter${warn ? " warn" : ""}${done ? " done" : ""}`} aria-label={`${info.label} ${value}${info.unit}${goal ? ` of ${goal}` : ""}`}>
+    <div className={`meter${warn ? " warn" : ""}${done ? " done" : ""}`} aria-label={`${info.label} ${show(id, value)}${info.unit}${goal ? ` of ${goal}` : ""}`}>
       <Icon name={info.icon} size={16} />
       <span className="meter-text">
         <span className="meter-label">{info.label}</span>
         <span className="meter-value">
-          {value}
+          {show(id, value)}
           {goal !== undefined ? <small>/{goal}</small> : <small>{info.unit}</small>}
         </span>
       </span>
@@ -67,6 +82,7 @@ function hint(sim: SimState): string {
   const walkers = sim.crew.filter((c) => c.task === "eva").length;
   if (walkers && !sim.evaSite) return "Someone is going on a spacewalk. Open the spacewalk plan and pick a destination.";
   if (walkers === 1) return "Astronauts never go outside alone. Send a buddy on the spacewalk too.";
+  if (walkers > sim.suitsReady) return `Only ${sim.suitsReady} spacesuit${sim.suitsReady === 1 ? " is" : "s are"} ready. Give someone the Suit check job first, then go outside the next sol.`;
   if (walkers && sim.evaSite && stormStatus(sim) === "today") return "There's a storm today. A spacewalk now is dangerous: think about waiting.";
   if (sim.broken.length && !sim.crew.some((c) => c.task === "repair")) return `The ${MACHINES[sim.broken[0]].name.toLowerCase()} is broken. Send someone to Repair it.`;
   if (sim.leak && !sim.crew.some((c) => c.task === "repair")) return "A pipe is leaking water every sol. Send someone to Repair it.";
@@ -80,6 +96,7 @@ function hint(sim: SimState): string {
   if (tired) return `${tired.name} is very tired. Let them Rest today.`;
   if (ripe && !sim.crew.some((c) => c.task === "farm")) return "Crops are ripe! Send someone to Farm to harvest them.";
   if (sim.res.battery + f.make - f.use < 20) return "Careful: the machines and jobs use more power than you have. The heaters need power at night.";
+  if (isUnlocked(sim, "eva") && sim.suitsReady < 2 && !sim.crew.some((c) => c.task === "suitPrep" || c.task === "eva")) return `Spacewalks are open! First get 2 suits ready with the Suit check job. Suits ready: ${sim.suitsReady} of 2.`;
   if (!sim.machines.fuelPlant && sim.res.fuel < sim.goals.fuel && isUnlocked(sim, "fuel")) return "To fly home you need fuel. The fuel plant uses lots of power, so plan around it.";
   return "Plan the sol: give everyone a job and choose which machines run. Then press Run sol.";
 }
@@ -377,7 +394,7 @@ function EvaBar({ sim, onOpen, disabled }: { sim: SimState; onOpen: () => void; 
         {walkers.length ? `${walkers.map((w) => w.name).join(" + ")} → ${site ? site.name : "no destination"}` : "Nobody going outside today"}
       </span>
       <span className="eva-bar-rover mono" title="Rover battery">
-        Rover {Math.round(sim.rover.battery)}%{sim.rover.broken ? " · broken" : ""}
+        Suits {sim.suitsReady}/3 · Rover {!walkedOnFoot(sim) ? "after a walk" : `${Math.round(sim.rover.battery)}%`}{sim.rover.broken ? " · broken" : ""}
       </span>
       {walkers.length > 0 && (
         <span className={`eva-bar-check mono${ok === list.length ? " ok" : ""}`}>
@@ -429,7 +446,7 @@ function EvaModal({
             <div className="eva-sites">
               {sitesFor(sim).map((site) => {
                 const needsRover = site.rover > 0;
-                const roverLocked = needsRover && !isUnlocked(sim, "rover");
+                const roverLocked = needsRover && !roverReady(sim);
                 const roverShort = needsRover && (roverLocked || sim.rover.broken || sim.rover.battery < site.rover);
                 const visited = sim.visited.includes(site.id);
                 return (
@@ -444,7 +461,7 @@ function EvaModal({
                     <span className="eva-site-head">
                       <strong>{site.name}</strong>
                       <span className="mono">
-                        {site.km} km · {roverLocked ? `rover opens sol ${unlockSol(sim, "rover")}` : needsRover ? `rover ${site.rover}%` : "on foot"}
+                        {site.km} km · {roverLocked ? (isUnlocked(sim, "rover") ? "rover: explore on foot first" : `rover opens sol ${unlockSol(sim, "rover")}`) : needsRover ? `rover ${site.rover}%` : "on foot"}
                       </span>
                     </span>
                     <span className="eva-site-what">{site.what}</span>
@@ -492,11 +509,14 @@ function EvaModal({
 function MissionAwards({ sim, careerPoints }: { sim: SimState; careerPoints: number }) {
   const badges = missionBadges(sim);
   const earned = missionPoints(sim);
+  const field = fieldPoints(sim);
   const before = rankFor(careerPoints - earned);
   const after = rankFor(careerPoints);
   return (
     <div className="mission-awards">
       <span className="mono">+{earned} points</span>
+      {field.walk > 0 && <span className="chip good">First steps on foot +{field.walk}</span>}
+      {field.rover > 0 && <span className="chip good">Rover explorer +{field.rover}</span>}
       {after.index > before.index && <strong className="rank-up">Promoted to {after.name}!</strong>}
       {badges.length > 0 && (
         <span className="award-badges">
@@ -573,33 +593,33 @@ function SolReportModal({ sim, careerPoints, onNext, onHome }: { sim: SimState; 
               <span>
                 {ending.type === "emergency" || ending.type === "grounded"
                   ? ending.reason
-                  : `Survived ${sim.totalSols} sols. Fuel ${sim.res.fuel}/${sim.goals.fuel}, science ${sim.res.science}/${sim.goals.science}.`}
+                  : `Survived ${sim.totalSols} sols. Fuel ${show("fuel", sim.res.fuel)}/${sim.goals.fuel}, science ${show("science", sim.res.science)}/${sim.goals.science}.`}
               </span>
             </div>
           )}
+          <p className="report-key">
+            <span className="pos">+ green</span> means the base gained some. <span className="neg">− red</span> means it was used up.
+          </p>
           <div className="report-grid">
             {groups.map((id) => {
               const items = lines.filter((l) => l.res === id);
               if (!items.length) return null;
-              const total = Math.round(items.reduce((n, l) => n + l.amount, 0) * 10) / 10;
+              const total = items.reduce((n, l) => n + l.amount, 0);
+              const shown = items.filter((l) => show(id, l.amount) !== 0);
               return (
                 <div key={id} className="report-res">
                   <span className="report-res-head">
                     <Icon name={RES_INFO[id].icon} size={15} />
                     {RES_INFO[id].label}
-                    <strong className={total >= 0 ? (id === "co2" ? "neg" : "pos") : id === "co2" ? "pos" : "neg"}>
-                      {total > 0 ? "+" : ""}
-                      {total}
+                    <strong className={show(id, total) === 0 ? "" : goodNews(id, total) ? "pos" : "neg"}>
+                      {show(id, total) === 0 ? "no change" : `${total > 0 ? "up" : "down"} ${change(id, total).slice(1)}`}
                     </strong>
                   </span>
                   <ul>
-                    {items.map((l) => (
+                    {shown.map((l) => (
                       <li key={l.cause}>
                         <span>{l.cause}</span>
-                        <span className="mono">
-                          {l.amount > 0 ? "+" : ""}
-                          {l.amount}
-                        </span>
+                        <span className={`mono ${goodNews(id, l.amount) ? "pos" : "neg"}`}>{change(id, l.amount)}</span>
                       </li>
                     ))}
                   </ul>

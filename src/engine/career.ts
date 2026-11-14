@@ -45,8 +45,16 @@ export function missionBadges(sim: SimState): BadgeId[] {
   return out;
 }
 
+/** Field work: points for exploring on foot and, after that, by rover. */
+export function fieldPoints(sim: SimState): { walk: number; rover: number } {
+  const onFoot = sim.visited.some((id) => id === "craterRim" || id === "iceCliff");
+  const byRover = sim.visited.some((id) => id !== "craterRim" && id !== "iceCliff");
+  return { walk: onFoot ? POINTS.firstWalk : 0, rover: byRover ? POINTS.roverTrip : 0 };
+}
+
 export function missionPoints(sim: SimState): number {
-  return (sim.ending?.stars ?? 0) * POINTS.star + missionBadges(sim).length * POINTS.badge;
+  const field = fieldPoints(sim);
+  return (sim.ending?.stars ?? 0) * POINTS.star + missionBadges(sim).length * POINTS.badge + field.walk + field.rover;
 }
 
 export function recordMission(career: Career, sim: SimState, date = new Date().toISOString()): Career {

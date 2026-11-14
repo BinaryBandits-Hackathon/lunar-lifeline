@@ -1,6 +1,6 @@
 # Base simulation: rules and numbers
 
-This is the current base game. It replaced the card game in [02-base-game.md](02-base-game.md). All numbers live in `src/sim/rules.ts`; this page explains them. Battery is in percent points, water in litres, food in meals, radiation in mSv.
+This is the current base game. It replaced the card game in [02-base-game.md](02-base-game.md). All numbers live in `src/sim/rules.ts`; this page explains them. Battery is in percent points, water in litres, food in meals, radiation in mSv. The screen shows whole numbers (CO₂ keeps one decimal); in the sol report, green + means gained and red − means used.
 
 ## Missions
 
@@ -62,6 +62,7 @@ This is the current base game. It replaced the card game in [02-base-game.md](02
 | Exercise | 15 | +4 health (+6 for the doctor) |
 | Rest | gains 35 | |
 | Shelter | 0 | No radiation in a solar storm, no work |
+| Suit check | 15 | Readies one spacesuit (3 on the base) |
 | Spacewalk | 30 | See below |
 
 Sleep gives +30 energy (+10 if the heaters lost power, and −5 health). Skipping exercise costs 2 health. Below 20 energy, an astronaut is too tired to work.
@@ -98,10 +99,15 @@ Each surprise happens at most once per mission.
 | Meteorite field | 7 km | 40% | 6 | 4% | 18 |
 | Old lander site | 10 km | 55% | 8 | 5% | 22 |
 
+**Order (both levels):**
+1. **Training and suits:** each spacewalker needs a checked suit. The Suit check job readies one suit per astronaut per sol. Passing the Academy *Spacewalk checklist* drill (2 of 3 or better) starts every mission with 1 suit ready. A suit alarm means that suit needs a new check.
+2. **On foot first:** the crater rim or ice cliff.
+3. **Then the rover:** far sites open only after one place has been explored on foot (and, for Cadets, from sol 5).
+
 **Rules:**
 - A second visit gives 1 science.
 - The rover starts at 40%.
-- The pre-spacewalk checklist covers: destination, buddy rule, weather, suit oxygen (keep 20% in the tanks), crew energy 40 or more, and rover charge.
+- The pre-spacewalk checklist covers: destination, buddy rule, ready suits, weather, suit oxygen (keep 20% in the tanks), crew energy 40 or more, and rover charge.
 
 **Risk:** 8%, plus 25% when alone, 12% when tired, and 10% beyond 6 km. Going wrong halves the science and either breaks a rover wheel or sets off a suit alarm (−3% oxygen).
 
@@ -111,13 +117,12 @@ Each surprise happens at most once per mission.
 |---|---|
 | 1 | Life support, repair, research, exercise, rest, shelter |
 | 2 | Greenhouse |
-| 3 | Ice drill and fuel plant |
-| 4 | Spacewalks on foot |
-| 5 | Rover |
+| 3 | Ice drill, fuel plant, Suit check and spacewalks on foot |
+| 5 | Rover (after one walk on foot) |
 
 ## Career
 
-- **Points:** 10 per star, 5 per badge, 5 for passing a drill and 10 for a perfect drill (improvements only).
+- **Points:** 10 per star, 5 per badge, 5 for the first walk on foot, 5 for a rover trip, 5 for passing a drill and 10 for a perfect drill (improvements only).
 - **Ranks:**
 
   | Rank | Points |

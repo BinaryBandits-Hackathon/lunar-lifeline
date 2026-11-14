@@ -11,7 +11,7 @@ import { isUnlocked } from "../sim/unlocks";
 type Weather = "clear" | "solar" | "dust";
 
 const OUTSIDE: TaskId[] = ["mine", "repair", "eva"];
-const IN_WINDOWS: TaskId[] = ["research", "exercise", "rest", "shelter"];
+const IN_WINDOWS: TaskId[] = ["research", "exercise", "rest", "shelter", "suitPrep"];
 
 const frac = (v: number, max: number) => Math.max(0, Math.min(1, v / max));
 

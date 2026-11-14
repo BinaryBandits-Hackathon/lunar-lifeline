@@ -7,7 +7,7 @@ export type Phase = "morning" | "day" | "evening" | "night";
 
 export type MachineId = "heaters" | "scrubber" | "oxygenMaker" | "recycler" | "greenhouseLights" | "fuelPlant" | "roverCharger";
 
-export type TaskId = "farm" | "mine" | "repair" | "research" | "exercise" | "rest" | "shelter" | "eva";
+export type TaskId = "farm" | "mine" | "repair" | "research" | "exercise" | "rest" | "shelter" | "eva" | "suitPrep";
 
 export type CropId = "lettuce" | "potato";
 
@@ -87,6 +87,8 @@ export interface SimState {
   newUnlocks: import("./unlocks").Feature[];
   /** Where today's spacewalk goes, or null. */
   evaSite: string | null;
+  /** Spacesuits checked and ready to go outside (0-3). Each walker needs one. */
+  suitsReady: number;
   /** Sites already explored (a second visit gives little new science). */
   visited: string[];
   /** What the player chose for this sol's surprise, shown in the report. */

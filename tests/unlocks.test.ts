@@ -47,13 +47,13 @@ describe("unlocks", () => {
     expect(dismissUnlocks(sim).newUnlocks).toEqual([]);
 
     sim = toSol(sim, 3);
-    expect(sim.newUnlocks).toEqual(["mine", "fuel"]);
-    sim = toSol(sim, 4);
-    expect(sim.newUnlocks).toEqual(["eva"]);
+    expect(sim.newUnlocks).toEqual(["mine", "fuel", "eva"]);
     expect(planEva(assignTask(sim, "player", "eva"), "layeredCliffs").evaSite).toBeNull();
     sim = toSol(sim, 5);
     expect(sim.newUnlocks).toEqual(["rover"]);
-    expect(planEva(sim, "layeredCliffs").evaSite).toBe("layeredCliffs");
+    // the rover also needs one walk on foot first
+    expect(planEva(sim, "layeredCliffs").evaSite).toBeNull();
+    expect(planEva({ ...sim, visited: ["craterRim"] }, "layeredCliffs").evaSite).toBe("layeredCliffs");
   });
 
   it("commanders have every system from sol 1", () => {

@@ -125,7 +125,7 @@ export const DRILLS: Drill[] = [
     id: "spacewalk",
     title: "Spacewalk checklist",
     icon: "astronaut",
-    intro: "Before every spacewalk, the crew checks the plan together. Can you spot the problems?",
+    intro: "Before every spacewalk, the crew checks the plan together. Can you spot the problems? Pass this drill and your crew starts every mission with one spacesuit already checked.",
     questions: [
       {
         q: "One astronaut wants to go outside alone to save time. Is that OK?",
@@ -178,7 +178,7 @@ export const RANKS = [
   { name: "Commander", points: 140 },
 ] as const;
 
-export const POINTS = { star: 10, badge: 5, drillPass: 5, drillPerfect: 10 } as const;
+export const POINTS = { star: 10, badge: 5, drillPass: 5, drillPerfect: 10, firstWalk: 5, roverTrip: 5 } as const;
 
 export function rankFor(points: number): { name: string; next: { name: string; points: number } | null; index: number } {
   let index = 0;
