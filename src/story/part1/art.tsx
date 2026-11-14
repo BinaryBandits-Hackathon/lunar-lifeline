@@ -3,7 +3,7 @@
 // one accent, no words inside pictures. Anything that moves carries a
 // story-p1-anim-* class, which part1.css switches off for reduce motion.
 
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import type { Part1ArtKey } from "./content";
 
 /** Deterministic star field so the sky never jumps between renders. */
@@ -15,6 +15,70 @@ function Stars({ n = 90, seed = 7, maxY = 900 }: { n?: number; seed?: number; ma
       {Array.from({ length: n }, (_, i) => {
         const r = rnd() < 0.12 ? 1.9 : rnd() * 0.9 + 0.5;
         return <circle key={i} cx={rnd() * 1600} cy={rnd() * maxY} r={r} fill="#fff" opacity={0.35 + rnd() * 0.6} className={i % 9 === 0 ? "story-p1-anim-twinkle" : undefined} />;
+      })}
+    </g>
+  );
+}
+
+/** Stars that slide slowly past, as seen from a ship in orbit. Two copies loop seamlessly. */
+function DriftingStars({ n, seed, maxY = 900 }: { n: number; seed: number; maxY?: number }) {
+  return (
+    <g className="story-p1-anim-stardrift">
+      <Stars n={n} seed={seed} maxY={maxY} />
+      <g transform="translate(1600 0)">
+        <Stars n={n} seed={seed} maxY={maxY} />
+      </g>
+    </g>
+  );
+}
+
+/**
+ * Small particles that float and fade on a loop: dust in the cabin light,
+ * sparks, embers. Each one has its own path, speed and start time.
+ */
+function Particles({
+  n,
+  seed,
+  box,
+  dx,
+  dy,
+  r = [1.5, 3.5],
+  color = "#ffd9b8",
+  dur = [6, 12],
+  kind = "mote",
+}: {
+  n: number;
+  seed: number;
+  box: [number, number, number, number];
+  dx: [number, number];
+  dy: [number, number];
+  r?: [number, number];
+  color?: string;
+  dur?: [number, number];
+  kind?: "mote" | "streak";
+}) {
+  let s = seed;
+  const rnd = () => (s = (s * 9301 + 49297) % 233280) / 233280;
+  const between = ([a, b]: [number, number]) => a + rnd() * (b - a);
+  const [x0, y0, x1, y1] = box;
+  return (
+    <g fill={color}>
+      {Array.from({ length: n }, (_, i) => {
+        const d = between(dur);
+        const style = {
+          "--p1-dx": `${between(dx)}px`,
+          "--p1-dy": `${between(dy)}px`,
+          animationDuration: `${d}s`,
+          animationDelay: `${-rnd() * d}s`,
+        } as CSSProperties;
+        const cx = x0 + rnd() * (x1 - x0);
+        const cy = y0 + rnd() * (y1 - y0);
+        const size = between(r);
+        return kind === "streak" ? (
+          <rect key={i} x={cx} y={cy} width={size * 6} height={size} rx={size / 2} className="story-p1-anim-particle" style={style} />
+        ) : (
+          <circle key={i} cx={cx} cy={cy} r={size} className="story-p1-anim-particle" style={style} />
+        );
       })}
     </g>
   );
@@ -129,8 +193,11 @@ function ShipInterior({ hit }: { hit: boolean }) {
         {/* the big window: space and Mars */}
         <g clipPath="url(#p1-window)">
           <rect x="230" y="110" width="1140" height="450" fill="#02040a" />
-          <Stars n={70} seed={11} maxY={560} />
-          <MarsGlobe cx={800} cy={1060} r={640} id="p1-shipmars" />
+          <DriftingStars n={70} seed={11} maxY={560} />
+          {/* Mars slowly slides past below as the ship orbits */}
+          <g className="story-p1-anim-orbitbob">
+            <MarsGlobe cx={800} cy={1060} r={640} id="p1-shipmars" />
+          </g>
           <rect x="230" y="110" width="1140" height="450" fill="url(#p1-glare)" />
         </g>
         <rect x="230" y="110" width="1140" height="450" rx="80" fill="none" stroke="#2c3749" strokeWidth="22" />
@@ -138,8 +205,11 @@ function ShipInterior({ hit }: { hit: boolean }) {
         <line x1="610" y1="112" x2="610" y2="558" stroke="#2c3749" strokeWidth="12" />
         <line x1="990" y1="112" x2="990" y2="558" stroke="#2c3749" strokeWidth="12" />
 
-        {/* Mars light spilling into the cabin */}
+        {/* Mars light spilling into the cabin, with dust floating in it */}
         <rect y="480" width="1600" height="420" fill="url(#p1-marslight)" />
+        <g opacity="0.7">
+          <Particles n={34} seed={3} box={[200, 160, 1400, 660]} dx={[-30, 30]} dy={[-60, -20]} r={[1.2, 3]} dur={[7, 14]} />
+        </g>
 
         {/* crew seen from behind: Mei (left) and Tunde (right) */}
         {[540, 1060].map((x) => (
@@ -164,11 +234,28 @@ function ShipInterior({ hit }: { hit: boolean }) {
               opacity="0.8"
             />
             <line x1={x + 14} y1="762" x2={x + 186} y2="762" stroke="#2c3749" strokeWidth="2" />
+            {/* a scan line sweeping across each screen */}
+            <rect x={x + 8} y="696" width="3" height="78" fill="#ff8a4a" opacity="0.5" className="story-p1-anim-scan" style={{ animationDelay: `${-n * 0.9}s` }} />
           </g>
         ))}
-        {Array.from({ length: 22 }, (_, n) => (
-          <rect key={n} x={300 + n * 46} y="808" width="30" height="14" rx="3" fill={n % 5 === 2 ? "#ff8a4a" : "#2a3446"} opacity={n % 5 === 2 ? 0.9 : 1} />
-        ))}
+        {/* console buttons, some blinking at their own pace */}
+        {Array.from({ length: 22 }, (_, n) => {
+          const lit = n % 5 === 2 || n % 7 === 4;
+          return (
+            <rect
+              key={n}
+              x={300 + n * 46}
+              y="808"
+              width="30"
+              height="14"
+              rx="3"
+              fill={lit ? "#ff8a4a" : "#2a3446"}
+              opacity={lit ? 0.9 : 1}
+              className={lit ? "story-p1-anim-blink" : undefined}
+              style={lit ? { animationDelay: `${-(n % 4) * 0.7}s`, animationDuration: `${1.4 + (n % 3) * 0.6}s` } : undefined}
+            />
+          );
+        })}
 
         {hit && (
           <>
@@ -187,12 +274,9 @@ function ShipInterior({ hit }: { hit: boolean }) {
               <circle cx="800" cy="84" r="16" fill="#ff3b30" />
               <circle cx="800" cy="84" r="34" fill="#ff3b30" opacity="0.25" />
             </g>
-            {/* tiny bits of debris drifting past */}
-            <g fill="#c9d2e0">
-              <rect x="1240" y="300" width="5" height="3" transform="rotate(30 1240 300)" />
-              <rect x="1310" y="270" width="4" height="4" />
-              <rect x="1160" y="330" width="3" height="6" />
-            </g>
+            {/* sparks spitting from the impact, and bits of debris drifting away */}
+            <Particles n={16} seed={41} box={[1175, 205, 1195, 225]} dx={[-160, 160]} dy={[-90, 140]} r={[1.2, 2.4]} color="#ffd08a" dur={[0.9, 1.8]} />
+            <Particles n={8} seed={9} box={[1150, 180, 1230, 260]} dx={[40, 160]} dy={[-40, 60]} r={[1.5, 3]} color="#c9d2e0" dur={[5, 9]} kind="streak" />
           </>
         )}
       </g>
@@ -220,10 +304,11 @@ function Orbit() {
       </defs>
       <rect width="1600" height="900" fill="#02040a" />
       <rect width="1600" height="900" fill="url(#p1-sun)" />
-      <Stars n={120} seed={23} />
+      <DriftingStars n={120} seed={23} />
       <MarsGlobe cx={800} cy={1720} r={1180} id="p1-orbitmars" />
 
-      {/* the damaged ship */}
+      {/* the damaged ship, drifting and slowly turning, still leaking */}
+      <g className="story-p1-anim-shipfloat">
       <g transform="translate(780 330) rotate(-9)">
         {[-470, 250].map((wx) => (
           <g key={wx}>
@@ -250,9 +335,12 @@ function Orbit() {
         <circle cx="-40" cy="58" r="34" fill="url(#p1-hull)" stroke="#5d6470" strokeWidth="2" />
         <circle cx="-30" cy="78" r="6" fill="#0b0d12" />
         <path d="M-36 72 L-48 66 M-24 74 L-14 70 M-30 84 L-28 94" stroke="#2c3036" strokeWidth="2" />
+        {/* navigation lights on the wingtips */}
+        <circle cx="-472" cy="0" r="5" fill="#ffffff" className="story-p1-anim-blink" style={{ animationDuration: "1.6s" }} />
+        <circle cx="472" cy="0" r="5" fill="#ff8a4a" className="story-p1-anim-blink" style={{ animationDuration: "1.6s", animationDelay: "-0.8s" }} />
       </g>
 
-      {/* oxygen escaping in a thin stream */}
+      {/* oxygen escaping from the hole in a steady stream of puffs */}
       <g className="story-p1-anim-gas">
         {[
           [762, 422, 16],
@@ -264,11 +352,20 @@ function Orbit() {
           <circle key={n} cx={x} cy={y} r={r} fill="url(#p1-gas)" opacity={0.9 - n * 0.15} />
         ))}
       </g>
-      <g fill="#c9d2e0">
-        <rect x="900" y="470" width="6" height="3" transform="rotate(20 900 470)" />
-        <rect x="620" y="250" width="4" height="4" />
-        <rect x="1010" y="230" width="3" height="5" />
+      <Particles n={22} seed={17} box={[756, 414, 768, 426]} dx={[-110, -30]} dy={[120, 260]} r={[3, 8]} color="#e9f2ff" dur={[1.6, 3]} />
       </g>
+
+      {/* bits of the ship tumbling away */}
+      {[
+        [900, 470, 8, 4, 9],
+        [620, 250, 6, 6, 13],
+        [1010, 230, 5, 8, 11],
+        [560, 520, 7, 3, 15],
+      ].map(([x, y, w, h, d]) => (
+        <g key={x} transform={`translate(${x} ${y})`}>
+          <rect x={-w / 2} y={-h / 2} width={w} height={h} fill="#c9d2e0" className="story-p1-anim-tumble" style={{ animationDuration: `${d}s` }} />
+        </g>
+      ))}
     </svg>
   );
 }
@@ -305,6 +402,8 @@ function DescentHeat() {
         ))}
         <ellipse cx="760" cy="490" rx="170" ry="120" fill="url(#p1-plasma)" transform="rotate(-35 760 490)" />
       </g>
+      {/* glowing embers peeling off the heat shield */}
+      <Particles n={30} seed={29} box={[700, 440, 820, 540]} dx={[260, 520]} dy={[-420, -200]} r={[1.5, 3.5]} color="#ffcf7a" dur={[0.8, 1.6]} kind="streak" />
       <g transform="translate(790 450) rotate(35) scale(1.6)">
         <Capsule />
       </g>
@@ -366,6 +465,10 @@ function DescentChute() {
           </g>
         </g>
       </g>
+      {/* thin Mars air rushing past: dust streaks going up as we fall */}
+      <g opacity="0.55">
+        <Particles n={26} seed={53} box={[0, 300, 1600, 900]} dx={[-40, 40]} dy={[-520, -360]} r={[1.2, 2.4]} color="#f6dcc4" dur={[1.4, 2.6]} />
+      </g>
       {/* the heat shield falling away below */}
       <g transform="translate(860 760) rotate(18)">
         <path d="M-50 0 Q0 22 50 0 L44 9 Q0 30 -44 9 Z" fill="#5a3a26" stroke="#2a1a10" strokeWidth="2" />
@@ -374,7 +477,20 @@ function DescentChute() {
   );
 }
 
-function DescentLand() {
+/** Where the capsule's feet touch the ground, in scene units. */
+const GROUND_Y = 662;
+/** How far above the ground the capsule starts the landing game. */
+const DROP = 440;
+
+/**
+ * The touchdown scene. `alt` is the capsule's height from 1 (high up) to 0
+ * (on the ground); `thrust` shows the landing rockets firing. With no props
+ * it shows the landed capsule, rockets still firing, as in the story line.
+ */
+export function LandingScene({ alt = 0, thrust = true }: { alt?: number; thrust?: boolean }) {
+  const h = Math.max(0, Math.min(1, alt));
+  const y = GROUND_Y - 72 - h * DROP; // capsule group origin
+  const near = 1 - Math.min(1, h / 0.35); // 0 high up, 1 at the ground
   return (
     <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice">
       <defs>
@@ -401,7 +517,7 @@ function DescentLand() {
       <path d="M0 520 L120 480 L260 500 L380 450 L520 480 L700 470 L860 430 L1020 470 L1180 450 L1340 490 L1480 460 L1600 480 L1600 560 L0 560 Z" fill="#9a5a3a" opacity="0.7" />
       <rect y="540" width="1600" height="360" fill="url(#p1-landground)" />
 
-      {/* small rocks on the plain; the same picture for either landing choice */}
+      {/* small rocks on the plain */}
       {[
         [220, 640, 18],
         [420, 720, 12],
@@ -412,10 +528,14 @@ function DescentLand() {
         <path key={x} d={`M${x - r} ${y} Q${x - r * 0.4} ${y - r * 1.1} ${x + r * 0.3} ${y - r * 0.8} Q${x + r} ${y - r * 0.4} ${x + r} ${y} Z`} fill="#4a2410" opacity="0.85" />
       ))}
 
-      {/* our capsule on its landing legs, rockets still firing */}
-      <g transform="translate(640 590) scale(1.25)">
-        <ellipse cx="0" cy="56" rx="260" ry="46" fill="url(#p1-dust)" className="story-p1-anim-flicker" />
-        <ellipse cx="0" cy="40" rx="40" ry="60" fill="url(#p1-thrust)" className="story-p1-anim-flicker" />
+      {/* the capsule's shadow grows as it comes down */}
+      <ellipse cx="640" cy={GROUND_Y + 4} rx={70 + near * 60} ry={10 + near * 8} fill="#2a1208" opacity={0.15 + near * 0.35} />
+      {/* dust kicked up by the rockets near the ground */}
+      {thrust && near > 0 && <ellipse cx="640" cy={GROUND_Y - 4} rx={120 + near * 200} ry={20 + near * 30} fill="url(#p1-dust)" opacity={near} className="story-p1-anim-flicker" />}
+
+      {/* our capsule on its landing legs */}
+      <g transform={`translate(640 ${y}) scale(1.25)`}>
+        {thrust && <ellipse cx="0" cy="44" rx="34" ry={52 + 10 * (1 - near)} fill="url(#p1-thrust)" className="story-p1-anim-flicker" />}
         <line x1="-50" y1="10" x2="-90" y2="58" stroke="#9aa1ad" strokeWidth="6" strokeLinecap="round" />
         <line x1="50" y1="10" x2="90" y2="58" stroke="#9aa1ad" strokeWidth="6" strokeLinecap="round" />
         <g transform="translate(0 -30) scale(1.5)">
@@ -440,6 +560,6 @@ export function Part1Art({ k }: { k: Part1ArtKey }): ReactNode {
     case "descentChute":
       return <DescentChute />;
     case "descentLand":
-      return <DescentLand />;
+      return <LandingScene />;
   }
 }

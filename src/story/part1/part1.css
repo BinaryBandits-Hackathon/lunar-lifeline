@@ -24,7 +24,7 @@
 }
 
 /* top: part name on the left, chapter tab in the middle (like the title tab) */
-.story-p1-top { position: absolute; top: 0; left: 0; right: 0; display: flex; justify-content: center; pointer-events: none; }
+.story-p1-top { position: absolute; z-index: 2; top: 0; left: 0; right: 0; display: flex; justify-content: center; pointer-events: none; }
 .story-p1-brand {
   position: absolute; left: 20px; top: 14px;
   font-family: var(--display); font-size: 15px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--p1-blue);
@@ -155,3 +155,87 @@
 
 /* while Part 1 covers the window, the page behind it should not scroll */
 html:has(.story-p1), body:has(.story-p1) { overflow: hidden; }
+
+/* ---------- living scenes: particles and small moving parts ---------- */
+/* floating dust, sparks, embers, gas: each drifts along its own --p1-dx/--p1-dy */
+.story-p1-anim-particle { animation: story-p1-particle 8s linear infinite; }
+@keyframes story-p1-particle {
+  0% { transform: translate(0, 0); opacity: 0; }
+  12% { opacity: 0.9; }
+  80% { opacity: 0.7; }
+  100% { transform: translate(var(--p1-dx), var(--p1-dy)); opacity: 0; }
+}
+/* stars sliding past the window as the ship orbits (two copies loop) */
+.story-p1-anim-stardrift { animation: story-p1-stardrift 140s linear infinite; }
+@keyframes story-p1-stardrift { from { transform: translateX(0); } to { transform: translateX(-1600px); } }
+/* Mars below the window rising and sinking very gently */
+.story-p1-anim-orbitbob { animation: story-p1-orbitbob 14s ease-in-out infinite; }
+@keyframes story-p1-orbitbob { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(-30px, -14px); } }
+/* console lights and screens */
+.story-p1-anim-blink { animation: story-p1-blink 1.6s steps(2, jump-none) infinite; }
+@keyframes story-p1-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
+.story-p1-anim-scan { animation: story-p1-scan 2.8s linear infinite; }
+@keyframes story-p1-scan { from { transform: translateX(0); opacity: 0; } 10% { opacity: 0.6; } 90% { opacity: 0.6; } to { transform: translateX(180px); opacity: 0; } }
+/* the damaged ship drifting and slowly turning in orbit */
+.story-p1-anim-shipfloat { transform-box: view-box; transform-origin: 780px 330px; animation: story-p1-shipfloat 9s ease-in-out infinite; }
+@keyframes story-p1-shipfloat { 0%, 100% { transform: translate(0, 0) rotate(0deg); } 50% { transform: translate(-18px, 12px) rotate(-2deg); } }
+/* debris tumbling away */
+.story-p1-anim-tumble { transform-box: fill-box; transform-origin: center; animation: story-p1-tumble 10s linear infinite; }
+@keyframes story-p1-tumble { from { transform: translate(0, 0) rotate(0deg); opacity: 1; } to { transform: translate(120px, 60px) rotate(540deg); opacity: 0.2; } }
+
+/* ---------- the landing game ---------- */
+.story-p1-landing {
+  position: absolute; inset: 0; z-index: 1; cursor: pointer;
+  touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+}
+.story-p1-landing-scene, .story-p1-landing-scene svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.story-p1-landing.is-bumpy .story-p1-landing-scene { animation: story-p1-bump 0.7s ease-out 1; }
+@keyframes story-p1-bump {
+  0%, 100% { transform: translate(0, 0); }
+  10% { transform: translate(0, 18px); } 25% { transform: translate(-12px, -10px); }
+  40% { transform: translate(10px, 8px); } 55% { transform: translate(-6px, -4px); } 75% { transform: translate(3px, 2px); }
+}
+
+.story-p1-landing-hint {
+  position: absolute; left: 50%; bottom: 28px; transform: translateX(-50%);
+  display: inline-flex; align-items: center; gap: 12px; padding: 12px 22px; max-width: calc(100% - 32px);
+  font-family: var(--display); font-size: 24px; font-weight: 500; letter-spacing: 0.02em; color: var(--p1-ink); text-align: center;
+  background: rgba(6, 10, 22, 0.82); border: 1px solid var(--p1-line); border-radius: 8px; backdrop-filter: blur(6px);
+}
+.story-p1-landing-hint.is-warn { border-color: #ff8a4a; color: #ffd0a8; }
+.story-p1-landing-hint.is-result { bottom: auto; top: 30%; font-size: 40px; font-weight: 600; color: var(--p1-gold); border-color: rgba(245, 192, 74, 0.5); animation: story-p1-rise-c 0.4s ease both; }
+@keyframes story-p1-rise-c { from { opacity: 0; transform: translate(-50%, 12px); } to { opacity: 1; transform: translate(-50%, 0); } }
+.story-p1-landing-key {
+  flex: none; padding: 4px 12px; font-size: 16px; letter-spacing: 0.12em; color: #0b1018; background: var(--p1-gold); border-radius: 5px;
+  box-shadow: 0 3px 0 #a57d12;
+}
+
+.story-p1-gauges { position: absolute; left: 24px; top: 50%; transform: translateY(-50%); display: flex; gap: 14px; }
+.story-p1-gauge { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.story-p1-gauge span { font-family: var(--display); font-size: 14px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--p1-blue); }
+.story-p1-gauge-track { position: relative; width: 22px; height: 240px; border: 1px solid var(--p1-line); border-radius: 12px; background: rgba(6, 10, 22, 0.75); overflow: hidden; }
+.story-p1-gauge-track i { position: absolute; left: 3px; right: 3px; bottom: 3px; max-height: calc(100% - 6px); border-radius: 8px; background: var(--p1-blue); }
+.story-p1-gauge-track i.is-fast { background: #ff8a4a; }
+.story-p1-gauge-track b { position: absolute; left: 0; right: 0; height: 2px; background: var(--p1-gold); z-index: 1; }
+
+.story-p1-hold {
+  position: absolute; right: 28px; bottom: 28px; width: 120px; height: 120px; border-radius: 50%;
+  display: grid; place-items: center; pointer-events: none;
+  font-family: var(--display); font-size: 22px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--p1-gold); background: rgba(6, 10, 22, 0.7); border: 2px solid var(--p1-gold);
+}
+.story-p1-hold.is-on { background: rgba(245, 192, 74, 0.25); transform: scale(0.94); box-shadow: 0 0 30px rgba(245, 192, 74, 0.45); }
+
+/* reduce motion: particles and moving parts stay still; the landing game still works, without shaking */
+.story-p1-still .story-p1-landing-hint { animation: none; }
+
+@media (max-height: 520px) {
+  .story-p1-landing-hint { bottom: 12px; font-size: 17px; padding: 8px 14px; }
+  .story-p1-landing-hint.is-result { font-size: 26px; }
+  .story-p1-landing-key { font-size: 12px; padding: 3px 8px; }
+  .story-p1-gauge-track { height: 140px; width: 18px; }
+  .story-p1-gauges { left: 14px; }
+  .story-p1-hold { width: 88px; height: 88px; font-size: 17px; right: 16px; bottom: 16px; }
+}
+
+.story-p1-still .story-p1-anim-particle { display: none; }

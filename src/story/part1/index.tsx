@@ -12,6 +12,7 @@ import { fill, type Line } from "../core/Beats";
 import type { Choice, PartProps } from "../types";
 import { Part1Art } from "./art";
 import { PART1_BEATS, PART1_CHAPTERS, type Part1ArtKey } from "./content";
+import { LandingGame, type LandingResult } from "./landing";
 import "./part1.css";
 
 const UI = {
@@ -22,6 +23,9 @@ const UI = {
   choose: { en: "Choose one", bn: "একটা বেছে নাও" },
   who: { pip: { en: "Pip", bn: "পিপ" }, tunde: { en: "Tunde · Engineer", bn: "তুন্দে · ইঞ্জিনিয়ার" }, mei: { en: "Mei · Doctor", bn: "মেই · ডাক্তার" }, earth: { en: "Earth", bn: "পৃথিবী" } },
 } as const;
+
+/** The touchdown line ("Rockets firing... touchdown!"), where the landing game plays. */
+const TOUCHDOWN = PART1_BEATS.findIndex((b) => b.art === "descentLand");
 
 /** Small portrait of Tunde in his helmet, drawn in code like Pip. */
 function TundeFace() {
@@ -39,7 +43,10 @@ function TundeFace() {
 export function Part1({ lang, readAloud, reduceMotion, playerName, onChoose, onDone }: PartProps) {
   const [i, setI] = useState(0);
   const [picked, setPicked] = useState<Choice | null>(null);
+  // the landing game runs once, on the touchdown line, before the line shows
+  const [landed, setLanded] = useState<LandingResult | null>(null);
   const beat = PART1_BEATS[i];
+  const landing = i === TOUCHDOWN && landed === null;
   const say = (l: Line) => fill(l[lang], playerName);
 
   const artKey = ([...PART1_BEATS.slice(0, i + 1)].reverse().find((b) => b.art)?.art ?? "ship") as Part1ArtKey;
@@ -70,15 +77,15 @@ export function Part1({ lang, readAloud, reduceMotion, playerName, onChoose, onD
           : say(beat.question);
 
   useEffect(() => {
-    if (readAloud && spoken) speak(spoken);
-  }, [spoken, readAloud]);
+    if (readAloud && spoken && !landing) speak(spoken);
+  }, [spoken, readAloud, landing]);
   useEffect(() => () => stopSpeaking(), []);
 
   // Keyboard: Enter, Space or → moves on; A/B or 1/2 picks an option.
   const canAdvance = beat && (beat.kind !== "decide" || picked !== null);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.ctrlKey || e.metaKey || e.altKey || !beat) return;
+      if (e.ctrlKey || e.metaKey || e.altKey || !beat || landing) return;
       const k = e.key.toLowerCase();
       if (beat.kind === "decide" && !picked) {
         if (k === "a" || k === "1") choose("A");
@@ -103,18 +110,19 @@ export function Part1({ lang, readAloud, reduceMotion, playerName, onChoose, onD
   return (
     <div className={`story-p1${reduceMotion ? " story-p1-still" : ""}`} lang={lang === "bn" ? "bn" : "en"}>
       <div className="story-p1-scene" aria-hidden="true">
-        <div className="story-p1-scene-in" key={artKey}>
+        <div className={`story-p1-scene-in${landed === "bumpy" && i === TOUCHDOWN ? " story-p1-anim-shake" : ""}`} key={artKey}>
           <Part1Art k={artKey} />
         </div>
       </div>
       <div className="story-p1-vignette" aria-hidden="true" />
+      {landing && <LandingGame lang={lang} reduceMotion={reduceMotion} onLanded={setLanded} />}
 
       <header className="story-p1-top">
         <span className="story-p1-brand">{UI.part[lang]}</span>
         <span className="story-p1-tab">{chapter[lang]}</span>
       </header>
 
-      {beat.kind === "decide" && !picked && (
+      {!landing && beat.kind === "decide" && !picked && (
         <div className="story-p1-options" role="group" aria-label={UI.choose[lang]}>
           {(["A", "B"] as Choice[]).map((c) => {
             const o = beat[c === "A" ? "a" : "b"];
@@ -131,7 +139,7 @@ export function Part1({ lang, readAloud, reduceMotion, playerName, onChoose, onD
         </div>
       )}
 
-      {beat.kind === "fact" ? (
+      {landing ? null : beat.kind === "fact" ? (
         <section className="story-p1-fact" key={i}>
           <span className="story-p1-fact-head">{UI.fact[lang]}</span>
           <p>{text}</p>
