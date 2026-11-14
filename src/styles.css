@@ -23,7 +23,7 @@
   /* One font family across the whole game: clean, condensed, sci-fi (Saira). */
   --display: "Saira Condensed", "Arial Narrow", system-ui, sans-serif;
   --body: "Saira Semi Condensed", "Segoe UI", system-ui, sans-serif;
-  --mono: "Saira Semi Condensed", "Arial Narrow", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, monospace; /* fixed-width so gauge numbers do not jitter */
   --r: 6px;
 }
 
@@ -1392,4 +1392,26 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
   .landing-screen .dialogue { position: sticky; bottom: max(8px, env(safe-area-inset-bottom, 0px)); }
   .btn-big { width: 100%; }
   .descent-steps li { font-size: 10.5px; letter-spacing: 0.04em; }
+}
+
+/* phones held sideways: keep the whole title and crew panels on screen */
+@media (orientation: landscape) and (max-height: 520px) {
+  .title-tab, .title-emblem, .title-brief { display: none; }
+  .title-panel { margin: 10px clamp(12px, 4vw, 48px) 10px 12px; gap: 6px; width: min(360px, calc(100% - 24px)); }
+  .title-name { font-size: 32px; }
+  .title-studio { margin-top: -4px; font-size: 13px; }
+  .title-rows { gap: 0; }
+  .title-rows li { min-height: 26px; }
+  .row-key, .row-value, .row-choice button { font-size: 16px; }
+  .title-nav { margin-top: 2px; padding-top: 6px; }
+  .title-start { font-size: 24px; }
+  .title-link { font-size: 18px; }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+  .crew-screen { align-items: flex-start; overflow: clip; }
+  .crew-panel { margin: 8px clamp(12px, 4vw, 48px) 0 12px; gap: 6px; }
+  .crew-title { font-size: 28px; }
+  .crew-fact { display: none; }
+  .crew-panel .title-nav { position: sticky; bottom: 0; margin-top: 0; padding: 8px 0; background: rgba(5, 8, 17, 0.92); }
+  .crew-marker strong { font-size: 22px; }
 }
