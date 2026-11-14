@@ -9,6 +9,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Lang } from "../types";
 import { LandingScene } from "./art";
+import { p1Sound } from "./sound";
 
 export type LandingResult = "smooth" | "bumpy";
 
@@ -51,6 +52,8 @@ export function LandingGame({ lang, reduceMotion, onLanded }: { lang: Lang; redu
   const press = (on: boolean) => {
     held.current = on;
     setFiring(on);
+    p1Sound.unlock();
+    p1Sound.thrust(on);
     // pressing during "get ready" starts the descent straight away
     if (on) setPhase((p) => (p === "ready" ? "fly" : p));
   };
@@ -70,6 +73,7 @@ export function LandingGame({ lang, reduceMotion, onLanded }: { lang: Lang; redu
       }
     };
     const blur = () => press(false);
+    const stop = () => p1Sound.thrust(false);
     window.addEventListener("keydown", down);
     window.addEventListener("keyup", up);
     window.addEventListener("blur", blur);
@@ -77,6 +81,7 @@ export function LandingGame({ lang, reduceMotion, onLanded }: { lang: Lang; redu
       window.removeEventListener("keydown", down);
       window.removeEventListener("keyup", up);
       window.removeEventListener("blur", blur);
+      stop();
     };
   }, []);
 
@@ -105,6 +110,7 @@ export function LandingGame({ lang, reduceMotion, onLanded }: { lang: Lang; redu
         setSpeed(v);
         held.current = false;
         setFiring(false);
+        p1Sound.thud(v > SAFE);
         setPhase(v <= SAFE ? "smooth" : "bumpy");
         return;
       }

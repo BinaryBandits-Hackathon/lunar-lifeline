@@ -426,8 +426,12 @@ function DescentChute() {
         </linearGradient>
       </defs>
       <rect width="1600" height="900" fill="url(#p1-day)" />
-      {/* ground far below, with craters */}
+      {/* far mountains in the haze, then the ground far below */}
+      <path d="M0 690 L120 652 L230 672 L340 628 L450 664 L560 640 L680 676 L800 636 L920 668 L1040 644 L1160 676 L1280 640 L1400 670 L1520 650 L1600 664 L1600 720 L0 720 Z" fill="#b8805e" opacity="0.6" />
       <path d="M0 700 L1600 680 L1600 900 L0 900 Z" fill="url(#p1-ground)" />
+      <RockCluster x={180} y={712} s={0.45} />
+      <RockCluster x={1180} y={726} s={0.38} flip />
+      <RockCluster x={760} y={860} s={0.5} />
       {[
         [300, 760, 70],
         [980, 740, 40],
@@ -482,25 +486,64 @@ const GROUND_Y = 662;
 /** How far above the ground the capsule starts the landing game. */
 const DROP = 440;
 
+/** Pebbles scattered over the sand (fixed, so they never jump between renders). */
+const GRAVEL: [number, number, number][] = (() => {
+  let s = 71;
+  const rnd = () => (s = (s * 9301 + 49297) % 233280) / 233280;
+  return Array.from({ length: 70 }, () => [rnd() * 1600, 590 + rnd() * 300, 1.2 + rnd() * 2.4] as [number, number, number]);
+})();
+
+/** A cluster of dark, angular Mars rocks with sunlit top edges. */
+function RockCluster({ x, y, s = 1, flip = false }: { x: number; y: number; s?: number; flip?: boolean }) {
+  const rocks: [number, number, number, number][] = [
+    [0, 0, 70, 54],
+    [58, 8, 52, 40],
+    [-46, 10, 44, 30],
+    [96, 18, 30, 20],
+    [-78, 20, 24, 14],
+  ];
+  return (
+    <g transform={`translate(${x} ${y}) scale(${flip ? -s : s} ${s})`}>
+      <ellipse cx="10" cy="22" rx="120" ry="14" fill="#2a1208" opacity="0.35" />
+      {rocks.map(([dx, dy, w, h], i) => (
+        <g key={i} transform={`translate(${dx} ${dy})`}>
+          <path d={`M${-w / 2} 20 L${-w / 2 + w * 0.12} ${20 - h * 0.7} L${-w * 0.1} ${20 - h} L${w * 0.28} ${20 - h * 0.86} L${w / 2} ${20 - h * 0.3} L${w / 2 - 4} 20 Z`} fill="#2b1d19" />
+          <path d={`M${-w / 2 + w * 0.12} ${20 - h * 0.7} L${-w * 0.1} ${20 - h} L${w * 0.28} ${20 - h * 0.86}`} fill="none" stroke="#8a5a40" strokeWidth="2.5" strokeLinejoin="round" opacity="0.7" />
+          <path d={`M${-w * 0.1} ${20 - h} L${-w * 0.02} 20`} stroke="#1a110e" strokeWidth="2" opacity="0.6" />
+        </g>
+      ))}
+    </g>
+  );
+}
+
 /**
  * The touchdown scene. `alt` is the capsule's height from 1 (high up) to 0
- * (on the ground); `thrust` shows the landing rockets firing. With no props
- * it shows the landed capsule, rockets still firing, as in the story line.
+ * (on the ground); `thrust` shows the landing rockets firing; `landed` drops
+ * the ramp. With no props it shows the landed capsule, rockets still firing,
+ * as in the story line.
  */
-export function LandingScene({ alt = 0, thrust = true }: { alt?: number; thrust?: boolean }) {
+export function LandingScene({ alt = 0, thrust = true, landed = alt <= 0 }: { alt?: number; thrust?: boolean; landed?: boolean }) {
   const h = Math.max(0, Math.min(1, alt));
   const y = GROUND_Y - 72 - h * DROP; // capsule group origin
   const near = 1 - Math.min(1, h / 0.35); // 0 high up, 1 at the ground
+  const scorch = landed ? 1 : thrust ? near * 0.8 : near * 0.3;
   return (
     <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice">
       <defs>
         <linearGradient id="p1-landsky" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#5e4034" />
-          <stop offset="1" stopColor="#d9a27e" />
+          <stop offset="0" stopColor="#4a2f27" />
+          <stop offset="0.55" stopColor="#a8694a" />
+          <stop offset="1" stopColor="#e3b08a" />
         </linearGradient>
         <linearGradient id="p1-landground" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#b8734a" />
-          <stop offset="1" stopColor="#6b3519" />
+          <stop offset="0" stopColor="#c47a4c" />
+          <stop offset="0.5" stopColor="#b3683d" />
+          <stop offset="1" stopColor="#8a4523" />
+        </linearGradient>
+        <linearGradient id="p1-haze" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#e8b892" stopOpacity="0" />
+          <stop offset="0.6" stopColor="#e8b892" stopOpacity="0.55" />
+          <stop offset="1" stopColor="#e8b892" stopOpacity="0" />
         </linearGradient>
         <radialGradient id="p1-thrust">
           <stop offset="0" stopColor="#fff3c4" stopOpacity="0.95" />
@@ -508,39 +551,103 @@ export function LandingScene({ alt = 0, thrust = true }: { alt?: number; thrust?
           <stop offset="1" stopColor="#ff6a1f" stopOpacity="0" />
         </radialGradient>
         <radialGradient id="p1-dust">
-          <stop offset="0" stopColor="#d8a27a" stopOpacity="0.85" />
-          <stop offset="1" stopColor="#d8a27a" stopOpacity="0" />
+          <stop offset="0" stopColor="#e2b08a" stopOpacity="0.85" />
+          <stop offset="1" stopColor="#e2b08a" stopOpacity="0" />
+        </radialGradient>
+        <radialGradient id="p1-scorch">
+          <stop offset="0" stopColor="#140a06" stopOpacity="0.9" />
+          <stop offset="0.55" stopColor="#24120a" stopOpacity="0.55" />
+          <stop offset="1" stopColor="#24120a" stopOpacity="0" />
         </radialGradient>
       </defs>
-      <rect width="1600" height="900" fill="url(#p1-landsky)" />
-      {/* distant mesas */}
-      <path d="M0 520 L120 480 L260 500 L380 450 L520 480 L700 470 L860 430 L1020 470 L1180 450 L1340 490 L1480 460 L1600 480 L1600 560 L0 560 Z" fill="#9a5a3a" opacity="0.7" />
-      <rect y="540" width="1600" height="360" fill="url(#p1-landground)" />
 
-      {/* small rocks on the plain */}
-      {[
-        [220, 640, 18],
-        [420, 720, 12],
-        [1060, 700, 16],
-        [1260, 640, 22],
-        [900, 820, 14],
-      ].map(([x, y, r]) => (
-        <path key={x} d={`M${x - r} ${y} Q${x - r * 0.4} ${y - r * 1.1} ${x + r * 0.3} ${y - r * 0.8} Q${x + r} ${y - r * 0.4} ${x + r} ${y} Z`} fill="#4a2410" opacity="0.85" />
-      ))}
+      {/* dusty sky */}
+      <rect width="1600" height="900" fill="url(#p1-landsky)" />
+
+      {/* three layers of jagged mountains, paler with distance */}
+      <path d="M0 470 L90 430 L150 446 L240 380 L300 410 L380 360 L450 402 L540 372 L620 420 L700 386 L780 330 L860 392 L940 366 L1020 404 L1110 350 L1180 392 L1260 340 L1340 400 L1420 372 L1500 412 L1600 380 L1600 560 L0 560 Z" fill="#c99272" opacity="0.55" />
+      <path d="M0 510 L70 470 L160 492 L250 440 L330 486 L430 452 L520 498 L610 468 L700 502 L800 458 L880 496 L980 470 L1080 508 L1170 462 L1260 500 L1360 476 L1460 510 L1600 478 L1600 580 L0 580 Z" fill="#a9603d" opacity="0.8" />
+      <rect y="430" width="1600" height="140" fill="url(#p1-haze)" />
+      <path d="M0 548 Q200 520 420 540 T860 536 T1300 530 T1600 540 L1600 600 L0 600 Z" fill="#9a5230" />
+
+      {/* sand */}
+      <rect y="560" width="1600" height="340" fill="url(#p1-landground)" />
+      {/* dune ripples */}
+      <g fill="none" strokeLinecap="round">
+        {[
+          [80, 610, 220],
+          [380, 640, 260],
+          [900, 620, 240],
+          [1220, 650, 280],
+          [180, 760, 300],
+          [760, 800, 320],
+          [1180, 820, 300],
+          [520, 870, 260],
+        ].map(([x, yy, w], i) => (
+          <g key={i}>
+            <path d={`M${x} ${yy} Q${x + w * 0.5} ${yy - 14} ${x + w} ${yy}`} stroke="#e0a476" strokeWidth="3" opacity="0.45" />
+            <path d={`M${x + 6} ${yy + 5} Q${x + w * 0.5} ${yy - 8} ${x + w - 6} ${yy + 5}`} stroke="#7a3a1c" strokeWidth="2" opacity="0.35" />
+          </g>
+        ))}
+      </g>
+      {/* gravel */}
+      <g fill="#5a2c16" opacity="0.6">
+        {GRAVEL.map(([gx, gy, gr], i) => (
+          <circle key={i} cx={gx} cy={gy} r={gr} />
+        ))}
+      </g>
+
+      {/* dark rock outcrops, like the boulder fields in NASA rover pictures */}
+      <RockCluster x={170} y={612} s={1.3} />
+      <RockCluster x={1380} y={600} s={1.1} flip />
+      <RockCluster x={1180} y={780} s={0.8} />
+      <RockCluster x={300} y={820} s={0.7} flip />
+
+      {/* scorch mark spreading where the rockets hit the ground */}
+      {scorch > 0 && (
+        <g opacity={scorch}>
+          <ellipse cx="640" cy={GROUND_Y + 6} rx="230" ry="46" fill="url(#p1-scorch)" />
+          {Array.from({ length: 14 }, (_, i) => {
+            const a = (i / 14) * Math.PI * 2;
+            const len = 150 + (i % 3) * 50;
+            return (
+              <path
+                key={i}
+                d={`M640 ${GROUND_Y + 6} L${640 + Math.cos(a + 0.05) * len} ${GROUND_Y + 6 + Math.sin(a + 0.05) * len * 0.2} L${640 + Math.cos(a - 0.05) * len} ${GROUND_Y + 6 + Math.sin(a - 0.05) * len * 0.2} Z`}
+                fill="#1a0d07"
+                opacity="0.45"
+              />
+            );
+          })}
+        </g>
+      )}
 
       {/* the capsule's shadow grows as it comes down */}
       <ellipse cx="640" cy={GROUND_Y + 4} rx={70 + near * 60} ry={10 + near * 8} fill="#2a1208" opacity={0.15 + near * 0.35} />
       {/* dust kicked up by the rockets near the ground */}
-      {thrust && near > 0 && <ellipse cx="640" cy={GROUND_Y - 4} rx={120 + near * 200} ry={20 + near * 30} fill="url(#p1-dust)" opacity={near} className="story-p1-anim-flicker" />}
+      {thrust && near > 0 && <ellipse cx="640" cy={GROUND_Y - 4} rx={120 + near * 220} ry={20 + near * 34} fill="url(#p1-dust)" opacity={near} className="story-p1-anim-flicker" />}
 
       {/* our capsule on its landing legs */}
       <g transform={`translate(640 ${y}) scale(1.25)`}>
         {thrust && <ellipse cx="0" cy="44" rx="34" ry={52 + 10 * (1 - near)} fill="url(#p1-thrust)" className="story-p1-anim-flicker" />}
-        <line x1="-50" y1="10" x2="-90" y2="58" stroke="#9aa1ad" strokeWidth="6" strokeLinecap="round" />
-        <line x1="50" y1="10" x2="90" y2="58" stroke="#9aa1ad" strokeWidth="6" strokeLinecap="round" />
+        <line x1="-40" y1="10" x2="-90" y2="56" stroke="#b9bfc9" strokeWidth="6" strokeLinecap="round" />
+        <line x1="40" y1="10" x2="90" y2="56" stroke="#b9bfc9" strokeWidth="6" strokeLinecap="round" />
+        <line x1="-30" y1="24" x2="-90" y2="56" stroke="#7b828e" strokeWidth="3" />
+        <line x1="30" y1="24" x2="90" y2="56" stroke="#7b828e" strokeWidth="3" />
+        <ellipse cx="-90" cy="58" rx="13" ry="4" fill="#d7dbe3" stroke="#5d6470" strokeWidth="1.5" />
+        <ellipse cx="90" cy="58" rx="13" ry="4" fill="#d7dbe3" stroke="#5d6470" strokeWidth="1.5" />
         <g transform="translate(0 -30) scale(1.5)">
           <Capsule shield={false} />
         </g>
+        {/* the ramp comes down once we are safely on the ground */}
+        {landed && (
+          <g className="story-p1-anim-ramp">
+            <path d="M-12 18 L12 18 L36 58 L14 58 Z" fill="#3a3d44" stroke="#c9ccd1" strokeWidth="1.5" />
+            {[28, 38, 48].map((r) => (
+              <line key={r} x1={-12 + (r - 18) * 0.6} y1={r} x2={12 + (r - 18) * 0.6} y2={r} stroke="#7b828e" strokeWidth="1.2" />
+            ))}
+          </g>
+        )}
       </g>
     </svg>
   );

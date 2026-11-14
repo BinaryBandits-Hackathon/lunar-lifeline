@@ -239,3 +239,21 @@ html:has(.story-p1), body:has(.story-p1) { overflow: hidden; }
 }
 
 .story-p1-still .story-p1-anim-particle { display: none; }
+
+/* ---------- sound switch (top right) ---------- */
+.story-p1-switches { position: absolute; right: 14px; top: 10px; display: flex; gap: 8px; pointer-events: auto; }
+.story-p1-switch {
+  display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; cursor: pointer;
+  font-family: var(--display); font-size: 14px; letter-spacing: 0.06em; text-transform: uppercase;
+  color: #6b7a96; background: rgba(6, 10, 22, 0.6); border: 1px solid var(--p1-line); border-radius: 999px;
+}
+.story-p1-switch[aria-pressed="true"] { color: var(--p1-gold); border-color: rgba(245, 192, 74, 0.5); }
+.story-p1-switch:focus-visible { outline: 2px solid var(--p1-gold); outline-offset: 2px; }
+@media (max-width: 860px), (max-height: 520px) {
+  .story-p1-switch span { display: none; }
+  .story-p1-switch { padding: 5px 7px; }
+}
+
+/* the lander's ramp lowering after touchdown */
+.story-p1-anim-ramp { transform-box: fill-box; transform-origin: 20% 0; animation: story-p1-ramp 0.9s cubic-bezier(0.3, 1.4, 0.5, 1) 0.4s both; }
+@keyframes story-p1-ramp { from { transform: scaleY(0.05); opacity: 0.6; } to { transform: scaleY(1); opacity: 1; } }
