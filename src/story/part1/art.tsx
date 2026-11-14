@@ -522,7 +522,7 @@ function RockCluster({ x, y, s = 1, flip = false }: { x: number; y: number; s?: 
  * the ramp. With no props it shows the landed capsule, rockets still firing,
  * as in the story line.
  */
-export function LandingScene({ alt = 0, thrust = true, landed = alt <= 0 }: { alt?: number; thrust?: boolean; landed?: boolean }) {
+export function LandingScene({ alt = 0, thrust = true, landed = alt <= 0, clear = false }: { alt?: number; thrust?: boolean; landed?: boolean; clear?: boolean }) {
   const h = Math.max(0, Math.min(1, alt));
   const y = GROUND_Y - 72 - h * DROP; // capsule group origin
   const near = 1 - Math.min(1, h / 0.35); // 0 high up, 1 at the ground
@@ -600,8 +600,9 @@ export function LandingScene({ alt = 0, thrust = true, landed = alt <= 0 }: { al
       {/* dark rock outcrops, like the boulder fields in NASA rover pictures */}
       <RockCluster x={170} y={612} s={1.3} />
       <RockCluster x={1380} y={600} s={1.1} flip />
-      <RockCluster x={1180} y={780} s={0.8} />
-      <RockCluster x={300} y={820} s={0.7} flip />
+      {/* the foreground rocks make room for the base once we start building */}
+      {!clear && <RockCluster x={1180} y={780} s={0.8} />}
+      {!clear && <RockCluster x={300} y={820} s={0.7} flip />}
 
       {/* scorch mark spreading where the rockets hit the ground */}
       {scorch > 0 && (

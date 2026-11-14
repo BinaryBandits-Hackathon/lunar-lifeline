@@ -335,6 +335,23 @@ class Part1Sound {
     src.stop(at + 1.3);
   }
 
+  /** Building something: a few clanks of tools and a whirring motor. */
+  build() {
+    [0, 0.22, 0.44, 0.8, 1.02].forEach((d, i) => {
+      this.tone("square", i % 2 ? 520 : 380, i % 2 ? 300 : 220, 0.06, 0.12, d);
+      this.burst("bandpass", 2500, 2, 0.12, 0.08, d);
+    });
+    this.tone("sawtooth", 90, 180, 0.08, 1.1, 0.1);
+    this.burst("lowpass", 400, 1, 0.2, 0.5, 1.2);
+  }
+
+  /** Night falling over the base: a slow, low swell. */
+  night() {
+    this.tone("sine", 196, 147, 0.18, 2.6);
+    this.tone("sine", 247, 220, 0.1, 2.6, 0.2);
+    this.tone("sine", 98, 73, 0.2, 2.8);
+  }
+
   /** A soft tick for buttons. */
   tick() {
     this.tone("triangle", 1400, 1100, 0.05, 0.05);

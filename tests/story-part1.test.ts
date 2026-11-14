@@ -44,3 +44,31 @@ describe("Part 1: The fall", () => {
     expect([...starts].sort((a, b) => a - b)).toEqual(starts);
   });
 });
+
+import { ITEMS, SOLS } from "../src/story/part1/buildContent";
+
+describe("Part 1 build days (sols 1-3)", () => {
+  const texts = [...SOLS.flatMap((s) => [s.title, s.start, s.end.line]), ...ITEMS.flatMap((it) => [it.name, it.fact, it.stat, ...it.why])];
+
+  it("has three sols with two things to build on each", () => {
+    expect(SOLS.map((s) => s.n)).toEqual([1, 2, 3]);
+    for (const s of SOLS) expect(ITEMS.filter((it) => it.sol === s.n)).toHaveLength(2);
+  });
+
+  it("builds everything Part 2 expects to exist on sol 4", () => {
+    const ids = ITEMS.map((it) => it.id);
+    for (const needed of ["habitat", "panels", "water", "fuel"] as const) expect(ids).toContain(needed);
+  });
+
+  it("has Bangla for every line, with Bangla digits only", () => {
+    for (const t of texts) {
+      expect(t.en.trim().length).toBeGreaterThan(0);
+      expect(t.bn.trim().length).toBeGreaterThan(0);
+      expect(t.bn, `Latin digits in: ${t.bn}`).not.toMatch(/[0-9]/);
+    }
+  });
+
+  it("every fact links to a NASA page", () => {
+    for (const it of ITEMS) expect(it.source).toMatch(/^https:\/\/([a-z]+\.)*nasa\.gov\//);
+  });
+});

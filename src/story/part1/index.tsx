@@ -1,5 +1,6 @@
 // PART 1: prologue, crisis 1 (decisions 1-2) and the landing. Owned by Person 1.
 // Must ask exactly decisions 1 and 2 (onChoose twice), then call onDone().
+// After the landing, the base-building days (sols 1-3) play before onDone().
 //
 // A full-screen player in the look of the title page: the scene fills the
 // window, a slim dialogue bar sits at the bottom with Pip, and decisions are
@@ -13,7 +14,10 @@ import type { Choice, PartProps } from "../types";
 import { Part1Art } from "./art";
 import { PART1_BEATS, PART1_CHAPTERS, type Part1ArtKey } from "./content";
 import { LandingGame, type LandingResult } from "./landing";
+import { LandingMap } from "./landingMap";
+import { BuildDays } from "./build";
 import { Intro } from "./intro";
+import { TundeFace } from "./portraits";
 import { p1Sound } from "./sound";
 import "./part1.css";
 
@@ -26,6 +30,9 @@ const UI = {
   sound: { en: "Sound", bn: "সাউন্ড" },
   who: { pip: { en: "Pip", bn: "পিপ" }, tunde: { en: "Tunde · Engineer", bn: "তুন্দে · ইঞ্জিনিয়ার" }, mei: { en: "Mei · Doctor", bn: "মেই · ডাক্তার" }, earth: { en: "Earth", bn: "পৃথিবী" } },
 } as const;
+
+/** Decision 2, "Where should we land?": shown on a map of Mars. */
+const WHERE_TO_LAND = PART1_BEATS.findIndex((b, n) => b.kind === "decide" && PART1_BEATS.slice(0, n).some((x) => x.kind === "decide"));
 
 /** The touchdown line ("Rockets firing... touchdown!"), where the landing game plays. */
 const TOUCHDOWN = PART1_BEATS.findIndex((b) => b.art === "descentLand");
@@ -53,19 +60,6 @@ function SpeakerIcon({ on }: { on: boolean }) {
   );
 }
 
-/** Small portrait of Tunde in his helmet, drawn in code like Pip. */
-function TundeFace() {
-  return (
-    <svg className="story-p1-face" viewBox="0 0 64 64" role="img" aria-label="Tunde">
-      <circle cx="32" cy="32" r="30" fill="#1b2433" stroke="#f5c04a" strokeWidth="2" />
-      <circle cx="32" cy="30" r="18" fill="#e9ecf2" />
-      <path d="M18 30 A14 12 0 0 1 46 30 L46 33 A14 9 0 0 1 18 33 Z" fill="#c98a1f" />
-      <path d="M22 28 A10 8 0 0 1 32 22" fill="none" stroke="#ffe7a8" strokeWidth="2" strokeLinecap="round" />
-      <path d="M14 58 Q32 42 50 58" fill="#d7dbe3" />
-    </svg>
-  );
-}
-
 export function Part1({ lang, readAloud, reduceMotion, playerName, choices, onChoose, onDone }: PartProps) {
   const [i, setI] = useState(0);
   const [picked, setPicked] = useState<Choice | null>(null);
@@ -76,6 +70,9 @@ export function Part1({ lang, readAloud, reduceMotion, playerName, choices, onCh
   const [soundOn, setSoundOn] = useState(storedSound);
   // the backstory opening plays first, then the prologue
   const [introDone, setIntroDone] = useState(false);
+  // after the landing and its NASA fact, the crew builds the base (sols 1-3)
+  const [building, setBuilding] = useState(false);
+  const active = introDone && !building;
   const say = (l: Line) => fill(l[lang], playerName);
 
   const artKey = ([...PART1_BEATS.slice(0, i + 1)].reverse().find((b) => b.art)?.art ?? "ship") as Part1ArtKey;
@@ -87,9 +84,9 @@ export function Part1({ lang, readAloud, reduceMotion, playerName, choices, onCh
     p1Sound.unlock();
     p1Sound.tick();
     setPicked(null);
-    if (i + 1 >= PART1_BEATS.length) onDone();
+    if (i + 1 >= PART1_BEATS.length) setBuilding(true);
     else setI(i + 1);
-  }, [i, onDone]);
+  }, [i]);
 
   const choose = (c: Choice) => {
     if (picked) return;
@@ -159,7 +156,7 @@ export function Part1({ lang, readAloud, reduceMotion, playerName, choices, onCh
   }, [landed]);
 
   // Pip chirps when he speaks; the NASA fact gets a chime
-  const pipSpeaks = introDone && !landing && ((beat?.kind === "line" && beat.line.who === "pip") || (beat?.kind === "decide" && !picked));
+  const pipSpeaks = active && !landing && ((beat?.kind === "line" && beat.line.who === "pip") || (beat?.kind === "decide" && !picked));
   useEffect(() => {
     if (pipSpeaks) p1Sound.blip();
     if (beat?.kind === "fact") p1Sound.chime();
@@ -169,7 +166,7 @@ export function Part1({ lang, readAloud, reduceMotion, playerName, choices, onCh
   const canAdvance = beat && (beat.kind !== "decide" || picked !== null);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.ctrlKey || e.metaKey || e.altKey || !beat || landing || !introDone) return;
+      if (e.ctrlKey || e.metaKey || e.altKey || !beat || landing || !active) return;
       const k = e.key.toLowerCase();
       if (beat.kind === "decide" && !picked) {
         if (k === "a" || k === "1") choose("A");
@@ -189,10 +186,11 @@ export function Part1({ lang, readAloud, reduceMotion, playerName, choices, onCh
 
   const who = beat.kind === "line" ? beat.line.who : beat.kind === "decide" && !picked ? "pip" : undefined;
   const narration = !who && beat.kind !== "fact";
+  const mapOpen = active && beat.kind === "decide" && !picked && i === WHERE_TO_LAND;
   const text = spoken;
 
   return (
-    <div className={`story-p1${reduceMotion ? " story-p1-still" : ""}`} lang={lang === "bn" ? "bn" : "en"} onPointerDown={() => p1Sound.unlock()}>
+    <div className={`story-p1${reduceMotion ? " story-p1-still" : ""}${mapOpen ? " is-map" : ""}`} lang={lang === "bn" ? "bn" : "en"} onPointerDown={() => p1Sound.unlock()}>
       <div className="story-p1-scene" aria-hidden="true">
         <div className={`story-p1-scene-in${landed === "bumpy" && i === TOUCHDOWN ? " story-p1-anim-shake" : ""}`} key={artKey}>
           <Part1Art k={artKey} />
@@ -201,10 +199,11 @@ export function Part1({ lang, readAloud, reduceMotion, playerName, choices, onCh
       <div className="story-p1-vignette" aria-hidden="true" />
       {!introDone && <Intro lang={lang} reduceMotion={reduceMotion} soundOn={soundOn} onDone={() => setIntroDone(true)} />}
       {landing && <LandingGame lang={lang} reduceMotion={reduceMotion} onLanded={setLanded} />}
+      {building && <BuildDays lang={lang} reduceMotion={reduceMotion} onDone={onDone} />}
 
       <header className="story-p1-top">
-        {introDone && <span className="story-p1-brand">{UI.part[lang]}</span>}
-        {introDone && <span className="story-p1-tab">{chapter[lang]}</span>}
+        {active && <span className="story-p1-brand">{UI.part[lang]}</span>}
+        {active && <span className="story-p1-tab">{chapter[lang]}</span>}
         <span className="story-p1-switches">
           <button type="button" className="story-p1-switch" aria-pressed={soundOn} onClick={() => setSoundOn((v) => !v)} title={UI.sound[lang]}>
             <SpeakerIcon on={soundOn} />
@@ -213,7 +212,11 @@ export function Part1({ lang, readAloud, reduceMotion, playerName, choices, onCh
         </span>
       </header>
 
-      {introDone && !landing && beat.kind === "decide" && !picked && (
+      {active && beat.kind === "decide" && !picked && i === WHERE_TO_LAND && (
+        <LandingMap lang={lang} question={beat.question} a={beat.a} b={beat.b} fill={say} onPick={choose} />
+      )}
+
+      {active && !landing && beat.kind === "decide" && !picked && i !== WHERE_TO_LAND && (
         <div className="story-p1-options" role="group" aria-label={UI.choose[lang]}>
           {(["A", "B"] as Choice[]).map((c) => {
             const o = beat[c === "A" ? "a" : "b"];
@@ -230,7 +233,7 @@ export function Part1({ lang, readAloud, reduceMotion, playerName, choices, onCh
         </div>
       )}
 
-      {!introDone || landing ? null : beat.kind === "fact" ? (
+      {!active || landing ? null : beat.kind === "fact" ? (
         <section className="story-p1-fact" key={i}>
           <span className="story-p1-fact-head">{UI.fact[lang]}</span>
           <p>{text}</p>
