@@ -118,7 +118,7 @@ export function App() {
   const phase = PHASES.findIndex((p) => p.stages.includes(state.stage));
 
   return (
-    <div className={`app${state.settings.reduceMotion ? " reduce-motion" : ""}${state.stage === "sim" ? " app-sim" : ""}`}>
+    <div className={`app${state.settings.reduceMotion ? " reduce-motion" : ""}${state.stage === "sim" ? " app-sim" : ""}${state.stage === "story" ? " app-story" : ""}`}>
       {state.stage !== "title" && (
         <nav className="topbar" aria-label="Game controls">
           <span className="topbar-name">

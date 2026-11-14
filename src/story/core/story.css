@@ -1,14 +1,19 @@
 /* Shared layout for "14 Sols". FROZEN: parts style their own screens in their
    own CSS file, with class names prefixed story-p1-, story-p2-, story-p3-. */
 
-.story-screen { position: relative; max-width: none; min-height: 100vh; padding: 0; overflow: hidden; background: #050811; }
-.story-beats { position: relative; min-height: 100vh; display: flex; align-items: flex-end; }
+/* The story fills the screen below the app's top bar (no page scroll). */
+.app-story { height: 100%; min-height: 0; }
+.app-story .phases { display: none; }
+.app-story .topbar { min-height: 44px; padding-block: 4px; }
+.story-screen { position: relative; flex: 1; min-height: 0; max-width: none; padding: 0; overflow: hidden; background: #050811; }
+.story-beats { position: relative; flex: 1; min-height: 0; display: flex; align-items: flex-end; }
 .story-art { position: absolute; inset: 0; }
 .story-art svg { width: 100%; height: 100%; display: block; object-fit: cover; }
 .story-panel {
   position: relative; z-index: 1; width: min(720px, calc(100% - 32px)); margin: 0 auto 24px;
   padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; align-items: flex-start;
   background: rgba(5, 8, 17, 0.86); border: 1px solid var(--line, #2a3446); border-radius: 8px;
+  max-height: calc(100% - 20px); overflow-y: auto;
 }
 .story-who { font-family: var(--display); font-size: 14px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
 .story-text { margin: 0; font-size: 19px; line-height: 1.45; color: #f3f6ff; }
