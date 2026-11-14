@@ -1,3 +1,4 @@
+import { BN_MAP } from "../content/bn";
 import { LANDING_SITES, getSite } from "../content/landingSites";
 import type { SiteId } from "../engine/types";
 import { speak } from "../services/speech";
@@ -13,12 +14,15 @@ const MARKERS: Record<SiteId, { x: number; y: number; code: string }> = {
 };
 
 export function LandingMap({ state, dispatch }: ScreenProps) {
+  const bangla = state.settings.bangla;
+  const siteText = (id: SiteId) => (bangla ? BN_MAP.sites[id] : getSite(id));
   const pending = state.pendingSite ? getSite(state.pendingSite) : null;
   const isAllowed = (id: SiteId) => getSite(id).levels.includes(state.level);
 
   const pick = (id: SiteId) => {
     dispatch({ type: "PICK_SITE", site: id });
-    if (state.settings.readAloud) speak(`${getSite(id).name}. ${getSite(id).pitch}`);
+    const s = siteText(id);
+    if (state.settings.readAloud) speak(`${s.name}. ${s.pitch}`);
   };
 
   return (
@@ -86,7 +90,7 @@ export function LandingMap({ state, dispatch }: ScreenProps) {
       </div>
 
       <Dialogue
-        text={pending ? `${pending.name}: ${pending.pitch}` : "Tap a landing spot to see what it costs."}
+        text={pending ? `${siteText(pending.id).name}: ${siteText(pending.id).pitch}` : bangla ? BN_MAP.prompt : "Tap a landing spot to see what it costs."}
         mood="calm"
         readAloud={state.settings.readAloud}
         onNext={pending ? () => dispatch({ type: "CONFIRM_SITE" }) : undefined}

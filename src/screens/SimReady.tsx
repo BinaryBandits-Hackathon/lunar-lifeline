@@ -1,3 +1,4 @@
+import { BN_MAP } from "../content/bn";
 import { getRole } from "../content/roles";
 import { getSite } from "../content/landingSites";
 import { Dialogue } from "../ui/Dialogue";
@@ -41,7 +42,7 @@ export function SimReady({ state, dispatch }: ScreenProps) {
         </ul>
       </section>
       <Dialogue
-        text={`Systems are ready, ${state.player.name}. Your training on Mars starts now.`}
+        text={state.settings.bangla ? BN_MAP.ready(state.player.name) : `Systems are ready, ${state.player.name}. Your training on Mars starts now.`}
         mood="happy"
         form="rover"
         readAloud={state.settings.readAloud}

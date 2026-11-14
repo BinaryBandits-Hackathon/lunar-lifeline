@@ -69,9 +69,9 @@ export function isLastLine(state: GameState): boolean {
 /** Fills {name}, {role} and {delay} in a line of dialogue. */
 export function fillText(text: string, state: GameState): string {
   const bn = state.settings.bangla;
-  const role = state.player.role ? (bn ? BN_ROLE[state.player.role] : getRole(state.player.role).name.toLowerCase()) : bn ? "নভোচারী" : "astronaut";
+  const role = state.player.role ? (bn ? BN_ROLE[state.player.role] : getRole(state.player.role).name.toLowerCase()) : bn ? "অ্যাস্ট্রোনট" : "astronaut";
   return text
-    .replaceAll("{name}", state.player.name || (bn ? "নভোচারী" : "astronaut"))
+    .replaceAll("{name}", state.player.name || (bn ? "অ্যাস্ট্রোনট" : "astronaut"))
     .replaceAll("{role}", role)
     .replaceAll("{delay}", bn ? bnDigits(RADIO_DELAY_MIN) : String(RADIO_DELAY_MIN));
 }
