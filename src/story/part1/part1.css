@@ -1,1 +1,157 @@
-/* PART 1 styles. Owned by Person 1. Prefix classes with story-p1-. */
+/* PART 1 styles. Owned by Person 1. Prefix classes with story-p1-.
+   A full-window story view in the look of the title page: deep space,
+   Saira type, gold actions, thin blue rules. */
+
+.story-p1 {
+  --p1-gold: #f5c04a;
+  --p1-blue: #8fd0ff;
+  --p1-line: rgba(120, 180, 255, 0.28);
+  --p1-ink: #f3f6ff;
+  --p1-soft: #a9bde0;
+  position: fixed; inset: 0; z-index: 60; overflow: hidden;
+  background: #02040a; color: var(--p1-ink); font-family: var(--body);
+}
+
+/* the scene fills the whole window and cross-fades between pictures */
+.story-p1-scene, .story-p1-scene-in { position: absolute; inset: 0; }
+.story-p1-scene svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.story-p1-scene-in { animation: story-p1-fade 0.7s ease both; }
+.story-p1-vignette {
+  position: absolute; inset: 0; pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(2, 4, 10, 0.7) 0%, transparent 18%),
+    linear-gradient(0deg, rgba(2, 4, 10, 0.85) 0%, rgba(2, 4, 10, 0.4) 26%, transparent 46%);
+}
+
+/* top: part name on the left, chapter tab in the middle (like the title tab) */
+.story-p1-top { position: absolute; top: 0; left: 0; right: 0; display: flex; justify-content: center; pointer-events: none; }
+.story-p1-brand {
+  position: absolute; left: 20px; top: 14px;
+  font-family: var(--display); font-size: 15px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--p1-blue);
+}
+.story-p1-tab {
+  padding: 8px 44px 9px; font-family: var(--display); font-size: 17px; font-weight: 500; letter-spacing: 0.02em; color: var(--p1-gold);
+  border-bottom: 1px solid var(--p1-line);
+  background: linear-gradient(180deg, rgba(20, 40, 80, 0.6), rgba(10, 20, 40, 0));
+  clip-path: polygon(0 0, 100% 0, 92% 100%, 8% 100%);
+}
+
+/* bottom: the dialogue bar */
+.story-p1-dialogue, .story-p1-fact {
+  position: absolute; left: 50%; bottom: 24px; transform: translateX(-50%);
+  width: min(1040px, calc(100% - 32px));
+  display: flex; align-items: center; gap: 18px; padding: 16px 22px;
+  background: linear-gradient(180deg, rgba(6, 10, 22, 0.9), rgba(6, 10, 22, 0.78));
+  border: 1px solid var(--p1-line); border-radius: 8px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(6px);
+  animation: story-p1-rise 0.35s ease both;
+}
+.story-p1-avatar { flex: none; display: grid; place-items: center; width: 76px; height: 76px; border-radius: 50%; background: rgba(143, 208, 255, 0.08); border: 1px solid var(--p1-line); }
+.story-p1-face { width: 64px; height: 64px; }
+.story-p1-words { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.story-p1-who { font-family: var(--display); font-size: 16px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--p1-gold); }
+.story-p1-text { margin: 0; font-size: 22px; line-height: 1.4; color: var(--p1-ink); }
+.story-p1-dialogue.is-narration .story-p1-text { font-family: var(--display); font-size: 25px; font-weight: 500; color: #ffe3c4; letter-spacing: 0.01em; }
+
+.story-p1-next {
+  flex: none; background: none; border: 0; padding: 6px 4px; cursor: pointer;
+  font-family: var(--display); font-size: 28px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
+  color: var(--p1-gold); text-shadow: 0 0 18px rgba(245, 192, 74, 0.35);
+}
+.story-p1-next::after { content: " ▸"; }
+.story-p1-next:hover { color: #ffe08a; }
+.story-p1-next:focus-visible, .story-p1-option:focus-visible, .story-p1-source:focus-visible { outline: 2px solid var(--p1-gold); outline-offset: 4px; }
+
+/* decisions: two neutral cards, same weight and colour, never judged */
+.story-p1-options {
+  position: absolute; left: 50%; bottom: 150px; transform: translateX(-50%);
+  width: min(1040px, calc(100% - 32px));
+  display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+  animation: story-p1-rise 0.4s ease both;
+}
+.story-p1-option {
+  display: flex; align-items: flex-start; gap: 14px; padding: 16px 18px; text-align: left; cursor: pointer;
+  color: var(--p1-ink); background: rgba(6, 10, 22, 0.86); border: 1px solid var(--p1-line); border-radius: 8px;
+  backdrop-filter: blur(6px); transition: border-color 0.15s, transform 0.15s, background 0.15s;
+}
+.story-p1-option:hover { border-color: var(--p1-gold); background: rgba(16, 22, 40, 0.92); transform: translateY(-2px); }
+.story-p1-key {
+  flex: none; width: 40px; height: 36px; display: grid; place-items: center;
+  font-family: var(--display); font-size: 20px; font-weight: 600; color: var(--p1-gold);
+  background: rgba(245, 192, 74, 0.1);
+  clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%);
+}
+.story-p1-option-text { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.story-p1-option-text strong { font-family: var(--display); font-size: 25px; font-weight: 500; line-height: 1.1; }
+.story-p1-option-text span { font-size: 16px; line-height: 1.35; color: var(--p1-soft); }
+
+/* the NASA fact card */
+.story-p1-fact { flex-direction: column; align-items: stretch; gap: 8px; width: min(820px, calc(100% - 32px)); border-left: 3px solid var(--p1-gold); }
+.story-p1-fact-head { font-family: var(--display); font-size: 16px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--p1-blue); }
+.story-p1-fact p { margin: 0; font-size: 22px; line-height: 1.4; }
+.story-p1-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.story-p1-source { color: var(--p1-blue); font-size: 16px; text-decoration: none; border-bottom: 1px solid var(--p1-line); }
+.story-p1-source:hover { color: var(--p1-ink); }
+
+/* motion (all switched off for reduce motion below) */
+@keyframes story-p1-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes story-p1-rise { from { opacity: 0; transform: translate(-50%, 12px); } to { opacity: 1; transform: translate(-50%, 0); } }
+@keyframes story-p1-twinkle { 0%, 100% { opacity: 0.9; } 50% { opacity: 0.25; } }
+@keyframes story-p1-alarm { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+@keyframes story-p1-shake {
+  0%, 100% { transform: translate(0, 0); }
+  15% { transform: translate(-14px, 6px); } 30% { transform: translate(12px, -8px); }
+  45% { transform: translate(-8px, 4px); } 60% { transform: translate(6px, -2px); } 80% { transform: translate(-2px, 1px); }
+}
+@keyframes story-p1-gas { from { transform: translate(0, 0); opacity: 0.95; } to { transform: translate(-40px, 70px); opacity: 0.2; } }
+@keyframes story-p1-flicker { 0%, 100% { opacity: 1; } 40% { opacity: 0.78; } 70% { opacity: 0.92; } }
+@keyframes story-p1-sway { 0%, 100% { transform: rotate(-2.5deg); } 50% { transform: rotate(2.5deg); } }
+
+.story-p1-anim-twinkle { animation: story-p1-twinkle 2.6s ease-in-out infinite; }
+.story-p1-anim-alarm { animation: story-p1-alarm 0.9s steps(2, jump-none) infinite; }
+.story-p1-anim-shake { animation: story-p1-shake 0.7s ease-out 1; }
+.story-p1-anim-gas { animation: story-p1-gas 2.4s ease-out infinite; }
+.story-p1-anim-flicker { animation: story-p1-flicker 0.35s linear infinite; }
+.story-p1-anim-sway { transform-box: view-box; transform-origin: 800px 0; animation: story-p1-sway 4s ease-in-out infinite; }
+
+.story-p1-still .story-p1-scene-in,
+.story-p1-still .story-p1-dialogue,
+.story-p1-still .story-p1-fact,
+.story-p1-still .story-p1-options,
+.story-p1-still [class*="story-p1-anim-"] { animation: none !important; }
+.story-p1-still .story-p1-option:hover { transform: none; }
+
+/* 1024x768: a little tighter */
+@media (max-width: 1100px) {
+  .story-p1-text { font-size: 20px; }
+  .story-p1-option-text strong { font-size: 22px; }
+}
+
+/* phone held sideways (812x375) and other short screens */
+@media (max-height: 520px) {
+  .story-p1-tab { font-size: 14px; padding: 5px 30px 6px; }
+  .story-p1-brand { display: none; }
+  .story-p1-dialogue, .story-p1-fact { bottom: 10px; padding: 10px 14px; gap: 12px; }
+  .story-p1-avatar { width: 52px; height: 52px; }
+  .story-p1-avatar svg { width: 44px; height: auto; }
+  .story-p1-text, .story-p1-fact p { font-size: 16px; line-height: 1.35; }
+  .story-p1-dialogue.is-narration .story-p1-text { font-size: 18px; }
+  .story-p1-who, .story-p1-fact-head { font-size: 13px; }
+  .story-p1-next { font-size: 21px; }
+  .story-p1-options { bottom: 92px; gap: 10px; }
+  .story-p1-option { padding: 10px 12px; gap: 10px; }
+  .story-p1-key { width: 32px; height: 28px; font-size: 16px; }
+  .story-p1-option-text strong { font-size: 18px; }
+  .story-p1-option-text span { font-size: 13px; }
+}
+
+/* narrow portrait screens: stack the options */
+@media (max-width: 640px) {
+  .story-p1-options { grid-template-columns: 1fr; bottom: 170px; }
+  .story-p1-dialogue { flex-wrap: wrap; }
+  .story-p1-next { margin-left: auto; }
+}
+
+/* while Part 1 covers the window, the page behind it should not scroll */
+html:has(.story-p1), body:has(.story-p1) { overflow: hidden; }

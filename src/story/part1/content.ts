@@ -1,15 +1,30 @@
 // PART 1 text: prologue, crisis 1 (decisions 1-2) and the landing.
 // Owned by Person 1. English must match docs/design/04-story-plan.md exactly.
-// Bangla is a first draft in everyday style; Person 1 reviews it.
+// Bangla: everyday spoken style (master section 9).
 
 import type { Beat } from "../core/Beats";
+
+/**
+ * Art keys used by this part. Each beat with `art` switches the scene; beats
+ * without it keep the last scene. The descent has three stages so the picture
+ * follows the three landing lines.
+ */
+export type Part1ArtKey = "ship" | "shipHit" | "orbit" | "descentHeat" | "descentChute" | "descentLand";
+
+/** A chapter label shown at the top while these beats play. */
+export interface Chapter {
+  /** Index of the first beat in this chapter. */
+  from: number;
+  en: string;
+  bn: string;
+}
 
 export const PART1_BEATS: Beat[] = [
   // Prologue
   { kind: "line", art: "ship", line: { who: "pip", en: "Good morning, {name}! Day 412 of our mission. We are orbiting Mars.", bn: "গুড মর্নিং, {name}! আমাদের মিশনের ৪১২ নম্বর দিন। আমরা এখন মঙ্গলের চারপাশে ঘুরছি।" } },
   { kind: "line", line: { who: "pip", en: "Tomorrow we start the long trip home to Earth.", bn: "কালকে আমরা পৃথিবীতে ফেরার লম্বা জার্নি শুরু করব।" } },
-  { kind: "line", line: { en: "CRACK! A tiny meteoroid, smaller than a pea, smashes into the ship at 10 kilometres a second.", bn: "ঠাস! মটরদানার চেয়েও ছোট একটা উল্কা সেকেন্ডে ১০ কিলোমিটার স্পিডে স্পেসশিপে এসে লাগল।" } },
-  { kind: "line", line: { who: "tunde", en: "The main engine is dead! And an oxygen tank is leaking!", bn: "মেইন ইঞ্জিন বন্ধ হয়ে গেছে! আর একটা অক্সিজেন ট্যাংক লিক করছে!" } },
+  { kind: "line", art: "shipHit", line: { en: "CRACK! A tiny meteoroid, smaller than a pea, smashes into the ship at 10 kilometres a second.", bn: "ঠাস! মটরদানার চেয়েও ছোট একটা উল্কা সেকেন্ডে ১০ কিলোমিটার স্পিডে স্পেসশিপে এসে লাগল।" } },
+  { kind: "line", line: { who: "tunde", en: "The main engine is dead! And an oxygen tank is leaking!", bn: "ওহ নো! মেইন ইঞ্জিন বন্ধ হয়ে গেছে! আর একটা অক্সিজেন ট্যাংক লিক করছে!" } },
   { kind: "line", line: { who: "pip", en: "There is one way home. Years ago NASA landed an empty return rocket on Mars, ready for a crew like us. It can make its own fuel from Mars air and water.", bn: "বাসায় ফেরার একটাই রাস্তা আছে। অনেক বছর আগে নাসা মঙ্গলে একটা খালি রিটার্ন রকেট নামিয়ে রেখেছিল, আমাদের মতো ক্রুদের জন্য। ওটা মঙ্গলের বাতাস আর পানি দিয়ে নিজের ফুয়েল নিজেই বানাতে পারে।" } },
   { kind: "line", line: { who: "pip", en: "But Earth and Mars line up for the trip home only once every 26 months. Our window closes in 14 sols. A sol is one day on Mars.", bn: "কিন্তু বাসায় ফেরার জন্য পৃথিবী আর মঙ্গল ঠিক লাইনে আসে ২৬ মাসে মাত্র একবার। আমাদের হাতে আছে ১৪ সোল। সোল মানে মঙ্গলের এক দিন।" } },
 
@@ -45,13 +60,19 @@ export const PART1_BEATS: Beat[] = [
   },
 
   // Landing
-  { kind: "line", art: "descent", line: { who: "pip", en: "Heat shield on! The air outside glows hot.", bn: "হিট শিল্ড অন! বাইরের বাতাস গরমে জ্বলছে।" } },
-  { kind: "line", line: { who: "pip", en: "Parachute open!", bn: "প্যারাশুট খুলে গেছে!" } },
-  { kind: "line", line: { who: "pip", en: "Rockets firing... touchdown!", bn: "রকেট চালু... ল্যান্ডিং ডান!" } },
+  { kind: "line", art: "descentHeat", line: { who: "pip", en: "Heat shield on! The air outside glows hot.", bn: "হিট শিল্ড অন! বাইরের বাতাস গরমে লাল হয়ে জ্বলছে।" } },
+  { kind: "line", art: "descentChute", line: { who: "pip", en: "Parachute open!", bn: "প্যারাশুট খুলে গেছে!" } },
+  { kind: "line", art: "descentLand", line: { who: "pip", en: "Rockets firing... touchdown!", bn: "রকেট চালু... ল্যান্ডিং ডান!" } },
 
   {
     kind: "fact",
-    fact: { en: "Space Station crews have tracked down and fixed real air leaks in space.", bn: "স্পেস স্টেশনের অ্যাস্ট্রোনটরা সত্যি সত্যি মহাকাশে বাতাসের লিক খুঁজে বের করে ঠিক করেছে।" },
+    fact: { en: "Space Station crews have tracked down and fixed real air leaks in space.", bn: "স্পেস স্টেশনের অ্যাস্ট্রোনটরা সত্যি সত্যি স্পেসে বাতাসের লিক খুঁজে বের করে ঠিক করেছে।" },
     source: "https://blogs.nasa.gov/spacestation/2020/09/29/crew-continues-troubleshooting-as-tests-isolate-small-leak",
   },
+];
+
+export const PART1_CHAPTERS: Chapter[] = [
+  { from: 0, en: "Prologue · Aboard the ship", bn: "শুরু · স্পেসশিপের ভেতরে" },
+  { from: 6, en: "Crisis 1 · The broken ship · Sol 0", bn: "বিপদ ১ · ভাঙা স্পেসশিপ · সোল ০" },
+  { from: 9, en: "The landing", bn: "ল্যান্ডিং" },
 ];
