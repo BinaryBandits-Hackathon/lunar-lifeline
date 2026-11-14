@@ -1,3 +1,4 @@
+import { BN_STORY, bnSent } from "../content/bn";
 import { RADIO_DELAY_MIN } from "../content/script";
 import type { SimState } from "./types";
 
@@ -38,17 +39,19 @@ function crewLine(sim: SimState): StoryBeat["crew"] {
 }
 
 /** Messages from Earth on a few sols. They always arrive late: the radio delay is real. */
-function earthMessage(sim: SimState): StoryBeat["earth"] {
-  const late = `sent ${RADIO_DELAY_MIN} minutes ago`;
+function earthMessage(sim: SimState, bangla: boolean): StoryBeat["earth"] {
+  const late = bangla ? bnSent(RADIO_DELAY_MIN) : `sent ${RADIO_DELAY_MIN} minutes ago`;
+  const w = (en: string) => (bangla ? (BN_STORY[en] ?? en) : en);
   const last = sim.totalSols;
-  if (sim.sol === 1) return { from: `Mission Control (${late})`, text: "We saw your landing on our screens. The whole room cheered! You're in charge now: we can't answer fast enough to help." };
-  if (sim.sol === 2) return { from: `${sim.crew[1]?.name ?? "Mei"}'s family (${late})`, text: "We put a photo of you on the fridge. The cat sits next to it every day." };
+  if (sim.sol === 1) return { from: `${w("Mission Control")} (${late})`, text: w("We saw your landing on our screens. The whole room cheered! You're in charge now: we can't answer fast enough to help.") };
+  if (sim.sol === 2) return { from: bangla ? `${sim.crew[1]?.name ?? "Mei"}-এর ${w("family")} (${late})` : `${sim.crew[1]?.name ?? "Mei"}'s family (${late})`, text: w("We put a photo of you on the fridge. The cat sits next to it every day.") };
   if (sim.storm.kind === "solar" && sim.sol === sim.storm.sol - 1)
-    return { from: `NASA space weather team (${late})`, text: "A burst of fast particles left the Sun. It reaches Mars tomorrow. Stay in the shelter." };
-  if (sim.sol === last - 1) return { from: `A school on Earth (${late})`, text: "Our class follows your mission every morning. What does Mars smell like?" };
+    return { from: `${w("NASA space weather team")} (${late})`, text: w("A burst of fast particles left the Sun. It reaches Mars tomorrow. Stay in the shelter.") };
+  if (sim.sol === last - 1) return { from: `${w("A school on Earth")} (${late})`, text: w("Our class follows your mission every morning. What does Mars smell like?") };
   return null;
 }
 
-export function storyFor(sim: SimState): StoryBeat {
-  return { crew: crewLine(sim), earth: earthMessage(sim) };
+export function storyFor(sim: SimState, bangla = false): StoryBeat {
+  const crew = crewLine(sim);
+  return { crew: crew && bangla ? { ...crew, line: BN_STORY[crew.line] ?? crew.line } : crew, earth: earthMessage(sim, bangla) };
 }

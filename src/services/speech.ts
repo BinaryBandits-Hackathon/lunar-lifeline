@@ -10,6 +10,13 @@ const PREFERRED = [/natural/i, /Samantha/i, /Ava/i, /Aria|Jenny|Libby|Sonia|Zira
 const AVOID = /espeak|robot|whisper|zarvox|bad news|bells|bubbles|cellos|trinoids|organ|albert/i;
 
 let chosen: SpeechSynthesisVoice | null | undefined;
+let language: "en" | "bn" = "en";
+
+/** Bangla narration needs a Bangla voice on the device; without one, captions only. */
+export function setSpeechLanguage(lang: "en" | "bn"): void {
+  if (lang !== language) chosen = undefined;
+  language = lang;
+}
 
 export function canSpeak(): boolean {
   return typeof window !== "undefined" && "speechSynthesis" in window;
@@ -18,7 +25,7 @@ export function canSpeak(): boolean {
 function pickVoice(): SpeechSynthesisVoice | null {
   const voices = window.speechSynthesis
     .getVoices()
-    .filter((v) => v.localService && v.lang.toLowerCase().startsWith("en") && !AVOID.test(v.name));
+    .filter((v) => v.localService && v.lang.toLowerCase().startsWith(language) && !AVOID.test(v.name));
   if (voices.length === 0) return null;
   for (const pattern of PREFERRED) {
     const v = voices.find((x) => pattern.test(x.name));
@@ -40,6 +47,7 @@ export function speak(text: string): void {
     const synth = window.speechSynthesis;
     if (chosen === undefined || chosen === null) chosen = pickVoice();
     synth.cancel();
+    if (!chosen && language === "bn") return;
     const u = new SpeechSynthesisUtterance(text);
     if (chosen) {
       u.voice = chosen;

@@ -1,3 +1,4 @@
+import { BN_LINES, BN_ROLE, bnDigits } from "../content/bn";
 import { getRole } from "../content/roles";
 import { getSite, sitesForLevel } from "../content/landingSites";
 import { DAMAGE_LINES, RADIO_DELAY_MIN, SCRIPT } from "../content/script";
@@ -13,7 +14,7 @@ export const NAME_MAX = 16;
 const DEFAULT_PROGRESS: SavedProgress = {
   level: "cadet",
   player: { name: "", role: null },
-  settings: { readAloud: false, reduceMotion: false, sound: true },
+  settings: { readAloud: false, reduceMotion: false, sound: true, bangla: false },
   seenIntro: false,
   career: EMPTY_CAREER,
 };
@@ -56,7 +57,9 @@ export function linesFor(state: GameState): DialogueLine[] {
 }
 
 export function currentLine(state: GameState): DialogueLine | null {
-  return linesFor(state)[state.lineIndex] ?? null;
+  const line = linesFor(state)[state.lineIndex] ?? null;
+  const bn = line && state.settings.bangla ? BN_LINES[line.text] : undefined;
+  return line && bn ? { ...line, text: bn } : line;
 }
 
 export function isLastLine(state: GameState): boolean {
@@ -65,11 +68,12 @@ export function isLastLine(state: GameState): boolean {
 
 /** Fills {name}, {role} and {delay} in a line of dialogue. */
 export function fillText(text: string, state: GameState): string {
-  const role = state.player.role ? getRole(state.player.role).name.toLowerCase() : "astronaut";
+  const bn = state.settings.bangla;
+  const role = state.player.role ? (bn ? BN_ROLE[state.player.role] : getRole(state.player.role).name.toLowerCase()) : bn ? "নভোচারী" : "astronaut";
   return text
-    .replaceAll("{name}", state.player.name || "astronaut")
+    .replaceAll("{name}", state.player.name || (bn ? "নভোচারী" : "astronaut"))
     .replaceAll("{role}", role)
-    .replaceAll("{delay}", String(RADIO_DELAY_MIN));
+    .replaceAll("{delay}", bn ? bnDigits(RADIO_DELAY_MIN) : String(RADIO_DELAY_MIN));
 }
 
 export function canSkipIntro(state: GameState): boolean {

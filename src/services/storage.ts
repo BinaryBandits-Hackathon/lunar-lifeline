@@ -26,6 +26,7 @@ export function loadProgress(): Partial<SavedProgress> | undefined {
         readAloud: d.settings.readAloud === true,
         reduceMotion: d.settings.reduceMotion === true,
         sound: d.settings.sound !== false,
+        bangla: d.settings.bangla === true,
       };
     }
     if (typeof d.seenIntro === "boolean") out.seenIntro = d.seenIntro;

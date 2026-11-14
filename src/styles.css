@@ -21,8 +21,8 @@
   --good: #5ee08a;
   --bad: #ff7a6e;
   /* One font family across the whole game: clean, condensed, sci-fi (Saira). */
-  --display: "Saira Condensed", "Arial Narrow", system-ui, sans-serif;
-  --body: "Saira Semi Condensed", "Segoe UI", system-ui, sans-serif;
+  --display: "Saira Condensed", "Noto Sans Bengali", "Arial Narrow", system-ui, sans-serif;
+  --body: "Saira Semi Condensed", "Noto Sans Bengali", "Segoe UI", system-ui, sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, monospace; /* fixed-width so gauge numbers do not jitter */
   --r: 6px;
 }

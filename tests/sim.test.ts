@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createInitialState, next } from "../src/engine/flow";
+import { createInitialState, currentLine, fillText, next } from "../src/engine/flow";
 import type { Action, GameState, Level, RoleId, SiteId } from "../src/engine/types";
 import { assignTask, chooseEvent, createSim, nextSol, planPlot, powerForecast, runSol, stormStatus, summarize, toggleMachine } from "../src/sim/engine";
 import type { SimState } from "../src/sim/types";
@@ -284,5 +284,34 @@ describe("Commander missions with every real solar particle storm", () => {
     const extra = (strength: number) => rows.filter((r) => sepStrength(r.storm) === strength).map((r) => maxDose(r.risky) - maxDose(r.safe));
     const avg = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / Math.max(1, xs.length);
     expect(avg(extra(6))).toBeGreaterThan(avg(extra(4)));
+  });
+});
+
+import { BN_LINES } from "../src/content/bn";
+import { SCRIPT, DAMAGE_LINES } from "../src/content/script";
+describe("Bangla narration", () => {
+  const bengali = /[ঀ-৿]/;
+  it("every opening line has a Bangla version", () => {
+    const lines = [...Object.values(SCRIPT).flat(), ...Object.values(DAMAGE_LINES).flat()];
+    for (const l of lines) expect(BN_LINES[l!.text], l!.text).toMatch(bengali);
+  });
+  it("every crew line and Earth message is shown in Bangla when chosen", () => {
+    for (let seed = 1; seed <= 30; seed++) {
+      let sim = createSim(landed("commander"), seed);
+      for (let i = 0; i < 10 && sim.mode !== "ended"; i++) {
+        if (sim.eventId) sim = chooseEvent(sim, 0);
+        sim = runSol(sim);
+        const b = storyFor(sim, true);
+        if (b.crew) expect(b.crew.line, b.crew.line).toMatch(bengali);
+        if (b.earth) expect(b.earth.text).toMatch(bengali);
+        sim = nextSol(sim);
+      }
+    }
+  });
+  it("Pip's lines switch to Bangla in the opening", () => {
+    let s = next(createInitialState({ settings: { readAloud: false, reduceMotion: false, sound: true, bangla: true } }), { type: "START" });
+    s = [{ type: "SET_NAME", name: "Nova" }, { type: "PICK_ROLE", role: "engineer" }, { type: "NEXT" }].reduce((a, x) => next(a, x as Action), s);
+    expect(fillText(currentLine(s)!.text, s)).toContain("Nova");
+    expect(fillText(currentLine(s)!.text, s)).toMatch(bengali);
   });
 });

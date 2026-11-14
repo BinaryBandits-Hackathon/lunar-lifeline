@@ -78,6 +78,8 @@ export interface Settings {
   readAloud: boolean;
   reduceMotion: boolean;
   sound: boolean;
+  /** Pip's narration and the crew story in Bangla (buttons stay in English). */
+  bangla: boolean;
 }
 
 export interface Player {

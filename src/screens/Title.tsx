@@ -73,6 +73,17 @@ export function Title({ state, dispatch }: ScreenProps) {
             </span>
           </li>
           <li>
+            <span className="row-key">Language</span>
+            <span className="row-choice" role="group" aria-label="Language for Pip and the crew">
+              <button type="button" aria-pressed={!settings.bangla} onClick={() => dispatch({ type: "SET_SETTING", key: "bangla", value: false })}>
+                English
+              </button>
+              <button type="button" lang="bn" aria-pressed={settings.bangla} onClick={() => dispatch({ type: "SET_SETTING", key: "bangla", value: true })}>
+                বাংলা
+              </button>
+            </span>
+          </li>
+          <li>
             <span className="row-key">Read to me</span>
             <button type="button" className="row-value" aria-pressed={settings.readAloud} disabled={!canSpeak()} onClick={() => toggle("readAloud")}>
               {!canSpeak() ? "Not available" : settings.readAloud ? "On" : "Off"}

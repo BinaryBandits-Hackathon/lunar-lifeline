@@ -47,10 +47,13 @@ Add a drill to `DRILLS` in `src/content/academy.ts`: 3 questions, each with one 
 ### Change what unlocks when
 Edit `UNLOCK_SOL` in `src/sim/unlocks.ts`. Cadet must have everything open before its last sol (a test checks this).
 
+### Bangla text
+Pip's narration, hints and the crew story have Bangla versions in `src/content/bn.ts`. When you add or change an English line there, add the Bangla line too (a test fails if an opening line has no Bangla). Buttons stay in English; Bangla hints name them in quotes.
+
 ### Refresh the NASA storms
 Get a free key at https://api.nasa.gov, then:
 ```bash
-NASA_API_KEY=your_key npm run fetch:storms -- 2023-01-01 2025-12-31
+NASA_API_KEY=your_key npm run fetch:sep -- 2021-01-01 2025-12-31
 ```
 Never commit the key.
 
