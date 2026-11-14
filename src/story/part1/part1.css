@@ -257,3 +257,76 @@ html:has(.story-p1), body:has(.story-p1) { overflow: hidden; }
 /* the lander's ramp lowering after touchdown */
 .story-p1-anim-ramp { transform-box: fill-box; transform-origin: 20% 0; animation: story-p1-ramp 0.9s cubic-bezier(0.3, 1.4, 0.5, 1) 0.4s both; }
 @keyframes story-p1-ramp { from { transform: scaleY(0.05); opacity: 0.6; } to { transform: scaleY(1); opacity: 1; } }
+
+/* ---------- the opening: backstory told like a short documentary ---------- */
+.story-p1i { position: absolute; inset: 0; z-index: 1; background: #02040a; cursor: pointer; overflow: hidden; }
+.story-p1i-shot { position: absolute; inset: 0; animation: story-p1i-in 1.4s ease both, story-p1i-drift 16s ease-out both; transform-origin: 50% 50%; }
+.story-p1i-shot > svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+@keyframes story-p1i-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes story-p1i-drift { from { transform: scale(1.07); } to { transform: scale(1); } }
+
+.story-p1i-bar { position: absolute; left: 0; right: 0; height: 9vh; background: #000; z-index: 2; pointer-events: none; }
+.story-p1i-bar.top { top: 0; }
+.story-p1i-bar.bottom { bottom: 0; }
+.story-p1i-kicker {
+  position: absolute; z-index: 3; left: 22px; top: calc(4.5vh - 9px);
+  font-family: var(--display); font-size: 15px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--p1-blue);
+}
+.story-p1i-caption {
+  position: absolute; z-index: 3; left: 50%; bottom: calc(9vh + 22px); transform: translateX(-50%);
+  width: min(920px, calc(100% - 40px)); margin: 0; text-align: center;
+  font-family: var(--body); font-size: 26px; line-height: 1.45; color: #f6f1ea;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.9), 0 0 2px rgba(0, 0, 0, 0.8);
+  animation: story-p1i-caption 1.2s ease 0.5s both;
+}
+@keyframes story-p1i-caption { from { opacity: 0; transform: translate(-50%, 8px); } to { opacity: 1; transform: translate(-50%, 0); } }
+.story-p1i-controls {
+  position: absolute; z-index: 3; left: 0; right: 0; bottom: 0; height: 9vh;
+  display: flex; align-items: center; justify-content: center; padding: 0 22px;
+}
+.story-p1i-dots { display: flex; gap: 8px; }
+.story-p1i-dots i { width: 22px; height: 3px; border-radius: 2px; background: rgba(143, 208, 255, 0.25); }
+.story-p1i-dots i.seen { background: rgba(143, 208, 255, 0.6); }
+.story-p1i-dots i.on { background: var(--p1-gold); }
+.story-p1i-skip {
+  position: absolute; right: 22px; top: 50%; transform: translateY(-50%);
+  background: none; border: 0; padding: 6px 4px; cursor: pointer;
+  font-family: var(--display); font-size: 17px; letter-spacing: 0.08em; text-transform: uppercase; color: #b9cdf0;
+}
+.story-p1i-skip:hover { color: var(--p1-gold); }
+.story-p1i-skip:focus-visible { outline: 2px solid var(--p1-gold); outline-offset: 3px; }
+
+/* the crew, appearing one by one */
+.story-p1i-crew { position: absolute; inset: 9vh 0 calc(9vh + 110px); display: flex; align-items: center; justify-content: center; gap: clamp(16px, 4vw, 56px); }
+.story-p1i-crew figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 10px; animation: story-p1i-crew 1s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.story-p1i-face { width: clamp(84px, 11vw, 140px); height: auto; filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.6)); }
+.story-p1i-pip { width: clamp(84px, 11vw, 140px); aspect-ratio: 1; display: grid; place-items: center; border-radius: 50%; background: #121a28; border: 3px solid var(--p1-blue); }
+.story-p1i-crew figcaption { font-family: var(--display); font-size: clamp(15px, 1.6vw, 20px); letter-spacing: 0.04em; color: var(--p1-gold); text-align: center; }
+@keyframes story-p1i-crew { from { opacity: 0; transform: translateY(18px) scale(0.95); } to { opacity: 1; transform: none; } }
+
+/* moving parts inside the shots */
+.story-p1i-anim-launch { animation: story-p1i-launch 7s ease-out both; }
+@keyframes story-p1i-launch { from { opacity: 0; transform: translate(-60px, 80px); } 20% { opacity: 1; } to { opacity: 1; transform: translate(0, 0); } }
+.story-p1i-anim-turn { transform-box: view-box; transform-origin: 800px 450px; animation: story-p1i-turn 14s ease-in-out both; }
+@keyframes story-p1i-turn { from { transform: scale(0.94); } to { transform: scale(1.02); } }
+.story-p1i-anim-glint { animation: story-p1i-glint 4s ease-in-out infinite; }
+@keyframes story-p1i-glint { 0%, 100% { opacity: 0.15; } 50% { opacity: 1; } }
+.story-p1i-anim-found { opacity: 0; animation: story-p1i-found 0.8s ease forwards; }
+@keyframes story-p1i-found { from { opacity: 0; } to { opacity: 1; } }
+.story-p1i-anim-scan { animation: story-p1i-scan 7s ease-in-out infinite alternate; }
+@keyframes story-p1i-scan { from { transform: translateX(-280px); } to { transform: translateX(280px); } }
+.story-p1i-anim-map { animation: story-p1i-in 3s ease both; }
+
+/* reduce motion: calm still shots, everything simply visible */
+.story-p1-still .story-p1i-shot,
+.story-p1-still .story-p1i-caption,
+.story-p1-still .story-p1i-crew figure,
+.story-p1-still [class*="story-p1i-anim-"] { animation: none !important; }
+.story-p1-still .story-p1i-anim-found { opacity: 1; }
+
+@media (max-height: 520px) {
+  .story-p1i-caption { font-size: 17px; bottom: calc(9vh + 10px); }
+  .story-p1i-kicker { font-size: 12px; }
+  .story-p1i-skip { font-size: 14px; }
+  .story-p1i-crew { inset: 9vh 0 calc(9vh + 70px); }
+}

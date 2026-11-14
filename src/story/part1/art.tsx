@@ -7,7 +7,7 @@ import type { CSSProperties, ReactNode } from "react";
 import type { Part1ArtKey } from "./content";
 
 /** Deterministic star field so the sky never jumps between renders. */
-function Stars({ n = 90, seed = 7, maxY = 900 }: { n?: number; seed?: number; maxY?: number }) {
+export function Stars({ n = 90, seed = 7, maxY = 900 }: { n?: number; seed?: number; maxY?: number }) {
   let s = seed;
   const rnd = () => (s = (s * 9301 + 49297) % 233280) / 233280;
   return (
@@ -21,7 +21,7 @@ function Stars({ n = 90, seed = 7, maxY = 900 }: { n?: number; seed?: number; ma
 }
 
 /** Stars that slide slowly past, as seen from a ship in orbit. Two copies loop seamlessly. */
-function DriftingStars({ n, seed, maxY = 900 }: { n: number; seed: number; maxY?: number }) {
+export function DriftingStars({ n, seed, maxY = 900 }: { n: number; seed: number; maxY?: number }) {
   return (
     <g className="story-p1-anim-stardrift">
       <Stars n={n} seed={seed} maxY={maxY} />
@@ -36,7 +36,7 @@ function DriftingStars({ n, seed, maxY = 900 }: { n: number; seed: number; maxY?
  * Small particles that float and fade on a loop: dust in the cabin light,
  * sparks, embers. Each one has its own path, speed and start time.
  */
-function Particles({
+export function Particles({
   n,
   seed,
   box,
@@ -85,7 +85,7 @@ function Particles({
 }
 
 /** Mars as a lit globe: surface, dark regions, polar cap, night side and air glow. */
-function MarsGlobe({ cx, cy, r, id }: { cx: number; cy: number; r: number; id: string }) {
+export function MarsGlobe({ cx, cy, r, id }: { cx: number; cy: number; r: number; id: string }) {
   return (
     <g>
       <defs>

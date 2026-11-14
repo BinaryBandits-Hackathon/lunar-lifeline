@@ -13,6 +13,7 @@ import type { Choice, PartProps } from "../types";
 import { Part1Art } from "./art";
 import { PART1_BEATS, PART1_CHAPTERS, type Part1ArtKey } from "./content";
 import { LandingGame, type LandingResult } from "./landing";
+import { Intro } from "./intro";
 import { p1Sound } from "./sound";
 import "./part1.css";
 
@@ -73,6 +74,8 @@ export function Part1({ lang, readAloud, reduceMotion, playerName, choices, onCh
   const beat = PART1_BEATS[i];
   const landing = i === TOUCHDOWN && landed === null;
   const [soundOn, setSoundOn] = useState(storedSound);
+  // the backstory opening plays first, then the prologue
+  const [introDone, setIntroDone] = useState(false);
   const say = (l: Line) => fill(l[lang], playerName);
 
   const artKey = ([...PART1_BEATS.slice(0, i + 1)].reverse().find((b) => b.art)?.art ?? "ship") as Part1ArtKey;
@@ -107,8 +110,8 @@ export function Part1({ lang, readAloud, reduceMotion, playerName, choices, onCh
           : say(beat.question);
 
   useEffect(() => {
-    if (readAloud && spoken && !landing) speak(spoken);
-  }, [spoken, readAloud, landing]);
+    if (readAloud && spoken && !landing && introDone) speak(spoken);
+  }, [spoken, readAloud, landing, introDone]);
   useEffect(() => () => stopSpeaking(), []);
 
   // ---------- sound ----------
@@ -124,6 +127,7 @@ export function Part1({ lang, readAloud, reduceMotion, playerName, choices, onCh
 
   // each scene has its own background sound, plus the big moments
   useEffect(() => {
+    if (!introDone) return;
     if (artKey === "ship") p1Sound.bed("ship");
     if (artKey === "shipHit") {
       p1Sound.bed("ship");
@@ -141,7 +145,7 @@ export function Part1({ lang, readAloud, reduceMotion, playerName, choices, onCh
       p1Sound.chute();
       p1Sound.bed("wind");
     }
-  }, [artKey]);
+  }, [artKey, introDone]);
 
   // the hiss follows the story: louder after "Land right away", gone after the patch
   useEffect(() => {
@@ -155,7 +159,7 @@ export function Part1({ lang, readAloud, reduceMotion, playerName, choices, onCh
   }, [landed]);
 
   // Pip chirps when he speaks; the NASA fact gets a chime
-  const pipSpeaks = !landing && ((beat?.kind === "line" && beat.line.who === "pip") || (beat?.kind === "decide" && !picked));
+  const pipSpeaks = introDone && !landing && ((beat?.kind === "line" && beat.line.who === "pip") || (beat?.kind === "decide" && !picked));
   useEffect(() => {
     if (pipSpeaks) p1Sound.blip();
     if (beat?.kind === "fact") p1Sound.chime();
@@ -165,7 +169,7 @@ export function Part1({ lang, readAloud, reduceMotion, playerName, choices, onCh
   const canAdvance = beat && (beat.kind !== "decide" || picked !== null);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.ctrlKey || e.metaKey || e.altKey || !beat || landing) return;
+      if (e.ctrlKey || e.metaKey || e.altKey || !beat || landing || !introDone) return;
       const k = e.key.toLowerCase();
       if (beat.kind === "decide" && !picked) {
         if (k === "a" || k === "1") choose("A");
@@ -195,11 +199,12 @@ export function Part1({ lang, readAloud, reduceMotion, playerName, choices, onCh
         </div>
       </div>
       <div className="story-p1-vignette" aria-hidden="true" />
+      {!introDone && <Intro lang={lang} reduceMotion={reduceMotion} soundOn={soundOn} onDone={() => setIntroDone(true)} />}
       {landing && <LandingGame lang={lang} reduceMotion={reduceMotion} onLanded={setLanded} />}
 
       <header className="story-p1-top">
-        <span className="story-p1-brand">{UI.part[lang]}</span>
-        <span className="story-p1-tab">{chapter[lang]}</span>
+        {introDone && <span className="story-p1-brand">{UI.part[lang]}</span>}
+        {introDone && <span className="story-p1-tab">{chapter[lang]}</span>}
         <span className="story-p1-switches">
           <button type="button" className="story-p1-switch" aria-pressed={soundOn} onClick={() => setSoundOn((v) => !v)} title={UI.sound[lang]}>
             <SpeakerIcon on={soundOn} />
@@ -208,7 +213,7 @@ export function Part1({ lang, readAloud, reduceMotion, playerName, choices, onCh
         </span>
       </header>
 
-      {!landing && beat.kind === "decide" && !picked && (
+      {introDone && !landing && beat.kind === "decide" && !picked && (
         <div className="story-p1-options" role="group" aria-label={UI.choose[lang]}>
           {(["A", "B"] as Choice[]).map((c) => {
             const o = beat[c === "A" ? "a" : "b"];
@@ -225,7 +230,7 @@ export function Part1({ lang, readAloud, reduceMotion, playerName, choices, onCh
         </div>
       )}
 
-      {landing ? null : beat.kind === "fact" ? (
+      {!introDone || landing ? null : beat.kind === "fact" ? (
         <section className="story-p1-fact" key={i}>
           <span className="story-p1-fact-head">{UI.fact[lang]}</span>
           <p>{text}</p>

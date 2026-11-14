@@ -3,7 +3,7 @@
 // works offline. Sounds describe the scene only; nothing ever sounds like a
 // "right" or "wrong" answer. Every call is safe when audio is unavailable.
 
-type Bed = "ship" | "orbit" | "heat" | "wind" | "surface";
+type Bed = "ship" | "orbit" | "heat" | "wind" | "surface" | "story";
 
 interface Layer {
   gain: GainNode;
@@ -205,6 +205,40 @@ class Part1Sound {
         // thin Mars air rushing past the parachute
         noise("bandpass", 700, 0.5, 400);
         noise("lowpass", 200, 0.3);
+      } else if (kind === "story") {
+        // the opening's soft music: a warm chord that slowly breathes
+        const lp = ctx.createBiquadFilter();
+        lp.type = "lowpass";
+        lp.frequency.value = 1400;
+        const swell = ctx.createGain();
+        swell.gain.value = 0.8;
+        const lfo = ctx.createOscillator();
+        lfo.frequency.value = 0.07;
+        const depth = ctx.createGain();
+        depth.gain.value = 0.25;
+        lfo.connect(depth).connect(swell.gain);
+        lfo.start();
+        nodes.push(lfo);
+        swell.connect(lp).connect(out);
+        [
+          [110, "sine", 0.22],
+          [110.4, "triangle", 0.08],
+          [164.8, "sine", 0.14],
+          [220, "sine", 0.1],
+          [261.6, "triangle", 0.05],
+          [329.6, "sine", 0.04],
+        ].forEach(([f, type, g]) => {
+          const o = ctx.createOscillator();
+          o.type = type as OscillatorType;
+          o.frequency.value = f as number;
+          const gg = ctx.createGain();
+          gg.gain.value = g as number;
+          o.connect(gg).connect(swell);
+          o.start();
+          nodes.push(o);
+        });
+        // a faint shimmer high above, like distant stars
+        noise("bandpass", 6000, 0.02, 1500);
       } else {
         // a calm, empty surface
         noise("bandpass", 450, 0.25, 250);
@@ -283,6 +317,22 @@ class Part1Sound {
   blip() {
     this.tone("sine", 880, 1320, 0.12, 0.09);
     this.tone("sine", 1180, 1760, 0.1, 0.09, 0.1);
+  }
+
+  /** A soft airy whoosh between the opening shots. */
+  whoosh() {
+    const ctx = this.ready();
+    if (!ctx) return;
+    const at = ctx.currentTime;
+    const src = this.noiseSource(ctx);
+    const f = ctx.createBiquadFilter();
+    f.type = "bandpass";
+    f.Q.value = 1.2;
+    f.frequency.setValueAtTime(300, at);
+    f.frequency.exponentialRampToValueAtTime(2400, at + 0.9);
+    src.connect(f).connect(this.env(ctx, 0.12, 0.45, 0.1, 0.6, at));
+    src.start(at);
+    src.stop(at + 1.3);
   }
 
   /** A soft tick for buttons. */
