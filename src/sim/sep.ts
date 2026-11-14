@@ -27,12 +27,15 @@ export interface SepStorm {
   highEnergy: boolean;
   /** Linked to a solar flare in DONKI. */
   flare: boolean;
-  /** How many spacecraft instruments saw it. */
+  /** How many spacecraft instruments saw it (model estimates not counted). */
   instruments: number;
   link: string;
 }
 
 const GROUP_MS = 3 * 86_400_000;
+
+/** Real spacecraft detections only: DONKI also lists model estimates ("MODEL: ..."), which are not counted. */
+const observed = (r: SepRecord) => r.instruments.filter((n) => !n.startsWith("MODEL:")).length;
 
 export function groupStorms(records: SepRecord[]): SepStorm[] {
   const sorted = [...records].sort((a, b) => a.start.localeCompare(b.start));
@@ -44,9 +47,9 @@ export function groupStorms(records: SepRecord[]): SepStorm[] {
     if (cur && t - last <= GROUP_MS) {
       cur.highEnergy ||= r.highEnergy;
       cur.flare ||= r.flare;
-      cur.instruments += r.instruments.length;
+      cur.instruments += observed(r);
     } else {
-      out.push({ id: r.id, start: r.start, highEnergy: r.highEnergy, flare: r.flare, instruments: r.instruments.length, link: r.link });
+      out.push({ id: r.id, start: r.start, highEnergy: r.highEnergy, flare: r.flare, instruments: observed(r), link: r.link });
     }
     last = t;
   }

@@ -5,7 +5,7 @@ export const MASCOT_NAME = "Pip";
 
 /**
  * One-way radio delay between Earth and Mars in minutes. The real value
- * changes with the planets' positions (about 3 to 22 minutes).
+ * changes with the planets' positions (about 4 to 24 minutes).
  */
 export const RADIO_DELAY_MIN = 12;
 
