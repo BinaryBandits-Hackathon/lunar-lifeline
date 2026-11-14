@@ -155,3 +155,101 @@
 
 /* while Part 1 covers the window, the page behind it should not scroll */
 html:has(.story-p1), body:has(.story-p1) { overflow: hidden; }
+
+/* ---------- sound and voice switches (top right) ---------- */
+.story-p1-switches { position: absolute; right: 14px; top: 10px; display: flex; gap: 8px; pointer-events: auto; }
+.story-p1-switch {
+  display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; cursor: pointer;
+  font-family: var(--display); font-size: 14px; letter-spacing: 0.06em; text-transform: uppercase;
+  color: #6b7a96; background: rgba(6, 10, 22, 0.6); border: 1px solid var(--p1-line); border-radius: 999px;
+}
+.story-p1-switch[aria-pressed="true"] { color: var(--p1-gold); border-color: rgba(245, 192, 74, 0.5); }
+.story-p1-switch:disabled { opacity: 0.45; cursor: default; }
+.story-p1-switch:focus-visible { outline: 2px solid var(--p1-gold); outline-offset: 2px; }
+
+/* ---------- typed text ---------- */
+.story-p1-ghost { visibility: hidden; }
+.story-p1-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---------- chapter title cards ---------- */
+.story-p1-card {
+  position: absolute; inset: 0; z-index: 3; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  border: 0; padding: 0; cursor: pointer; color: var(--p1-ink);
+  background: radial-gradient(ellipse at center, rgba(2, 4, 10, 0.55), rgba(2, 4, 10, 0.92) 70%);
+  animation: story-p1-card 2.4s ease both;
+}
+.story-p1-card-kicker { font-family: var(--display); font-size: 20px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--p1-blue); animation: story-p1-card-text 2.4s ease both; }
+.story-p1-card-title {
+  font-family: var(--display); font-size: clamp(48px, 9vw, 104px); font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1;
+  color: #fff; text-shadow: 0 0 40px rgba(255, 138, 74, 0.45);
+  animation: story-p1-card-title 2.4s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.story-p1-card-rule { width: 0; height: 2px; margin-top: 10px; background: linear-gradient(90deg, transparent, var(--p1-gold), transparent); animation: story-p1-card-rule 2.4s ease both; }
+@keyframes story-p1-card { 0% { opacity: 0; } 12% { opacity: 1; } 82% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes story-p1-card-title { 0% { opacity: 0; transform: scale(1.18); letter-spacing: 0.3em; filter: blur(8px); } 30% { opacity: 1; transform: scale(1); letter-spacing: 0.04em; filter: blur(0); } 100% { transform: scale(0.97); } }
+@keyframes story-p1-card-text { 0%, 15% { opacity: 0; transform: translateY(8px); } 35% { opacity: 1; transform: none; } }
+@keyframes story-p1-card-rule { 0%, 25% { width: 0; } 60%, 100% { width: min(420px, 60vw); } }
+
+/* ---------- the camera: every scene drifts in slowly ---------- */
+.story-p1-scene-in { animation: story-p1-fade 0.8s ease both, story-p1-drift 26s ease-out both; transform-origin: 50% 45%; }
+@keyframes story-p1-drift { from { transform: scale(1.08); } to { transform: scale(1); } }
+.scene-descentHeat .story-p1-scene-in { animation: story-p1-fade 0.6s ease both, story-p1-rumble 0.18s linear infinite; }
+@keyframes story-p1-rumble { 0% { transform: translate(0, 0) scale(1.04); } 25% { transform: translate(-3px, 2px) scale(1.04); } 50% { transform: translate(2px, -2px) scale(1.04); } 75% { transform: translate(-2px, -1px) scale(1.04); } 100% { transform: translate(0, 0) scale(1.04); } }
+.scene-descentLand .story-p1-scene-in { animation: story-p1-fade 0.5s ease both, story-p1-land 1.6s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+@keyframes story-p1-land { 0% { transform: translateY(-40px) scale(1.06); } 70% { transform: translateY(6px) scale(1.01); } 80% { transform: translateY(-3px); } 100% { transform: none; } }
+
+/* the meteoroid strike: a white flash */
+.story-p1-flash { position: absolute; inset: 0; z-index: 2; pointer-events: none; background: #fff; animation: story-p1-flash 0.9s ease-out both; }
+@keyframes story-p1-flash { 0% { opacity: 0.95; } 100% { opacity: 0; } }
+
+/* ---------- suspense at a decision ---------- */
+.story-p1-pulse { position: absolute; inset: 0; pointer-events: none; opacity: 0; box-shadow: inset 0 0 160px 30px rgba(255, 110, 50, 0.35); }
+.story-p1.is-deciding .story-p1-pulse { animation: story-p1-heart 1.1s ease-in-out infinite; }
+@keyframes story-p1-heart { 0%, 100% { opacity: 0.15; } 12% { opacity: 0.9; } 24% { opacity: 0.3; } 34% { opacity: 0.7; } 60% { opacity: 0.2; } }
+.story-p1.is-deciding .story-p1-scene-in { filter: saturate(0.8) brightness(0.85); transition: filter 1s; }
+.story-p1-options .story-p1-option { animation: story-p1-card-in 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.story-p1-options .story-p1-option:nth-child(2) { animation-delay: 0.18s; }
+@keyframes story-p1-card-in { from { opacity: 0; transform: translateY(24px) scale(0.96); } to { opacity: 1; transform: none; } }
+.story-p1-option:hover .story-p1-key { background: rgba(245, 192, 74, 0.3); }
+
+/* the held breath after a choice: the picked card glows, the other fades */
+.story-p1-option.is-picked { border-color: var(--p1-gold); box-shadow: 0 0 0 1px var(--p1-gold), 0 0 40px rgba(245, 192, 74, 0.3); animation: story-p1-picked 1.5s ease both; }
+.story-p1-option.is-other { animation: story-p1-other 0.6s ease both; }
+.story-p1-option:disabled { cursor: default; }
+@keyframes story-p1-picked { 0% { transform: scale(1); } 25% { transform: scale(1.03); } 100% { transform: scale(1.01); } }
+@keyframes story-p1-other { to { opacity: 0.12; transform: scale(0.97); filter: blur(1px); } }
+.story-p1.is-locking .story-p1-scene-in { filter: brightness(0.6); transition: filter 0.6s; }
+
+/* ---------- Pip and Tunde talking ---------- */
+.story-p1-avatar { position: relative; }
+.story-p1-waves { position: absolute; inset: -6px; border-radius: 50%; border: 2px solid var(--p1-gold); opacity: 0; }
+.story-p1-dialogue.is-talking .story-p1-waves { animation: story-p1-waves 1s ease-out infinite; }
+.story-p1-dialogue.is-talking .story-p1-avatar svg { animation: story-p1-bob 0.32s ease-in-out infinite alternate; }
+@keyframes story-p1-waves { from { opacity: 0.7; transform: scale(0.92); } to { opacity: 0; transform: scale(1.25); } }
+@keyframes story-p1-bob { from { transform: translateY(0); } to { transform: translateY(-2px) scale(1.03); } }
+.story-p1-dialogue.is-narration .story-p1-text { text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6); }
+
+/* reduce motion: keep the cards and suspense, without anything moving */
+.story-p1-still .story-p1-card, .story-p1-still .story-p1-card * { animation: none !important; }
+.story-p1-still .story-p1-card-rule { width: min(420px, 60vw); }
+.story-p1-still .story-p1-flash { display: none; }
+.story-p1-still .story-p1-pulse, .story-p1-still .story-p1-option, .story-p1-still .story-p1-waves, .story-p1-still .story-p1-avatar svg { animation: none !important; }
+.story-p1-still.is-deciding .story-p1-pulse { opacity: 0.5; }
+.story-p1-still .story-p1-option.is-other { opacity: 0.15; }
+
+@media (max-height: 520px) {
+  .story-p1-switch span { display: none; }
+  .story-p1-switch { padding: 5px 7px; }
+  .story-p1-card-kicker { font-size: 15px; }
+}
+
+/* narrow screens: keep the top bar from colliding */
+@media (max-width: 860px) {
+  .story-p1-brand { display: none; }
+  .story-p1-switch span { display: none; }
+  .story-p1-switch { padding: 5px 7px; }
+}
+@media (max-width: 560px) {
+  .story-p1-top { justify-content: flex-start; }
+  .story-p1-tab { font-size: 14px; padding: 6px 26px 7px; margin-left: 8px; }
+}
