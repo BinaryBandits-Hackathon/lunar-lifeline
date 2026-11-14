@@ -2,12 +2,35 @@
 
 /* --- motion in the pictures (off with Reduce motion) --- */
 @keyframes story-p3-flow { to { stroke-dashoffset: -60; } }
-@keyframes story-p3-flicker { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(1.18); } }
-@keyframes story-p3-up { from { transform: translateY(160px); } to { transform: translateY(0); } }
+@keyframes story-p3-flame-k { 0%, 100% { transform: scaleY(1) scaleX(1); } 40% { transform: scaleY(1.22) scaleX(0.92); } 70% { transform: scaleY(0.94) scaleX(1.05); } }
+@keyframes story-p3-glow-k { 0%, 100% { opacity: 0.85; } 50% { opacity: 1; } }
+@keyframes story-p3-soft-k { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.42; } }
+@keyframes story-p3-up { from { transform: translateY(220px); } to { transform: translateY(0); } }
+@keyframes story-p3-smoke-k { from { transform: scale(0.6); opacity: 0.2; } to { transform: scale(1); opacity: 1; } }
+@keyframes story-p3-beacon-k { 0%, 70%, 100% { opacity: 0.25; } 80% { opacity: 1; } }
+@keyframes story-p3-vent-k { 0% { transform: translate(0, 0) scale(0.4); opacity: 0.8; } 100% { transform: translate(-60px, -90px) scale(2.4); opacity: 0; } }
+@keyframes story-p3-dust-k { from { transform: scaleX(0.3); opacity: 0; } to { transform: scaleX(1); opacity: 0.6; } }
+@keyframes story-p3-twinkle-k { 0%, 100% { opacity: 0.25; } 50% { opacity: 1; } }
+@keyframes story-p3-sunset-k { from { transform: translateY(-40px); } to { transform: translateY(30px); } }
+@keyframes story-p3-drift-k { from { transform: translateX(-120px); } to { transform: translateX(260px); } }
+@keyframes story-p3-reveal { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
 .story-p3-fuelflow { animation: story-p3-flow 1.6s linear infinite; }
-.story-p3-flame { transform-box: fill-box; transform-origin: top; animation: story-p3-flicker 0.18s ease-in-out infinite; }
-.story-p3-rise { animation: story-p3-up 2.4s ease-out both; }
-.story-still .story-p3-fuelflow, .story-still .story-p3-flame, .story-still .story-p3-rise { animation: none; }
+.story-p3-flame { transform-box: fill-box; transform-origin: top; animation: story-p3-flame-k 0.22s ease-in-out infinite; }
+.story-p3-flicker { animation: story-p3-glow-k 0.3s ease-in-out infinite; }
+.story-p3-flicker-soft { animation: story-p3-soft-k 3.2s ease-in-out infinite; }
+.story-p3-rise { animation: story-p3-up 3s cubic-bezier(0.3, 0, 0.2, 1) both; }
+.story-p3-smoke { transform-box: fill-box; transform-origin: bottom; animation: story-p3-smoke-k 3s ease-out both; }
+.story-p3-beacon { animation: story-p3-beacon-k 1.6s linear infinite; }
+.story-p3-vent { transform-box: fill-box; transform-origin: center; animation: story-p3-vent-k 2.2s ease-out infinite; }
+.story-p3-dust { transform-box: fill-box; transform-origin: center; animation: story-p3-dust-k 1.2s ease-out both; }
+.story-p3-twinkle { animation: story-p3-twinkle-k 3.5s ease-in-out infinite; }
+.story-p3-sunset { animation: story-p3-sunset-k 14s ease-in-out both; }
+.story-p3-drift { animation: story-p3-drift-k 18s linear infinite alternate; }
+
+/* Reduce motion: everything holds still in its final pose. */
+.story-still [class*="story-p3-"] { animation: none !important; }
+@media (prefers-reduced-motion: reduce) { [class*="story-p3-"] { animation: none !important; } }
 
 /* --- ending panel --- */
 .story-beats.story-p3-end { align-items: center; justify-content: flex-end; }
@@ -49,3 +72,9 @@
   .story-p3-crises { grid-template-columns: 1fr 1fr; }
   .story-p3-crisis:nth-child(2)::after { display: none; }
 }
+
+/* --- ending reveal: title first, then the path crisis by crisis --- */
+.story-p3-title { animation: story-p3-reveal 0.6s ease-out both; }
+.story-p3-crisis { animation: story-p3-reveal 0.5s ease-out both; }
+.story-p3-choice.is-blamed { animation: story-p3-reveal 0.5s ease-out both; animation-delay: inherit; }
+.story-p3-actions { animation: story-p3-reveal 0.5s ease-out 2s both; }

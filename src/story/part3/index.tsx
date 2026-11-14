@@ -8,7 +8,7 @@ import { NasaData } from "../../ui/NasaData";
 import { Beats } from "../core/Beats";
 import { DECISION_LABELS } from "../core/labels";
 import type { DecisionId, FinalPartProps } from "../types";
-import { PART3_ART } from "./art";
+import { HomeScene, StrandedScene, part3Art } from "./art";
 import { ENDING_TEXT, PART3_BEATS } from "./content";
 import "./part3.css";
 
@@ -33,10 +33,12 @@ export function Part3(props: FinalPartProps) {
   }, [done, readAloud, headline]);
 
   if (!done) {
-    return <Beats beats={PART3_BEATS} art={PART3_ART} lang={lang} readAloud={readAloud} playerName={playerName} onChoose={onChoose} onDone={() => setEnding(true)} />;
+    // The launch scene follows the story: rock boxes after decision 7, ignition (and night for 8B) after decision 8.
+    const art = part3Art({ rocks: choices[6] ?? null, launch: choices[7] ?? null });
+    return <Beats beats={PART3_BEATS} art={art} lang={lang} readAloud={readAloud} playerName={playerName} onChoose={onChoose} onDone={() => setEnding(true)} />;
   }
 
-  const Pic = won ? PART3_ART.home : PART3_ART.stranded;
+  const Pic = won ? HomeScene : StrandedScene;
   const blamed = new Set(outcome.blame);
   const label = (id: DecisionId) => DECISION_LABELS[id][choices[id - 1]][lang];
 
@@ -64,7 +66,7 @@ export function Part3(props: FinalPartProps) {
           <span className="story-p3-path-head">{won ? ENDING_TEXT.path[lang] : ENDING_TEXT.fail.led[lang]}</span>
           <ol className="story-p3-crises">
             {BY_CRISIS.map((ids, ci) => (
-              <li key={ci} className="story-p3-crisis">
+              <li key={ci} className="story-p3-crisis" style={{ animationDelay: `${0.5 + ci * 0.35}s` }}>
                 <span className="story-p3-crisis-name">
                   {ci + 1}. {ENDING_TEXT.crises[ci][lang]}
                 </span>
