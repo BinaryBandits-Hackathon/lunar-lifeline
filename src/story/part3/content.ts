@@ -19,7 +19,7 @@ export const PART3_BEATS: Beat[] = [
     },
     b: {
       label: { en: "Keep them", bn: "সাথে নিই" },
-      detail: { en: "Science is why we came.", bn: "সায়েন্সের জন্যই তো এসেছি।" },
+      detail: { en: "Science is why we came.", bn: "সায়েন্সের জন্যই তো আসছি।" },
       reaction: { en: "We strap the rock boxes in tight.", bn: "পাথরের বাক্সগুলো শক্ত করে বেঁধে নিলাম।" },
     },
   },
@@ -57,11 +57,19 @@ export const ENDING_TEXT = {
     reasons: {
       time: { en: "We ran out of time. The planets moved out of line for the trip home.", bn: "সময় শেষ। বাসায় ফেরার জন্য গ্রহগুলো আর লাইনে নেই।" },
       fuel: { en: "The rocket didn't have enough fuel to reach orbit.", bn: "অরবিটে পৌঁছানোর মতো যথেষ্ট ফুয়েল রকেটে ছিল না।" },
-      health: { en: "The crew was too hurt or too cold to fly the rocket safely.", bn: "ক্রুরা এতটাই অসুস্থ বা ঠান্ডায় কাবু ছিল যে রকেট সেফলি চালানো সম্ভব হয়নি।" },
+      health: { en: "The crew was too hurt or too cold to fly the rocket safely.", bn: "ক্রুরা এত অসুস্থ আর ঠান্ডায় কাহিল ছিল যে রকেট সেফলি চালানো গেল না।" },
     } satisfies Record<FailReason, { en: string; bn: string }>,
     led: { en: "These choices led here:", bn: "এই সিদ্ধান্তগুলোর কারণে এমন হলো:" },
   },
   path: { en: "The path you chose", bn: "তুমি যে পথ বেছে নিয়েছিলে" },
   tryAgain: { en: "Try again", bn: "আবার চেষ্টা করো" },
-  title: { en: "Back to title", bn: "শুরুর পেজে ফিরে যাও" },
+  title: { en: "Back to title", bn: "শুরুতে ফিরে যাও" },
+  crisis: { en: "Crisis", bn: "ক্রাইসিস" },
+  crises: [
+    { en: "The broken ship", bn: "ভাঙা স্পেসশিপ" },
+    { en: "The dust storm", bn: "ডাস্ট স্টর্ম" },
+    { en: "The solar storm", bn: "সোলার স্টর্ম" },
+    { en: "Launch day", bn: "লঞ্চের দিন" },
+  ],
+  why: { en: "This choice cost us", bn: "এই সিদ্ধান্তের দাম দিতে হয়েছে" },
 };
