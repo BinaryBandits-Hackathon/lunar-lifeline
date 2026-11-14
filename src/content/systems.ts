@@ -144,12 +144,12 @@ export function arrivalReadings(state: GameState): Reading[] {
       group: "Water and food",
       label: "Packed food",
       icon: "flask",
-      value: 90,
+      value: 24,
       unit: "meals",
-      max: 120,
+      max: 60,
       status: "ok",
-      short: "About 30 days for 3 astronauts.",
-      explain: "We packed food for about a month. To stay longer, the crew must grow food in the greenhouse.",
+      short: "About 8 sols for 3 astronauts.",
+      explain: "We packed food for about 8 sols. To stay longer, the crew must grow food in the greenhouse.",
     },
 
     // ---------- crew ----------

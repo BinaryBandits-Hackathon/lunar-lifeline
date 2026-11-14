@@ -51,7 +51,7 @@ export function Title({ state, dispatch }: ScreenProps) {
       <section className="title-panel" aria-labelledby="game-title">
         <Emblem />
         <h1 id="game-title" className="title-name">Lunar Life</h1>
-        <p className="title-studio">by Binary Bandits</p>
+        <p className="title-studio">by Vantaloc Space</p>
 
         {state.career.points > 0 || state.career.missions.length > 0 ? <RankCard points={state.career.points} compact /> : null}
 
