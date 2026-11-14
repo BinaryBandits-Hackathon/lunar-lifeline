@@ -36,7 +36,7 @@ function TundeFace() {
   );
 }
 
-export function Part1({ lang, readAloud, reduceMotion, playerName, choices, onChoose, onDone }: PartProps) {
+export function Part1({ lang, readAloud, reduceMotion, playerName, onChoose, onDone }: PartProps) {
   const [i, setI] = useState(0);
   const [picked, setPicked] = useState<Choice | null>(null);
   const beat = PART1_BEATS[i];
@@ -104,7 +104,7 @@ export function Part1({ lang, readAloud, reduceMotion, playerName, choices, onCh
     <div className={`story-p1${reduceMotion ? " story-p1-still" : ""}`} lang={lang === "bn" ? "bn" : "en"}>
       <div className="story-p1-scene" aria-hidden="true">
         <div className="story-p1-scene-in" key={artKey}>
-          <Part1Art k={artKey} landing={choices[1] ?? null} />
+          <Part1Art k={artKey} />
         </div>
       </div>
       <div className="story-p1-vignette" aria-hidden="true" />

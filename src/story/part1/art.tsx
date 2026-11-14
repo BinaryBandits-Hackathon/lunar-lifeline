@@ -4,7 +4,6 @@
 // story-p1-anim-* class, which part1.css switches off for reduce motion.
 
 import type { ReactNode } from "react";
-import type { Choice } from "../types";
 import type { Part1ArtKey } from "./content";
 
 /** Deterministic star field so the sky never jumps between renders. */
@@ -57,21 +56,6 @@ function MarsGlobe({ cx, cy, r, id }: { cx: number; cy: number; r: number; id: s
         </g>
         <circle cx={cx} cy={cy} r={r} fill={`url(#${id}-night)`} />
       </g>
-    </g>
-  );
-}
-
-/** The white return rocket that waits on Mars (same family as the title emblem). */
-function ReturnRocket({ x, y, s = 1 }: { x: number; y: number; s?: number }) {
-  return (
-    <g transform={`translate(${x} ${y}) scale(${s})`}>
-      <ellipse cx="0" cy="2" rx="70" ry="10" fill="#000" opacity="0.35" />
-      <path d="M-34 -20 L-58 0 M34 -20 L58 0" stroke="#9aa1ad" strokeWidth="6" strokeLinecap="round" />
-      <path d="M0 -330 Q34 -280 34 -190 L34 -20 L-34 -20 L-34 -190 Q-34 -280 0 -330 Z" fill="#e9ecf0" stroke="#8a919c" strokeWidth="3" />
-      <path d="M0 -330 Q34 -280 34 -190 L34 -20 L14 -20 L14 -190 Q14 -270 0 -330 Z" fill="#000" opacity="0.18" />
-      <circle cx="0" cy="-230" r="13" fill="#1f2633" stroke="#8a919c" strokeWidth="3" />
-      <path d="M-34 -70 L-60 -10 L-34 -24 Z M34 -70 L60 -10 L34 -24 Z" fill="#c8642f" />
-      <rect x="-34" y="-120" width="68" height="10" fill="#c8642f" opacity="0.9" />
     </g>
   );
 }
@@ -390,7 +374,7 @@ function DescentChute() {
   );
 }
 
-function DescentLand({ crater }: { crater: boolean }) {
+function DescentLand() {
   return (
     <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice">
       <defs>
@@ -417,53 +401,16 @@ function DescentLand({ crater }: { crater: boolean }) {
       <path d="M0 520 L120 480 L260 500 L380 450 L520 480 L700 470 L860 430 L1020 470 L1180 450 L1340 490 L1480 460 L1600 480 L1600 560 L0 560 Z" fill="#9a5a3a" opacity="0.7" />
       <rect y="540" width="1600" height="360" fill="url(#p1-landground)" />
 
-      {crater ? (
-        <>
-          {/* inside the ice crater: rocky walls on both sides, ice close by */}
-          <path d="M0 330 L160 360 L260 470 L340 560 L360 900 L0 900 Z" fill="#7a3c1c" />
-          <path d="M1600 300 L1450 350 L1340 470 L1260 560 L1240 900 L1600 900 Z" fill="#7a3c1c" />
-          <path d="M0 330 L160 360 L260 470 L340 560" fill="none" stroke="#c47a4c" strokeWidth="4" opacity="0.6" />
-          <path d="M1600 300 L1450 350 L1340 470 L1260 560" fill="none" stroke="#c47a4c" strokeWidth="4" opacity="0.6" />
-          {/* ice cliff and patches */}
-          <path d="M1280 500 L1360 430 L1420 470 L1440 560 L1300 570 Z" fill="#dfeef5" opacity="0.9" />
-          <path d="M1300 520 L1360 450 L1380 470 L1320 540 Z" fill="#ffffff" opacity="0.7" />
-          {[
-            [1180, 640, 60],
-            [430, 690, 40],
-            [1080, 720, 30],
-          ].map(([x, y, r]) => (
-            <ellipse key={x} cx={x} cy={y} rx={r} ry={r * 0.25} fill="#e6f3f8" opacity="0.85" />
-          ))}
-          <g fill="#fff" className="story-p1-anim-twinkle">
-            <path d="M1352 470 l4 -12 l4 12 l12 4 l-12 4 l-4 12 l-4 -12 l-12 -4 Z" />
-            <path d="M1190 628 l3 -9 l3 9 l9 3 l-9 3 l-3 9 l-3 -9 l-9 -3 Z" />
-          </g>
-          {/* rocks scattered on the rough floor */}
-          {[
-            [520, 760, 26],
-            [980, 800, 34],
-            [700, 840, 18],
-            [1140, 860, 22],
-            [430, 830, 16],
-          ].map(([x, y, r]) => (
-            <path key={x} d={`M${x - r} ${y} Q${x - r * 0.4} ${y - r * 1.1} ${x + r * 0.3} ${y - r * 0.8} Q${x + r} ${y - r * 0.4} ${x + r} ${y} Z`} fill="#4a2410" />
-          ))}
-          <ReturnRocket x={1500} y={600} s={0.45} />
-        </>
-      ) : (
-        <>
-          {/* flat red plain, the return rocket right beside us */}
-          {[
-            [200, 620, 12],
-            [380, 700, 8],
-            [1440, 680, 14],
-            [1000, 820, 10],
-          ].map(([x, y, r]) => (
-            <ellipse key={x} cx={x} cy={y} rx={r * 2} ry={r * 0.6} fill="#5a2a12" opacity="0.6" />
-          ))}
-          <ReturnRocket x={1150} y={720} s={1} />
-        </>
-      )}
+      {/* small rocks on the plain; the same picture for either landing choice */}
+      {[
+        [220, 640, 18],
+        [420, 720, 12],
+        [1060, 700, 16],
+        [1260, 640, 22],
+        [900, 820, 14],
+      ].map(([x, y, r]) => (
+        <path key={x} d={`M${x - r} ${y} Q${x - r * 0.4} ${y - r * 1.1} ${x + r * 0.3} ${y - r * 0.8} Q${x + r} ${y - r * 0.4} ${x + r} ${y} Z`} fill="#4a2410" opacity="0.85" />
+      ))}
 
       {/* our capsule on its landing legs, rockets still firing */}
       <g transform="translate(640 590) scale(1.25)">
@@ -479,8 +426,8 @@ function DescentLand({ crater }: { crater: boolean }) {
   );
 }
 
-/** Draws the Part 1 scene for an art key. `landing` is decision 2 (null before it). */
-export function Part1Art({ k, landing }: { k: Part1ArtKey; landing: Choice | null }): ReactNode {
+/** Draws the Part 1 scene for an art key. */
+export function Part1Art({ k }: { k: Part1ArtKey }): ReactNode {
   switch (k) {
     case "ship":
       return <ShipInterior hit={false} />;
@@ -493,6 +440,6 @@ export function Part1Art({ k, landing }: { k: Part1ArtKey; landing: Choice | nul
     case "descentChute":
       return <DescentChute />;
     case "descentLand":
-      return <DescentLand crater={landing === "B"} />;
+      return <DescentLand />;
   }
 }
