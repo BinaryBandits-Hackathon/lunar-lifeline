@@ -40,6 +40,30 @@ describe("14 Sols hidden calculation (matches docs/design/04-story-plan.md)", ()
     expect(run("AAAAAAAAAAAA").blame).toEqual([2, 3, 5, 8, 12]);
   });
 
+  it("consequences are real: every decision on its own can change the ending", () => {
+    for (const id of DECISIONS) {
+      const flips = all.filter((c) => {
+        const other = [...c];
+        other[id - 1] = other[id - 1] === "A" ? "B" : "A";
+        return finalOutcome(other).result !== finalOutcome(c).result;
+      }).length;
+      // each decision swings the ending on hundreds of paths
+      expect(flips, `decision ${id}`).toBeGreaterThan(400);
+    }
+  });
+
+  it("you can't do anything you like and still get home: random play fails most of the time", () => {
+    const wins = all.filter((c) => finalOutcome(c).result === "success").length;
+    expect(wins / all.length).toBeLessThan(0.45);
+    // no single option is always right: each option appears on both winning and losing paths
+    for (const id of DECISIONS)
+      for (const ch of ["A", "B"] as Choice[]) {
+        const withIt = all.filter((c) => c[id - 1] === ch);
+        expect(withIt.some((c) => finalOutcome(c).result === "success")).toBe(true);
+        expect(withIt.some((c) => finalOutcome(c).result === "fail")).toBe(true);
+      }
+  });
+
   it("the parts ask all 12 decisions, in order, and every one has labels", () => {
     expect([...PART_DECISIONS[1], ...PART_DECISIONS[2], ...PART_DECISIONS[3]]).toEqual([...DECISIONS]);
     for (const id of DECISIONS) for (const c of ["A", "B"] as Choice[]) expect(DECISION_LABELS[id][c].en.length).toBeGreaterThan(0);

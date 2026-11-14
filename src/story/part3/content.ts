@@ -1,15 +1,24 @@
-// PART 3 text: crisis 5 (marsquake, decisions 9-10), crisis 6 (launch day,
-// decisions 11-12) and both endings. The marsquake text is in place so the
-// 12-decision game reaches its ending; its pictures come in the next round.
-// Owned by Person 3. English must match docs/design/04-story-plan.md exactly.
-// Bangla is a first draft in everyday style; Person 3 reviews it.
+// PART 3 text: crisis 5 (marsquake, sol 11, decisions 9-10), crisis 6 (launch
+// day, sol 13, decisions 11-12), both endings and the mission debrief.
+// English must match docs/design/04-story-plan.md exactly.
+// Every fact is real and links to the NASA page it comes from.
 
 import type { Beat } from "../core/Beats";
 import type { FailReason } from "../types";
 
+export type Part3ArtKey = "quake" | "launch";
+
+export interface Chapter {
+  from: number;
+  en: string;
+  bn: string;
+}
+
+type T = { en: string; bn: string };
+
 export const PART3_BEATS: Beat[] = [
-  // Crisis 5: The ground shakes (sol 11)
-  { kind: "line", art: "launch", line: { en: "Sol 11. The ground shakes. Cups rattle, and dust falls from the ceiling.", bn: "১১ নম্বর সোল। মাটি কেঁপে উঠল। কাপগুলো ঠকঠক করছে, ছাদ থেকে ধুলা পড়ছে।" } },
+  // ---------- Crisis 5: The ground shakes (sol 11) ----------
+  { kind: "line", art: "quake", line: { en: "Sol 11. The ground shakes. Cups rattle, and dust falls from the ceiling.", bn: "১১ নম্বর সোল। মাটি কেঁপে উঠল। কাপগুলো ঠকঠক করছে, ছাদ থেকে ধুলা পড়ছে।" } },
   { kind: "line", line: { who: "pip", en: "Was that a marsquake, or a meteorite hitting nearby? NASA's InSight lander felt both.", bn: "এটা কি মার্সকোয়েক, নাকি কাছে কোথাও উল্কা পড়ল? নাসার ইনসাইট ল্যান্ডার দুটোই টের পেয়েছিল।" } },
   { kind: "line", line: { who: "tunde", en: "Ow, my wrist! And the fuel tank seal has a crack.", bn: "আহ, আমার কবজি! আর ফুয়েল ট্যাংকের সিলে একটা ফাটল।" } },
   { kind: "line", line: { who: "mei", en: "No doctor can fly here from Earth. On Mars, I am the hospital.", bn: "পৃথিবী থেকে কোনো ডাক্তার এখানে আসতে পারবে না। মঙ্গলে আমিই হাসপাতাল।" } },
@@ -47,7 +56,7 @@ export const PART3_BEATS: Beat[] = [
     source: "https://www.nasa.gov/missions/insight/nasa-retires-insight-mars-lander-mission-after-years-of-science/",
   },
 
-  // Crisis 6: Launch day (sol 13)
+  // ---------- Crisis 6: Launch day (sol 13) ----------
   { kind: "line", art: "launch", line: { en: "Sol 13. The return rocket stands ready. Its fuel tanks are almost full. Almost.", bn: "১৩ নম্বর সোল। রিটার্ন রকেট রেডি। ফুয়েল ট্যাংক প্রায় ভরা। প্রায়।" } },
   { kind: "line", line: { who: "pip", en: "Tomorrow the planets start to move out of line.", bn: "কালকে থেকে গ্রহগুলো লাইন থেকে সরে যেতে শুরু করবে।" } },
   {
@@ -85,6 +94,11 @@ export const PART3_BEATS: Beat[] = [
   },
 ];
 
+export const PART3_CHAPTERS: Chapter[] = [
+  { from: 0, en: "Crisis 5 · The ground shakes · Sol 11", bn: "বিপদ ৫ · মাটি কাঁপছে · সোল ১১" },
+  { from: 7, en: "Crisis 6 · Launch day · Sol 13", bn: "বিপদ ৬ · লঞ্চের দিন · সোল ১৩" },
+];
+
 export const ENDING_TEXT = {
   success: {
     title: { en: "Home", bn: "বাসায় ফেরা" },
@@ -99,10 +113,86 @@ export const ENDING_TEXT = {
       time: { en: "We ran out of time. The planets moved out of line for the trip home.", bn: "সময় শেষ। বাসায় ফেরার জন্য গ্রহগুলো আর লাইনে নেই।" },
       fuel: { en: "The rocket didn't have enough fuel to reach orbit.", bn: "অরবিটে পৌঁছানোর মতো যথেষ্ট ফুয়েল রকেটে ছিল না।" },
       health: { en: "The crew was too hurt or too cold to fly the rocket safely.", bn: "ক্রুরা এতটাই অসুস্থ বা ঠান্ডায় কাবু ছিল যে রকেট সেফলি চালানো সম্ভব হয়নি।" },
-    } satisfies Record<FailReason, { en: string; bn: string }>,
+    } satisfies Record<FailReason, T>,
     led: { en: "These choices led here:", bn: "এই সিদ্ধান্তগুলোর কারণে এমন হলো:" },
   },
   path: { en: "The path you chose", bn: "তুমি যে পথ বেছে নিয়েছিলে" },
   tryAgain: { en: "Try again", bn: "আবার চেষ্টা করো" },
   title: { en: "Back to title", bn: "শুরুর পেজে ফিরে যাও" },
 };
+
+/** The mission debrief shown after the ending: consequences and real science. */
+export const DEBRIEF = {
+  open: { en: "Mission debrief", bn: "মিশন রিপোর্ট" },
+  next: { en: "See the debrief", bn: "রিপোর্ট দেখো" },
+  numbersTitle: { en: "What decided your mission", bn: "তোমার মিশন কীসে ঠিক হলো" },
+  numbersNote: { en: "Every choice quietly changed these three numbers. To get home you needed all three.", bn: "প্রতিটা সিদ্ধান্ত চুপচাপ এই তিনটা সংখ্যা বদলেছে। বাসায় ফিরতে তিনটাই দরকার ছিল।" },
+  fuel: { en: "Fuel", bn: "ফুয়েল" },
+  time: { en: "Spare sols", bn: "হাতে থাকা সোল" },
+  health: { en: "Crew health", bn: "ক্রুদের স্বাস্থ্য" },
+  needFuel: { en: "Needed: 7 or more", bn: "লাগবে: ৭ বা বেশি" },
+  needTime: { en: "Needed: 0 or more", bn: "লাগবে: ০ বা বেশি" },
+  needHealth: { en: "Needed: 2 or more", bn: "লাগবে: ২ বা বেশি" },
+  ok: { en: "Enough", bn: "যথেষ্ট" },
+  short: { en: "Not enough", bn: "যথেষ্ট না" },
+  choicesTitle: { en: "Your 12 choices and what they cost", bn: "তোমার ১২টা সিদ্ধান্ত আর তার দাম" },
+  choicesNote: { en: "Every option had a price. That is real mission planning: there is no free choice.", bn: "প্রতিটা অপশনের একটা দাম ছিল। আসল মিশন প্ল্যানিং এমনই: কোনো সিদ্ধান্ত ফ্রি না।" },
+  caused: { en: "Caused the fail", bn: "এটার কারণে ব্যর্থ" },
+  noChange: { en: "No change", bn: "কোনো পরিবর্তন নেই" },
+  crisis: { en: "Crisis", bn: "বিপদ" },
+  oneTitle: { en: "One choice can change everything", bn: "একটা সিদ্ধান্তেই সব বদলে যেতে পারে" },
+  oneSaved: { en: "If you had chosen “{b}” instead of “{a}”, the crew would have made it home.", bn: "“{a}”-এর বদলে “{b}” বেছে নিলে ক্রুরা বাসায় ফিরতে পারত।" },
+  oneLost: { en: "If you had chosen “{b}” instead of “{a}”, the crew would have been stranded.", bn: "“{a}”-এর বদলে “{b}” বেছে নিলে ক্রুরা আটকা পড়ত।" },
+  oneNone: { en: "No single change would have flipped this ending. It took several choices together.", bn: "একটা সিদ্ধান্ত বদলালেও এই ফল বদলাত না। কয়েকটা সিদ্ধান্ত মিলে এমন হয়েছে।" },
+  scienceTitle: { en: "Real science from your mission", bn: "তোমার মিশনের আসল বিজ্ঞান" },
+  source: { en: "NASA source", bn: "নাসার সোর্স" },
+  again: { en: "Try a different path", bn: "অন্য পথে চেষ্টা করো" },
+};
+
+/** Real numbers for the radiation meter (mSv = millisieverts). */
+export const RADIATION = {
+  surfacePerSol: 0.67, // Curiosity RAD, Gale Crater, Aug 2012 - Jun 2013
+  spacePerDay: 1.8, // Curiosity RAD on the cruise to Mars
+  tripDays: 210, // about seven months home
+  careerLimit: 600, // NASA-STD-3001
+};
+
+export interface ScienceCard {
+  id: string;
+  title: T;
+  body: T;
+  source: string;
+}
+
+export const SCIENCE: ScienceCard[] = [
+  {
+    id: "radiation",
+    title: { en: "Radiation", bn: "রেডিয়েশন" },
+    body: { en: "On Mars' surface, NASA's Curiosity rover measured about 0.67 mSv of radiation a sol. In space it measured about 1.8 mSv a day, almost three times more. NASA's career limit for an astronaut is 600 mSv.", bn: "মঙ্গলের মাটিতে নাসার কিউরিওসিটি রোভার প্রতি সোলে প্রায় ০.৬৭ mSv রেডিয়েশন মেপেছে। স্পেসে প্রতিদিন প্রায় ১.৮ mSv, প্রায় তিন গুণ বেশি। একজন অ্যাস্ট্রোনটের সারা ক্যারিয়ারের জন্য নাসার লিমিট ৬০০ mSv।" },
+    source: "https://www.jpl.nasa.gov/news/nasa-curiosity-first-mars-age-measurement-and-human-exploration-help/",
+  },
+  {
+    id: "bones",
+    title: { en: "Bones and muscles", bn: "হাড় আর মাসল" },
+    body: { en: "In weightless space, astronauts can lose about 1 to 2% of their bone mass every month. Exercise machines slow it down, so the 7-month trip home means a lot of time on the space treadmill.", bn: "ওজনহীন স্পেসে অ্যাস্ট্রোনটদের হাড়ের ভর প্রতি মাসে প্রায় ১ থেকে ২% কমে যেতে পারে। ব্যায়ামের মেশিন এটা ধীর করে, তাই ৭ মাসের ফেরার পথে অনেক সময় ট্রেডমিলে কাটাতে হবে।" },
+    source: "https://www.nasa.gov/glenn/glenn-expertise-space-exploration/human-health-performance/computational-modeling/musculoskeletal/",
+  },
+  {
+    id: "eyes",
+    title: { en: "Eyes", bn: "চোখ" },
+    body: { en: "Without gravity, body fluids float up toward the head. About 70% of Space Station astronauts get some swelling at the back of their eyes. NASA checks their eyes often.", bn: "মাধ্যাকর্ষণ না থাকলে শরীরের তরল মাথার দিকে উঠে যায়। স্পেস স্টেশনের প্রায় ৭০% অ্যাস্ট্রোনটের চোখের পেছনে কিছুটা ফোলা দেখা যায়। নাসা ঘন ঘন তাদের চোখ পরীক্ষা করে।" },
+    source: "https://www.nasa.gov/reference/risk-of-spaceflight-associated-neuro-ocular-syndrome-sans/",
+  },
+  {
+    id: "alone",
+    title: { en: "Far from home", bn: "বাসা থেকে অনেক দূরে" },
+    body: { en: "Living far from everyone is hard. NASA's CHAPEA crews lived for a whole year in a pretend Mars base in Houston to learn how teams stay healthy and work together.", bn: "সবার থেকে দূরে থাকা কঠিন। নাসার CHAPEA ক্রুরা হিউস্টনে একটা নকল মঙ্গল বেসে পুরো এক বছর থেকেছে, দল কীভাবে সুস্থ থেকে একসাথে কাজ করে সেটা শিখতে।" },
+    source: "https://www.nasa.gov/humans-in-space/chapea/",
+  },
+  {
+    id: "sol",
+    title: { en: "A longer day", bn: "একটু লম্বা দিন" },
+    body: { en: "A sol lasts about 24.6 hours, about 40 minutes longer than a day on Earth. Living on Mars time means slowly shifting when you sleep.", bn: "এক সোল প্রায় ২৪.৬ ঘণ্টা, পৃথিবীর দিনের চেয়ে প্রায় ৪০ মিনিট বেশি। মঙ্গলের সময়ে থাকা মানে ঘুমের সময় ধীরে ধীরে সরে যাওয়া।" },
+    source: "https://science.nasa.gov/mars/facts/",
+  },
+];

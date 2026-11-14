@@ -1,6 +1,6 @@
 # 14 Sols: the master story (single source of truth)
 
-> **Status:** expanded to 6 crises and 12 decisions with the team's OK (15 November 2026). Part 3's marsquake has its text in the game; its pictures and the ending debrief come next.
+> **Status:** expanded to 6 crises and 12 decisions with the team's OK (15 November 2026). All three parts are built, including the marsquake, launch day, both endings and the mission debrief.
 > **Who reads this:** all three team members and any AI helping them. Everything the game shows, every decision, every number and every source is in this file. If your part and this file disagree, **this file wins**; change it only with the whole team's OK.
 > **Team split:** see [docs/team/README.md](../team/README.md).
 
@@ -194,7 +194,7 @@ NASA facts:
 
 ### PART 3: The way home
 
-#### Crisis 5: The ground shakes (sol 11) *(art: `quake`, to be drawn; uses `launch` for now)*
+#### Crisis 5: The ground shakes (sol 11) *(art: `quake`)*
 Scene:
 1. Sol 11. The ground shakes. Cups rattle, and dust falls from the ceiling.
 2. Pip: Was that a marsquake, or a meteorite hitting nearby? NASA's InSight lander felt both.
@@ -255,8 +255,17 @@ NASA fact: **NASA's MOXIE experiment on the Perseverance rover made oxygen from 
 | fuel | The rocket didn't have enough fuel to reach orbit. |
 | health | The crew was too hurt or too cold to fly the rocket safely. |
 
-#### Ending debrief *(next round)*
-After the result, a debrief replays each decision with what really happens on Mars and the real number behind it, plus: a crew radiation dose meter (0.64 mSv per sol on the surface and 1.8 mSv per day in space, measured by Curiosity's RAD; NASA's career limit is 600 mSv), bone and muscle loss, eyesight changes (SANS), sleep and the 24.6-hour sol, and isolation and stress.
+#### Mission debrief *(after either ending)*
+This is where the consequences become visible. Nothing here appears before the ending.
+1. **What decided your mission:** the three hidden numbers, each against what was needed (Fuel 7 or more; spare sols 0 or more; crew health 2 or more), marked Enough or Not enough.
+2. **One choice can change everything:** the first single decision that, changed on its own, would have flipped this ending (or a note that it took several).
+3. **Your 12 choices and what they cost:** every choice by crisis, with its real effect (for example "Fuel +3 · Health −2"); choices that caused a fail are marked.
+4. **Real science from your mission:**
+   - A radiation meter: the crew's sols on Mars at 0.67 mSv a sol (one doubled sol if they finished the job outside in the storm), the 7-month flight home at 1.8 mSv a day (about 378 mSv), against NASA's 600 mSv career limit.
+   - Cards: radiation; bones and muscles (1 to 2% of bone mass a month in weightlessness); eyes (about 70% of Space Station astronauts get swelling at the back of the eye); far from home (NASA's year-long CHAPEA crews); a longer day (a sol is about 24.6 hours).
+5. Buttons: **Try a different path** and **Back to title**.
+
+Tested in `tests/story.test.ts`: every decision on its own changes the ending on hundreds of paths, random play gets home only about 41% of the time, and no option is always right.
 
 ## 5. The hidden calculation
 
@@ -351,6 +360,12 @@ The code for all of this is in `src/story/core/outcome.ts`, tested in `tests/sto
 | Crisis 4, decision 8 | Water is a good radiation shield | [NASA: protecting astronauts from radiation on Mars](https://www.nasa.gov/science-research/heliophysics/real-martians-how-to-protect-astronauts-from-space-radiation-on-mars/) |
 | Crisis 5 | InSight recorded 1,319 marsquakes, some from meteorite impacts | [NASA, InSight retires](https://www.nasa.gov/missions/insight/nasa-retires-insight-mars-lander-mission-after-years-of-science/) |
 | Crisis 6 | MOXIE made oxygen from Mars air | [NASA, 2023](https://www.nasa.gov/missions/mars-2020-perseverance/perseverance-rover/nasas-oxygen-generating-experiment-moxie-completes-mars-mission/) |
+| Debrief | 0.67 mSv a day on Mars' surface (Curiosity RAD) | [NASA/JPL](https://www.jpl.nasa.gov/news/nasa-curiosity-first-mars-age-measurement-and-human-exploration-help/) |
+| Debrief | 1.8 mSv a day on the way to Mars (Curiosity RAD) | [NASA/JPL](https://www.jpl.nasa.gov/news/data-from-nasa-rovers-voyage-to-mars-aids-planning/) |
+| Debrief | 600 mSv career limit (NASA-STD-3001) | [NASA technical brief](https://www.nasa.gov/wp-content/uploads/2023/12/ochmo-tb-020-radiation-protection.pdf) |
+| Debrief | 1 to 2% bone mass lost a month in weightlessness | [NASA Glenn](https://www.nasa.gov/glenn/glenn-expertise-space-exploration/human-health-performance/computational-modeling/musculoskeletal/) |
+| Debrief | About 70% of Space Station astronauts get eye swelling (SANS) | [NASA](https://www.nasa.gov/reference/risk-of-spaceflight-associated-neuro-ocular-syndrome-sans/) |
+| Debrief | Year-long simulated Mars missions (CHAPEA) | [NASA](https://www.nasa.gov/humans-in-space/chapea/) |
 
 ## 9. Bangla style (all parts)
 
@@ -373,7 +388,7 @@ The code for all of this is in `src/story/core/outcome.ts`, tested in `tests/sto
 | `badAir` | 2 | Inside the habitat: a clogged CO₂ cleaner, tired crew, red dust by the airlock |
 | `warning` | 2 | The base by day, the Sun flaring, radio waves from Earth |
 | `solarStorm` | 2 | The base at night with the shelter lit; streaks of particles |
-| `quake` | 3 | The base shaking, the cracked fuel tank seal (to be drawn) |
+| `quake` | 3 | The base shaking, a crack in the ground, dust falling, fuel hissing from the cracked seal |
 | `launch` | 3 | The return rocket on the pad next to the base |
 | `home` | 3 | The rocket climbing; Earth as a small blue dot |
 | `stranded` | 3 | The rocket on the pad, sun setting (blue Mars sunset) |
