@@ -9,7 +9,7 @@ export const ROLES: Role[] = [
     icon: "wrench",
     oneLiner: "Fixes machines and keeps the power on.",
     perk: { kind: "repairDiscount", power: 1 },
-    perkText: "Repairs cost 1 less power.",
+    perkText: "Digs 5 extra litres of water when mining ice.",
     fact: "Astronauts on the Space Station fix their own equipment, from air machines to the toilet.",
   },
   {
@@ -18,7 +18,7 @@ export const ROLES: Role[] = [
     icon: "medical",
     oneLiner: "Keeps the crew healthy and safe.",
     perk: { kind: "shelterDiscount", supplies: 1 },
-    perkText: "Sheltering from storms costs 1 less supplies.",
+    perkText: "Exercise gives the crew 2 extra health.",
     fact: "Astronauts check their own health in space, and doctors on Earth watch over them.",
   },
   {
@@ -27,7 +27,7 @@ export const ROLES: Role[] = [
     icon: "flask",
     oneLiner: "Studies rocks, plants and the sky.",
     perk: { kind: "scienceBonus", science: 1 },
-    perkText: "Research gives 1 extra science.",
+    perkText: "Research and spacewalks give 1 extra science.",
     fact: "Crews on the Space Station have run thousands of experiments.",
   },
 ];

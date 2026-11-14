@@ -4,7 +4,7 @@ import { STORMS, nextRandom } from "../engine/base";
 import type { GameState, RoleId, StormRecord } from "../engine/types";
 import { EVENTS, getEvent } from "./events";
 import { getSite as getEvaSite } from "./eva";
-import { isUnlocked, machineLocked, newOnSol, taskLocked } from "./unlocks";
+import { isUnlocked, machineLocked, newOnSol, roverReady, taskLocked } from "./unlocks";
 import {
   CAPS,
   CO2_DANGER,
@@ -24,6 +24,7 @@ import {
   DUST_STORM_SOLAR,
   DUST_STORM_SOLS,
   EVA_MIN_ENERGY,
+  SUITS,
   EVA_RISK,
   EVA_STORM_DOSE,
   ROVER_CHARGE,
@@ -127,6 +128,8 @@ export function createSim(state: GameState, seed = 1): SimState {
     rover: { battery: ROVER_START, broken: false },
     newUnlocks: [],
     evaSite: null,
+    // Passing the Academy spacewalk drill means one suit is already checked.
+    suitsReady: (state.career?.drills?.spacewalk ?? 0) >= 2 ? 1 : 0,
     visited: [],
     sol: 1,
     totalSols: level.sols,
@@ -200,7 +203,7 @@ export function planEva(sim: SimState, siteId: string | null): SimState {
   if (siteId) {
     const site = getEvaSite(siteId);
     if (site.only && !site.only(sim)) return sim;
-    if (site.rover > 0 && !isUnlocked(sim, "rover")) return sim;
+    if (site.rover > 0 && !roverReady(sim)) return sim;
   }
   return { ...sim, evaSite: siteId };
 }
@@ -245,6 +248,7 @@ export function runSol(sim: SimState): SimState {
   let dusty = sim.dusty;
   let rover = { ...sim.rover };
   let visited = [...sim.visited];
+  let suitsReady = sim.suitsReady;
   let rng = sim.rng;
   const ledger: LedgerEntry[] = [];
   const notes: SolReport["notes"] = [];
@@ -409,6 +413,12 @@ export function runSol(sim: SimState): SimState {
           case "eva":
             evaGoers.push(c);
             break;
+          case "suitPrep":
+            if (suitsReady < SUITS) {
+              suitsReady += 1;
+              notes.push({ tone: "good", text: `${c.name} practised in the airlock and checked a spacesuit. ${suitsReady} of ${SUITS} suits ready.` });
+            } else notes.push({ tone: "info", text: `${c.name} checked the suits. All ${SUITS} are already ready.` });
+            break;
         }
       }
       if (researched && sim.bonusScience) add("science", sim.bonusScience, "Earth's experiment");
@@ -423,6 +433,8 @@ export function runSol(sim: SimState): SimState {
         };
         if (!site) cancel("no destination was planned.");
         else if (dustStorm) cancel("too much dust to see the way back.");
+        else if (suitsReady < walkers.length) cancel(`only ${suitsReady} spacesuit${suitsReady === 1 ? " is" : "s are"} ready for ${walkers.length} astronaut${walkers.length === 1 ? "" : "s"}. Do a Suit check first.`);
+        else if (site.rover && !roverReady({ ...sim, visited })) cancel("explore one place on foot before driving the rover.");
         else if (site.rover && rover.broken) cancel("the rover is broken.");
         else if (site.rover && rover.battery < site.rover) cancel(`the rover needs ${site.rover}% battery but has ${Math.round(rover.battery)}%.`);
         else {
@@ -448,7 +460,8 @@ export function runSol(sim: SimState): SimState {
               notes.push({ tone: "bad", text: `A rover wheel broke at the ${site.name.toLowerCase()}. The crew drove back slowly. Someone must Repair the rover.` });
             } else {
               add("oxygen", -3, "Suit alarm");
-              notes.push({ tone: "bad", text: `A suit alarm went off at the ${site.name.toLowerCase()}, so the crew came back early.` });
+              suitsReady = Math.max(0, suitsReady - 1);
+              notes.push({ tone: "bad", text: `A suit alarm went off at the ${site.name.toLowerCase()}, so the crew came back early. That suit needs a new Suit check.` });
             }
           } else {
             notes.push({ tone: "good", text: `${walkers.map((w) => w.name).join(" and ")} explored the ${site.name.toLowerCase()} (${site.km} km${site.rover ? " by rover" : " on foot"}).` });
@@ -510,6 +523,7 @@ export function runSol(sim: SimState): SimState {
     dusty,
     rover,
     visited,
+    suitsReady,
     rng,
     report,
     history: [...sim.history, report],

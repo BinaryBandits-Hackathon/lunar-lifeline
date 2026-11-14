@@ -120,6 +120,12 @@ export function evaChecklist(sim: SimState, stormToday: boolean): ChecklistItem[
       why: "Astronauts never go outside alone, so someone can help if a suit has a problem.",
     },
     {
+      id: "suits",
+      label: `Suits ready: ${sim.suitsReady} for ${walkers.length} astronaut${walkers.length === 1 ? "" : "s"}`,
+      ok: walkers.length > 0 && sim.suitsReady >= walkers.length,
+      why: "Every spacewalker needs a checked suit. Do a Suit check the sol before.",
+    },
+    {
       id: "weather",
       label: stormToday ? "Weather: storm today!" : "Weather: no storm today",
       ok: !stormToday,

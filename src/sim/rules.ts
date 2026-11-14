@@ -80,10 +80,11 @@ export const TASKS: Record<TaskId, TaskInfo> = {
   exercise: { id: "exercise", name: "Exercise", icon: "strength", energy: 15, what: "Keeps muscles and bones strong." },
   rest: { id: "rest", name: "Rest", icon: "home", energy: -35, what: "Get energy back." },
   eva: { id: "eva", name: "Spacewalk", icon: "astronaut", energy: 30, what: "Go outside in a spacesuit to explore. Plan it first!" },
+  suitPrep: { id: "suitPrep", name: "Suit check", icon: "wrench", energy: 15, what: "Practise in the airlock and get one spacesuit ready. Each spacewalker needs a ready suit." },
   shelter: { id: "shelter", name: "Shelter", icon: "dose", energy: 0, what: "Hide in the shielded room. Safe from radiation, but no work gets done." },
 };
 
-export const TASK_ORDER: TaskId[] = ["eva", "farm", "mine", "repair", "research", "exercise", "rest", "shelter"];
+export const TASK_ORDER: TaskId[] = ["eva", "suitPrep", "farm", "mine", "repair", "research", "exercise", "rest", "shelter"];
 
 /** Jobs done outside in a spacesuit. Inside jobs get some protection from the habitat walls. */
 export const OUTSIDE_TASKS: TaskId[] = ["mine", "repair", "eva"];
@@ -160,5 +161,7 @@ export const EVA_RISK = { base: 0.08, solo: 0.25, tired: 0.12, far: 0.1 } as con
 /** Oxygen to keep in the tanks after the suits are filled. */
 export const EVA_O2_RESERVE = 20;
 export const EVA_MIN_ENERGY = 40;
+/** Spacesuits on the base. */
+export const SUITS = 3;
 /** Radiation on a spacewalk is this many times higher during a solar storm. */
 export const EVA_STORM_DOSE = 3;

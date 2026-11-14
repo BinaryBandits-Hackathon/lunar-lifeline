@@ -8,7 +8,7 @@ import type { MachineId, SimState, TaskId } from "./types";
 export type Feature = "greenhouse" | "mine" | "fuel" | "eva" | "rover";
 
 export const UNLOCK_SOL: Record<Level, Record<Feature, number>> = {
-  cadet: { greenhouse: 2, mine: 3, fuel: 3, eva: 4, rover: 5 },
+  cadet: { greenhouse: 2, mine: 3, fuel: 3, eva: 3, rover: 5 },
   commander: { greenhouse: 1, mine: 1, fuel: 1, eva: 1, rover: 1 },
 };
 
@@ -34,13 +34,13 @@ export const FEATURE_INFO: Record<Feature, { name: string; icon: IconName; what:
   eva: {
     name: "Spacewalks",
     icon: "astronaut",
-    what: "A new job: Spacewalk. Plan it, check the list, and explore on foot. Always take a buddy.",
+    what: "Two new jobs. First Suit check: practise in the airlock and get a suit ready. Then Spacewalk: two astronauts with ready suits explore on foot.",
     real: "Astronauts always go on spacewalks in pairs, and check every part of their suits first.",
   },
   rover: {
     name: "Rover",
     icon: "next",
-    what: "Charge the rover to drive to far places: layered cliffs, a meteorite field and an old lander.",
+    what: "Charge the rover to drive to far places. It opens once your crew has explored one place on foot.",
     real: "Apollo astronauts drove a rover on the Moon to reach places too far to walk.",
   },
 };
@@ -57,6 +57,7 @@ const TASK_FEATURE: Partial<Record<TaskId, Feature>> = {
   farm: "greenhouse",
   mine: "mine",
   eva: "eva",
+  suitPrep: "eva",
 };
 
 export function unlockSol(sim: Pick<SimState, "level">, f: Feature): number {
@@ -88,4 +89,14 @@ export function taskLocked(sim: Pick<SimState, "level" | "sol">, id: TaskId): bo
 /** Features that open exactly on this sol (for the "new on the base" card). */
 export function newOnSol(level: Level, sol: number): Feature[] {
   return FEATURE_ORDER.filter((f) => UNLOCK_SOL[level][f] === sol && sol > 1);
+}
+
+/** Sites reached on foot. The rover is only for crews who have done one walk first. */
+export function walkedOnFoot(sim: Pick<SimState, "visited">): boolean {
+  return sim.visited.some((id) => id === "craterRim" || id === "iceCliff");
+}
+
+/** The rover can be driven: its sol has come and the crew has explored on foot. */
+export function roverReady(sim: Pick<SimState, "level" | "sol" | "visited">): boolean {
+  return isUnlocked(sim, "rover") && walkedOnFoot(sim);
 }

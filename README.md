@@ -2,7 +2,7 @@
 
 **Play it:** https://nasa-hack-26.pages.dev (no download, no sign-in; works on laptops, tablets and phones held sideways)
 
-A learning game for children aged 7 to 12, made by **Binary Bandits** for the **NASA Space Apps Challenge 2026** challenge *"Build a Junior Astronaut Mission Trainer"*. Players land on Mars and run a small base, where every choice has a real cost: power, air, water, food, radiation and the fuel to fly home.
+A learning game for children aged 7 to 12, made by **Vantaloc Space** (team **Binary Bandits**) for the **NASA Space Apps Challenge 2026** challenge *"Build a Junior Astronaut Mission Trainer"*. Players land on Mars and run a small base, where every choice has a real cost: power, air, water, food, radiation and the fuel to fly home.
 
 ![Lunar Life feature graphic](docs/play-store/feature-graphic-1024x500.png)
 
@@ -69,4 +69,4 @@ No accounts, ads, analytics or tracking. The player's name and progress are save
 
 ## Team
 
-Binary Bandits, NASA Space Apps Challenge 2026. See the repository's contributors on GitHub. *(Add team member names and roles here.)*
+Vantaloc Space (team Binary Bandits), NASA Space Apps Challenge 2026. See the repository's contributors on GitHub. *(Add team member names and roles here.)*
