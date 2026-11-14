@@ -245,3 +245,44 @@ describe("story beats", () => {
     expect(storyFor(runSol(sim)).crew?.line).toContain("shelter");
   });
 });
+
+describe("Commander missions with every real solar particle storm", () => {
+  const start = landed("commander", "engineer", "iceValley");
+  /** Same mission, but forced to use this storm on its storm sol. */
+  const withStorm = (storm: (typeof SEP_STORMS)[number], seed: number) => {
+    const sim = createSim(start, seed);
+    return { ...sim, storm: { ...sim.storm, kind: "solar" as const, record: storm, strength: sepStrength(storm) } };
+  };
+  const run = (sim: SimState, bot: Bot) => {
+    for (let i = 0; i < 30 && sim.mode !== "ended"; i++) {
+      if (sim.eventId) sim = chooseEvent(sim, 0);
+      sim = nextSol(runSol(bot(sim)));
+    }
+    return sim;
+  };
+  /** Ignores storm warnings: the engineer keeps mining outside. */
+  const ignoresStorm: Bot = (sim) => {
+    const s = sensible(sim);
+    return s.storm.kind === "solar" && stormStatus(s) === "today" ? s.crew.reduce((x, c) => assignTask(x, c.id, c.role === "engineer" ? "mine" : "research"), s) : s;
+  };
+
+  const rows = SEP_STORMS.flatMap((storm) => [1, 2, 3, 4, 5].map((seed) => ({ storm, safe: run(withStorm(storm, seed), sensible), risky: run(withStorm(storm, seed), ignoresStorm) })));
+  const maxDose = (s: SimState) => Math.max(...s.crew.map((c) => c.dose));
+  console.log(
+    "commander storms: " +
+      SEP_STORMS.map((st) => `${st.start.slice(0, 10)} s${sepStrength(st)}`).join(", ") +
+      `\n  sheltering: grounded ${rows.filter((r) => r.safe.ending?.type === "grounded").length}/${rows.length}, max dose ${Math.round(Math.max(...rows.map((r) => maxDose(r.safe))))} mSv` +
+      `\n  ignoring: grounded ${rows.filter((r) => r.risky.ending?.type === "grounded").length}/${rows.length}, max dose ${Math.round(Math.max(...rows.map((r) => maxDose(r.risky))))} mSv`,
+  );
+
+  it("sheltering keeps every crew under the 600 mSv limit, whatever the storm", () => {
+    for (const r of rows) expect(r.safe.ending?.type).not.toBe("grounded");
+  });
+
+  it("ignoring the storm always costs more radiation, and more for stronger storms", () => {
+    for (const r of rows) expect(maxDose(r.risky)).toBeGreaterThan(maxDose(r.safe) + 30);
+    const extra = (strength: number) => rows.filter((r) => sepStrength(r.storm) === strength).map((r) => maxDose(r.risky) - maxDose(r.safe));
+    const avg = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / Math.max(1, xs.length);
+    expect(avg(extra(6))).toBeGreaterThan(avg(extra(4)));
+  });
+});
