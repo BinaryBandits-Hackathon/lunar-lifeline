@@ -63,6 +63,21 @@ TypeScript, React and Vite. No server and no database: the game is a static webs
 - [docs/design/03-base-simulation.md](docs/design/03-base-simulation.md): the game rules and every number
 - [docs/play-store/README.md](docs/play-store/README.md): the paused Google Play release
 
+## Branches
+
+Everything below is already merged into `main`, which is the live game. The other branches keep each part of the work together so visitors can see how it was built.
+
+| Branch | What it holds |
+|---|---|
+| `main` | The live game at https://nasa-hack-26.pages.dev. Every merge goes live. |
+| `feat/game` | The game itself: opening and landing, the base simulation, surprises, NASA storms, unlocks, spacewalks, suit checks and the rover. |
+| `feat/ui-polish` | The look: Labib's UI polish, the realistic base scene, the title and crew screens, and layouts for laptops, tablets and phones. |
+| `feat/academy` | The Astronaut Academy: drills, badges and ranks. |
+| `feat/play-store` | Android app and Google Play preparation (on hold). |
+| `docs/team-docs` | The team documentation. |
+
+New work starts on a short branch from `main` and comes back through a pull request (see [CONTRIBUTING.md](CONTRIBUTING.md)).
+
 ## Privacy
 
 No accounts, ads, analytics or tracking. The player's name and progress are saved only in the browser on their own device. Fonts and NASA data are built into the game, so playing makes no outside requests. Read-aloud uses on-device voices only. Full policy: https://nasa-hack-26.pages.dev/privacy
