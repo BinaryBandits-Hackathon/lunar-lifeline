@@ -123,7 +123,7 @@ export function App() {
         <nav className="topbar" aria-label="Game controls">
           <span className="topbar-name">
             <Icon name="astronaut" size={20} />
-            {state.player.name || "Junior Astronaut"}
+            {state.player.name || "Commander"}
             <span className="topbar-rank mono">{rankFor(state.career.points).name}</span>
           </span>
           <ol className="phases" aria-label="Mission progress">
