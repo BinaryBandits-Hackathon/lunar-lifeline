@@ -96,3 +96,74 @@
 }
 
 .story-p3-debrief h2:focus { outline: none; }
+
+/* ---------- Tijul's launch, home and stranded scenes (scenes.tsx) ---------- */
+@keyframes story-p3-k-flow { to { stroke-dashoffset: -60; } }
+@keyframes story-p3-k-flame { 0%, 100% { transform: scaleY(1) scaleX(1); } 40% { transform: scaleY(1.22) scaleX(0.92); } 70% { transform: scaleY(0.94) scaleX(1.05); } }
+@keyframes story-p3-k-glow { 0%, 100% { opacity: 0.85; } 50% { opacity: 1; } }
+@keyframes story-p3-k-soft { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.42; } }
+@keyframes story-p3-k-up { from { transform: translateY(220px); } to { transform: translateY(0); } }
+@keyframes story-p3-k-smoke { from { transform: scale(0.6); opacity: 0.2; } to { transform: scale(1); opacity: 1; } }
+@keyframes story-p3-k-beacon { 0%, 70%, 100% { opacity: 0.25; } 80% { opacity: 1; } }
+@keyframes story-p3-k-vent { 0% { transform: translate(0, 0) scale(0.4); opacity: 0.8; } 100% { transform: translate(-60px, -90px) scale(2.4); opacity: 0; } }
+@keyframes story-p3-k-dust { from { transform: scaleX(0.3); opacity: 0; } to { transform: scaleX(1); opacity: 0.6; } }
+@keyframes story-p3-k-twinkle { 0%, 100% { opacity: 0.25; } 50% { opacity: 1; } }
+@keyframes story-p3-k-sunset { from { transform: translateY(-40px); } to { transform: translateY(30px); } }
+@keyframes story-p3-k-drift { from { transform: translateX(-120px); } to { transform: translateX(260px); } }
+@keyframes story-p3-k-reveal { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+.story-p3-anim-fuelflow { animation: story-p3-k-flow 1.6s linear infinite; }
+.story-p3-anim-flame { transform-box: fill-box; transform-origin: top; animation: story-p3-k-flame 0.22s ease-in-out infinite; }
+.story-p3-anim-flicker { animation: story-p3-k-glow 0.3s ease-in-out infinite; }
+.story-p3-anim-flicker-soft { animation: story-p3-k-soft 3.2s ease-in-out infinite; }
+.story-p3-anim-rise { animation: story-p3-k-up 3s cubic-bezier(0.3, 0, 0.2, 1) both; }
+.story-p3-anim-smoke { transform-box: fill-box; transform-origin: bottom; animation: story-p3-k-smoke 3s ease-out both; }
+.story-p3-anim-beacon { animation: story-p3-k-beacon 1.6s linear infinite; }
+.story-p3-anim-vent { transform-box: fill-box; transform-origin: center; animation: story-p3-k-vent 2.2s ease-out infinite; }
+.story-p3-anim-dust { transform-box: fill-box; transform-origin: center; animation: story-p3-k-dust 1.2s ease-out both; }
+.story-p3-anim-twinkle { animation: story-p3-k-twinkle 3.5s ease-in-out infinite; }
+.story-p3-anim-sunset { animation: story-p3-k-sunset 14s ease-in-out both; }
+.story-p3-anim-drift { animation: story-p3-k-drift 18s linear infinite alternate; }
+@media (prefers-reduced-motion: reduce) { [class*="story-p3-anim-"], [class*="story-p3-end"] { animation: none !important; } }
+
+/* ---------- Tijul's ending: title, then the path through the six crises ---------- */
+.story-p3-end {
+  position: absolute; z-index: 1; left: 50%; bottom: 24px; transform: translateX(-50%);
+  width: min(980px, calc(100% - 32px)); max-height: calc(100% - 80px); overflow-y: auto;
+  display: flex; flex-direction: column; gap: 10px; padding: 18px 20px;
+  background: rgba(6, 10, 22, 0.88); border: 1px solid var(--p1-line, #2a3446); border-radius: 12px;
+}
+.story-p3-end.is-home { border-color: rgba(94, 224, 138, 0.5); }
+.story-p3-end.is-stranded { border-color: rgba(255, 122, 110, 0.55); }
+.story-p3-end-title { margin: 0; font-family: var(--display); font-size: 44px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; line-height: 1; animation: story-p3-k-reveal 0.6s ease-out both; }
+.is-home .story-p3-end-title { color: #7fe0a0; }
+.is-stranded .story-p3-end-title { color: #ffb4a8; }
+.story-p3-end-text { margin: 0; font-size: 19px; line-height: 1.4; color: #f3f6ff; }
+.story-p3-end-path { display: flex; flex-direction: column; gap: 6px; }
+.story-p3-end-head { font-family: var(--display); font-size: 14px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--p1-gold, #f5c04a); }
+.story-p3-end-crises { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+.story-p3-end-crisis {
+  position: relative; display: flex; flex-direction: column; gap: 4px; padding: 8px; border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04); border: 1px solid var(--p1-line, #2a3446); animation: story-p3-k-reveal 0.5s ease-out both;
+}
+.story-p3-end-crisis:not(:last-child)::after { content: "›"; position: absolute; right: -8px; top: 50%; transform: translate(50%, -50%); color: #6b7a96; font-size: 18px; }
+.story-p3-end-name { font-size: 12px; line-height: 1.25; color: var(--p1-blue, #9cc7ff); }
+.story-p3-end-choice { display: flex; gap: 6px; align-items: baseline; font-size: 13px; line-height: 1.3; color: #f3f6ff; padding: 3px 5px; border-radius: 4px; }
+.story-p3-end-choice b { flex: none; display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; font-size: 11px; background: #2a3446; color: #f3f6ff; }
+.story-p3-end-choice.is-blamed { background: rgba(255, 110, 80, 0.16); outline: 1px solid rgba(255, 110, 80, 0.7); }
+.story-p3-end-choice.is-blamed b { background: #ff7a6e; color: #1a0b08; }
+.story-p3-end-actions { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; animation: story-p3-k-reveal 0.5s ease-out 1.8s both; }
+.story-p1-still [class*="story-p3-end"] { animation: none !important; }
+
+@media (max-width: 1000px) { .story-p3-end-crises { grid-template-columns: repeat(3, minmax(0, 1fr)); } .story-p3-end-crisis:nth-child(3)::after { display: none; } }
+@media (max-height: 520px) {
+  .story-p3-end { bottom: 8px; padding: 10px 12px; gap: 6px; max-height: calc(100% - 50px); }
+  .story-p3-end-title { font-size: 28px; }
+  .story-p3-end-text { font-size: 15px; }
+  .story-p3-end-choice { font-size: 12px; }
+}
+@media (max-width: 600px) {
+  .story-p3-end-crises { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .story-p3-end-crisis::after { display: none; }
+  .story-p3-end-title { font-size: 34px; }
+}
