@@ -35,6 +35,24 @@ const UI = {
   },
 } as const;
 
+/** The six crises and their decisions, for the ending path (Tijul's ending). */
+const CRISES: DecisionId[][] = [
+  [1, 2],
+  [3, 4],
+  [5, 6],
+  [7, 8],
+  [9, 10],
+  [11, 12],
+];
+const CRISIS_NAMES = [
+  { en: "The broken ship", bn: "ভাঙা স্পেসশিপ" },
+  { en: "The dust storm", bn: "ডাস্ট স্টর্ম" },
+  { en: "Bad air", bn: "খারাপ বাতাস" },
+  { en: "The solar storm", bn: "সোলার স্টর্ম" },
+  { en: "The ground shakes", bn: "মাটি কাঁপছে" },
+  { en: "Launch day", bn: "লঞ্চের দিন" },
+] as const;
+
 const SOUND_KEY = "p1-sound";
 const storedSound = () => {
   try {
@@ -231,7 +249,10 @@ export function Part3(props: FinalPartProps) {
   const storyKey = ([...PART3_BEATS.slice(0, i + 1)].reverse().find((b) => b.art)?.art ?? "quake") as Part3ArtKey;
   const artKey = stage === "story" ? storyKey : won ? "home" : "stranded";
   const chapter = [...PART3_CHAPTERS].reverse().find((c) => c.from <= i) ?? PART3_CHAPTERS[0];
-  const scene = useMemo(() => <Part3Art k={artKey} />, [artKey]);
+  // The launch scene follows decisions 11 and 12 (rock boxes, ignition, night).
+  const rocks = choices[10];
+  const launchChoice = choices[11];
+  const scene = useMemo(() => <Part3Art k={artKey} rocks={rocks ?? null} launch={launchChoice ?? null} />, [artKey, rocks, launchChoice]);
   const pipMood = stage !== "story" ? (won ? "happy" : "calm") : storyKey === "quake" ? "alert" : "calm";
 
   const next = useCallback(() => {
@@ -403,31 +424,46 @@ export function Part3(props: FinalPartProps) {
       )}
 
       {stage === "result" && outcome && (
-        <section className="story-p3-result" aria-live="polite">
-          <span className="story-p3-result-title">{won ? ENDING_TEXT.success.title[lang] : ENDING_TEXT.fail.title[lang]}</span>
-          <div className="story-p1-dialogue story-p3-result-bar">
-            <span className="story-p1-avatar">
-              <Pip mood={pipMood} size={64} />
-            </span>
-            <div className="story-p1-words">
-              <span className="story-p1-who">{UI.who.pip[lang]}</span>
-              {won ? (
-                ENDING_TEXT.success.lines.map((l) => (
-                  <p key={l.en} className="story-p1-text">
-                    {l[lang]}
-                  </p>
-                ))
-              ) : (
-                <>
-                  <p className="story-p1-text">{ENDING_TEXT.fail.reasons[outcome.reason!][lang]}</p>
-                  <p className="story-p3-led">
-                    {ENDING_TEXT.fail.led[lang]} {outcome.blame.map((id) => DECISION_LABELS[id][choices[id - 1]][lang]).join(" · ")}
-                  </p>
-                </>
-              )}
-            </div>
+        <section className={`story-p3-end ${won ? "is-home" : "is-stranded"}`} aria-live="polite" aria-labelledby="p3-end-title">
+          <h2 id="p3-end-title" className="story-p3-end-title">
+            {won ? ENDING_TEXT.success.title[lang] : ENDING_TEXT.fail.title[lang]}
+          </h2>
+          {won ? (
+            ENDING_TEXT.success.lines.map((l) => (
+              <p key={l.en} className="story-p3-end-text">
+                {l[lang]}
+              </p>
+            ))
+          ) : (
+            <p className="story-p3-end-text">{ENDING_TEXT.fail.reasons[outcome.reason!][lang]}</p>
+          )}
+          <div className="story-p3-end-path" aria-label={ENDING_TEXT.path[lang]}>
+            <span className="story-p3-end-head">{won ? ENDING_TEXT.path[lang] : ENDING_TEXT.fail.led[lang]}</span>
+            <ol className="story-p3-end-crises">
+              {CRISES.map((ids, ci) => (
+                <li key={ci} className="story-p3-end-crisis" style={{ animationDelay: `${0.5 + ci * 0.25}s` }}>
+                  <span className="story-p3-end-name">
+                    {num(ci + 1, lang)}. {CRISIS_NAMES[ci][lang]}
+                  </span>
+                  {ids.map((id) => (
+                    <span key={id} className={`story-p3-end-choice${!won && outcome.blame.includes(id) ? " is-blamed" : ""}`}>
+                      <b>{choices[id - 1]}</b>
+                      {DECISION_LABELS[id][choices[id - 1]][lang]}
+                    </span>
+                  ))}
+                </li>
+              ))}
+            </ol>
+          </div>
+          <div className="story-p3-end-actions">
             <button type="button" className="story-p1-next" onClick={next} autoFocus>
               {DEBRIEF.next[lang]}
+            </button>
+            <button type="button" className="story-p3-link" onClick={onRestart}>
+              {ENDING_TEXT.tryAgain[lang]}
+            </button>
+            <button type="button" className="story-p3-link" onClick={onExit}>
+              {ENDING_TEXT.title[lang]}
             </button>
           </div>
         </section>
