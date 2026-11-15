@@ -90,7 +90,7 @@ Open http://localhost:5173.
 
 **Vantaloc Space** (team Binary Bandits), NASA Space Apps Challenge 2026.
 Team Member: 
-Hasin Ishrak Labib
-Kazi Walid Hasan
+Hasin Ishrak Labib,
+Kazi Walid Hasan,
 Tijul Kabir Toha
 
