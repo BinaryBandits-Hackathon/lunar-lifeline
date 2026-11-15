@@ -1,5 +1,7 @@
 # Team plan: building "14 Sols" with 3 people
 
+> **Update (15 November 2026):** the story now has **6 crises and 12 decisions**, and all three parts are built and live on `main`. Part 1 asks decisions 1-2, Part 2 asks 3-8 (dust storm, bad air, solar storm), Part 3 asks 9-12 (marsquake, launch day) and shows the ending and debrief. Where this page or the part docs below say 8 decisions, the master story ([04-story-plan.md](../design/04-story-plan.md)) and `src/story/core/outcome.ts` win.
+
 **Read first:** [docs/design/04-story-plan.md](../design/04-story-plan.md), the master story. It has the full story text, every decision, the hidden calculation, the real NASA data and the art list. Everyone builds from that one file, so we stay on the same page.
 
 ## How the work is split
